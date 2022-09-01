@@ -78,15 +78,15 @@ module _ {o r} {H : HierarchyTheory o r} where
     open Cat (StrictOrders o r)
     open Algebra-hom
 
-  heirarchy-algebra-path : ∀ {X Y} {f g : Algebra-hom (StrictOrders o r) H X Y}
+  hierarchy-algebra-path : ∀ {X Y} {f g : Algebra-hom (StrictOrders o r) H X Y}
                            → (∀ α → f .morphism ⟨$⟩ α ≡ g .morphism ⟨$⟩ α)
                            → f ≡ g
-  heirarchy-algebra-path p = Algebra-hom-path _ (strict-order-path p)
+  hierarchy-algebra-path p = Algebra-hom-path _ (strict-order-path p)
 
-  heirarchy-algebra-happly : ∀ {X Y} {f g : Algebra-hom (StrictOrders o r) H X Y}
+  hierarchy-algebra-happly : ∀ {X Y} {f g : Algebra-hom (StrictOrders o r) H X Y}
                            → f ≡ g
                            → (∀ α → f .morphism ⟨$⟩ α ≡ g .morphism ⟨$⟩ α)
-  heirarchy-algebra-happly p α i = p i .morphism ⟨$⟩ α
+  hierarchy-algebra-happly p α i = p i .morphism ⟨$⟩ α
 
   -- NOTE: We can't use any fancy reasoning combinators in this proof, as it really
   -- upsets the unifier, as it will fail to unify the homomorphism proofs...

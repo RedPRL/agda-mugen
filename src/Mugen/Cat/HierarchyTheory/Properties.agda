@@ -138,12 +138,12 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
                (λ _ → Fᴹᴰ⟨Ψ⟩.has-prop)
       functor .Functor.F₁ σ .commutes = strict-order-path λ where
         ((α , d₁) , d₂) → Σ-pathp refl (SOrdᴴ.assoc (T′ σ) d₁ d₂)
-      functor .Functor.F-id = heirarchy-algebra-path λ where
+      functor .Functor.F-id = hierarchy-algebra-path λ where
         (α , d) → Σ-pathp refl $ Algebra-hom-path _ $
           H.mult.η _ ∘ H.M₁ (σ̅ SOrdᴴ.id) ∘ d .morphism ≡⟨ ap (λ ϕ → H.mult.η _ ∘ H.M₁ ϕ ∘ d .morphism) σ̅-id ⟩
           H.mult.η _ ∘ H.M₁ (H.unit.η _) ∘ d .morphism ≡⟨ cancell H.left-ident ⟩
           d .morphism ∎
-      functor .Functor.F-∘ σ δ = heirarchy-algebra-path λ where
+      functor .Functor.F-∘ σ δ = hierarchy-algebra-path λ where
         (α , d) → Σ-pathp refl $ Algebra-hom-path _ $
           H.mult.η _ ∘ H.M₁ (σ̅ (σ SOrdᴴ.∘ δ)) ∘ d .morphism                             ≡⟨ ap (λ ϕ → H.mult.η _ ∘ (H.M₁ ϕ ∘ d .morphism)) (σ̅-∘ σ δ) ⟩
           H.mult.η _ ∘ H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) ∘ d .morphism               ≡⟨ ap (λ ϕ → H.mult.η _ ∘ ϕ ∘ d .morphism) (H.M-∘ _ _ ∙ ap (H.M₁ (H.mult.η _) ∘_) (H.M-∘ _ _)) ⟩
@@ -260,7 +260,7 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
       H.mult.η _ ∘ H.unit.η _ ∘ σ̅ σ ⟨$⟩ (ι₁ α)          ≡⟨ strict-order-happly (assoc (H.mult.η _) (H.unit.η _) (σ̅ σ)) (ι₁ α) ⟩
       H.mult.η _ ∘ (H.unit.η _ ∘ σ̅ σ) ⟨$⟩ (ι₁ α)        ≡⟨ ap (λ ϕ →  H.mult.η _ ∘ ϕ ⟨$⟩ (ι₁ α)) (H.unit.is-natural _ _ (σ̅ σ)) ⟩
       H.mult.η _ ∘ (H.M₁ (σ̅ σ) ∘ H.unit.η _) ⟨$⟩ (ι₁ α) ≡˘⟨ strict-order-happly (assoc (H.mult.η _) (H.M₁ (σ̅ σ)) (H.unit.η _)) (ι₁ α) ⟩
-      H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ H.unit.η _ ⟨$⟩ (ι₁ α)   ≡⟨ heirarchy-algebra-happly (ap snd $ heirarchy-algebra-happly p (pt , SOrdᴴ.id)) (H.unit.η _ ⟨$⟩ ι₁ α) ⟩
+      H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ H.unit.η _ ⟨$⟩ (ι₁ α)   ≡⟨ hierarchy-algebra-happly (ap snd $ hierarchy-algebra-happly p (pt , SOrdᴴ.id)) (H.unit.η _ ⟨$⟩ ι₁ α) ⟩
       H.mult.η _ ∘ H.M₁ (σ̅ δ) ∘ H.unit.η _ ⟨$⟩ (ι₁ α)   ≡˘⟨ strict-order-happly (assoc (H.mult.η _) (H.M₁ (σ̅ δ)) (H.unit.η _)) (ι₁ α) ⟩
       H.mult.η _ ∘ (H.M₁ (σ̅ δ) ∘ H.unit.η _) ⟨$⟩ (ι₁ α) ≡˘⟨ ap (λ ϕ →  H.mult.η _ ∘ ϕ ⟨$⟩ (ι₁ α)) (H.unit.is-natural _ _ (σ̅ δ)) ⟩
       H.mult.η _ ∘ (H.unit.η _ ∘ σ̅ δ) ⟨$⟩ (ι₁ α)        ≡˘⟨ strict-order-happly (assoc (H.mult.η _) (H.unit.η _) (σ̅ δ)) (ι₁ α) ⟩

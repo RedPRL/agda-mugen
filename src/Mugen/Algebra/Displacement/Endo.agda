@@ -33,7 +33,7 @@ module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
     Endomorphism = Hom Fᴴ⟨Δ⟩ Fᴴ⟨Δ⟩
     {-# INLINE Endomorphism #-}
 
-  -- HACK: We could make this live in a lower universe level, but then we can't construct a heirarchy theory from it without an annoying lift.
+  -- HACK: We could make this live in a lower universe level, but then we can't construct a hierarchy theory from it without an annoying lift.
   record endo[_<_] (σ δ : Endomorphism) : Type (lsuc o ⊔ lsuc r) where
     constructor mk-endo-<
     field
