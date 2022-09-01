@@ -4,7 +4,7 @@ This is a formalization of some of the displacement algebras found in [mugen](ht
 as well as an exploration of some theoretical properties of Heirarchy Theories.
 
 In particular, we present a collection of examples of displacement algebras (See [`Mugen.Algebra.Displacement`](https://github.com/RedPRL/agda-mugen/tree/main/src/Mugen/Algebra/Displacement)),
-and prove some additional properties (right-invariance, existence of bottons, and joins).
+and prove some additional properties (right-invariance, existence of bottoms, and joins).
 We also show that displacement algebras induce monads on the category of strict orders
 (See [`Mugen.Cat.HeirarchyTheory`](https://github.com/RedPRL/agda-mugen/blob/main/src/Mugen/Cat/HierarchyTheory.agda))
 Furthermore, we define the endomorphism displacement algebra (See [`Mugen.Algebra.Displacement.Endo`](https://github.com/RedPRL/agda-mugen/blob/main/src/Mugen/Algebra/Displacement/Endo.agda)),
