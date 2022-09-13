@@ -15,12 +15,12 @@ and have formalized the first step towards showing that this is generates the "u
 
 This formalization depends on the [1Lab](https://github.com/plt-amy/1lab), which
 can be installed by cloning the repo, and then adding a single line to the `~/.agda/libraries`
-that points to the path where you cloned the repo. This formalization was checked against commit `9e1eb4cd`.
+that points to the path where you cloned the repo. This formalization was checked against commit `f5465e94`.
 
 Furthermore, this formalization requires Agda 2.6.3, which can be obtained by installing from source.
 Simply clone the [Agda](https://github.com/agda/agda) repository, and then run `cabal install` to install.
 If you do not have a working Haskell toolchain, the best route is to use [ghcup](https://www.haskell.org/ghcup/).
-This formalization was checked against `3044510c8`.
+This formalization was checked against `efa6fe4cc`.
 
 ## Docker
 

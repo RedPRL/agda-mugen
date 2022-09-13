@@ -5,7 +5,7 @@ include:
   wip
 flags:
   --cubical
-  --no-import-sorts
+  --no-load-primitives
   --postfix-projections
   --rewriting
   --guardedness

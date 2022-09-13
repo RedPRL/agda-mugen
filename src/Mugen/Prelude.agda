@@ -93,23 +93,6 @@ instance
   ⊎-hlevel {n = n} = hlevel-instance $ ⊎-is-hlevel _ (hlevel (2 + n)) (hlevel (2 + n))
 
 --------------------------------------------------------------------------------
--- Propositional Truncation
-
-module ∥-∥-Notation where
-  private variable
-    ℓ : Level
-    A B : Type ℓ
-
-  pure : A → ∥ A ∥
-  pure = inc
-
-  _>>=_ : ∥ A ∥ → (A → ∥ B ∥) → ∥ B ∥
-  p >>= k = ∥-∥-elim (λ _ → squash) k p 
-
-  _<$>_ : (A → B) → ∥ A ∥ → ∥ B ∥
-  f <$> p = ∥-∥-elim (λ _ → squash) (λ a → inc (f a)) p
-
---------------------------------------------------------------------------------
 -- Decidability
 
 dec-map : ∀ {ℓ ℓ′} {P : Type ℓ} {Q : Type ℓ′} → (P → Q) → (Q → P) → Dec P → Dec Q

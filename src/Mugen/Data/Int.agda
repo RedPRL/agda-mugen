@@ -8,7 +8,9 @@ open import Mugen.Prelude
 open import Mugen.Order.StrictOrder
 open import Mugen.Data.Nat
 
-open import Agda.Builtin.Int public
+data Int : Type where
+  pos    : (n : Nat) → Int
+  negsuc : (n : Nat) → Int
 
 --------------------------------------------------------------------------------
 -- General Facts
