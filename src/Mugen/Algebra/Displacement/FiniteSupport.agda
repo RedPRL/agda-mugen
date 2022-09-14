@@ -14,6 +14,7 @@ open import Mugen.Order.StrictOrder
 open import Mugen.Data.List
 open import Mugen.Data.Nat hiding (_<_)
 open import Data.Bool
+open import Data.Set.Coequaliser
 
 module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   private
@@ -34,27 +35,74 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   -- >     | otherwise -> ε
   --
   -- would be represented by the list [(2, 10), (1, 13), (0, 100)]
+  --
+  -- These support lists have an evident interpretation into the infinite product,
+  -- and this forms a valid displacement algebra.
+  -- However, without correction, this displacement algebra is /not/
+  -- a subalgebra of the infinite product; the embedding is not injective!
+  -- To see why, consider support lists that contain the identity of 𝒟, such
+  -- as '[ε, 0]': both it and [] will get mapped to ε∞.
+  --
+  -- We resolve this by taking the coequalizer of support lists by the
+  -- interpretation into the infinite product, which kills off any such
+  -- differences.
 
-  Support : Type o
-  Support = List (⌞ 𝒟 ⌟ × Nat)
+  SupportList : Type o
+  SupportList = List (⌞ 𝒟 ⌟ × Nat)
 
-  Support-is-set : is-set Support
-  Support-is-set = ListPath.is-set→List-is-set (×-is-hlevel 2 ⌞ 𝒟 ⌟-set (hlevel 2))
+  ⟦_⟧ : SupportList → Nat → ⌞ 𝒟 ⌟
+  ⟦ [] ⟧ n = ε
+  ⟦ ((x , zero) ∷ xs) ⟧ zero = x
+  ⟦ ((x , zero) ∷ xs) ⟧ (suc n) = ⟦ xs ⟧ n
+  ⟦ ((x , suc m) ∷ xs) ⟧ zero = ε
+  ⟦ ((x , suc m) ∷ xs) ⟧ (suc n) = ⟦ ((x , m) ∷ xs) ⟧ n
 
   --------------------------------------------------------------------------------
   -- Algebra
 
-  shift : Support → Support
+  SupportList-is-set : is-set SupportList
+  SupportList-is-set = ListPath.is-set→List-is-set (×-is-hlevel 2 ⌞ 𝒟 ⌟-set (hlevel 2))
+
+  shift : SupportList → SupportList
   shift [] = []
   shift ((x , n) ∷ xs) = (x , suc n) ∷ xs
 
-  merge : Support → Support → Support
+  shift-zero : ∀ xs → ⟦ shift xs ⟧ zero ≡ ε
+  shift-zero [] = refl
+  shift-zero (x ∷ xs) = refl
+
+  shift-suc : ∀ xs ix → ⟦ shift xs ⟧ (suc ix) ≡ ⟦ xs ⟧ ix
+  shift-suc [] ix = refl
+  shift-suc (x ∷ xs) ix = refl
+
+  merge : SupportList → SupportList → SupportList
   merge [] ys = ys
   merge (x ∷ xs) [] = x ∷ xs
   merge ((x , zero) ∷ xs) ((y , zero) ∷ ys) = (x ⊗ y , zero) ∷ merge xs ys
   merge ((x , zero) ∷ xs) ((y , suc n) ∷ ys) = (x , zero) ∷ merge xs ((y , n) ∷ ys)
   merge ((x , suc m) ∷ xs) ((y , zero) ∷ ys) = (y , zero) ∷ merge ((x , m) ∷ xs) ys
   merge ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) = shift (merge ((x , m) ∷ xs) ((y , n) ∷ ys))
+
+  merge-sound : ∀ xs ys → ⟦ merge xs ys ⟧ ≡ ⟦ xs ⟧ ⊗∞ ⟦ ys ⟧
+  merge-sound [] ys i n = 𝒟.idl {x = ⟦ ys ⟧ n} (~ i)
+  merge-sound (x ∷ xs) [] i n =
+    𝒟.idr {x = ⟦ x ∷ xs ⟧ n} (~ i)
+  merge-sound ((x , zero) ∷ xs) ((y , zero) ∷ ys) i zero =
+    x ⊗ y
+  merge-sound ((x , zero) ∷ xs) ((y , zero) ∷ ys) i (suc ix) =
+    merge-sound xs ys i ix
+  merge-sound ((x , zero) ∷ xs) ((y , suc n) ∷ ys) i zero =
+    𝒟.idr {x} (~ i)
+  merge-sound ((x , zero) ∷ xs) ((y , suc n) ∷ ys) i (suc ix) =
+    merge-sound xs ((y , n) ∷ ys) i ix
+  merge-sound ((x , suc m) ∷ xs) ((y , zero) ∷ ys) i zero =
+    𝒟.idl {y} (~ i)
+  merge-sound ((x , suc m) ∷ xs) ((y , zero) ∷ ys) i (suc ix) =
+    merge-sound ((x , m) ∷ xs) ys i ix
+  merge-sound ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) i zero =
+    (shift-zero (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ∙ sym 𝒟.idl) i
+  merge-sound ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) i (suc ix) =
+    (shift-suc (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ix ∙ happly (merge-sound ((x , m) ∷ xs) ((y , n) ∷ ys)) ix) i
 
   merge-idl : ∀ xs → merge [] xs ≡ xs
   merge-idl _ = refl
@@ -108,7 +156,7 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
     merge (shift (merge ((x , m) ∷ xs) ((y , n) ∷ ys))) ((z , suc o) ∷ zs) ∎
 
   merge-is-magma : is-magma merge
-  merge-is-magma .has-is-set = Support-is-set
+  merge-is-magma .has-is-set = SupportList-is-set
 
   merge-is-semigroup : is-semigroup merge
   merge-is-semigroup .has-is-magma = merge-is-magma
@@ -120,65 +168,26 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   merge-is-monoid .idr {xs} = merge-idr xs
 
   --------------------------------------------------------------------------------
-  -- Interpret Finite Support as an infinite product
-
-  support : Support → Nat → ⌞ 𝒟 ⌟
-  support [] n = ε
-  support ((x , zero) ∷ xs) zero = x
-  support ((x , zero) ∷ xs) (suc n) = support xs n
-  support ((x , suc m) ∷ xs) zero = ε
-  support ((x , suc m) ∷ xs) (suc n) = support ((x , m) ∷ xs) n
-
-  shift-zero : ∀ xs → support (shift xs) zero ≡ ε
-  shift-zero [] = refl
-  shift-zero (x ∷ xs) = refl
-
-  shift-suc : ∀ xs ix → support (shift xs) (suc ix) ≡ support xs ix
-  shift-suc [] ix = refl
-  shift-suc (x ∷ xs) ix = refl
-
-  merge-sound : ∀ xs ys → support (merge xs ys) ≡ (support xs ⊗∞ support ys)
-  merge-sound [] ys i n = 𝒟.idl {x = support ys n} (~ i)
-  merge-sound (x ∷ xs) [] i n =
-    𝒟.idr {x = support (x ∷ xs) n} (~ i)
-  merge-sound ((x , zero) ∷ xs) ((y , zero) ∷ ys) i zero =
-    x ⊗ y
-  merge-sound ((x , zero) ∷ xs) ((y , zero) ∷ ys) i (suc ix) =
-    merge-sound xs ys i ix
-  merge-sound ((x , zero) ∷ xs) ((y , suc n) ∷ ys) i zero =
-    𝒟.idr {x} (~ i)
-  merge-sound ((x , zero) ∷ xs) ((y , suc n) ∷ ys) i (suc ix) =
-    merge-sound xs ((y , n) ∷ ys) i ix
-  merge-sound ((x , suc m) ∷ xs) ((y , zero) ∷ ys) i zero =
-    𝒟.idl {y} (~ i)
-  merge-sound ((x , suc m) ∷ xs) ((y , zero) ∷ ys) i (suc ix) =
-    merge-sound ((x , m) ∷ xs) ys i ix
-  merge-sound ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) i zero =
-    (shift-zero (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ∙ sym 𝒟.idl) i
-  merge-sound ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) i (suc ix) =
-    (shift-suc (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ix ∙ happly (merge-sound ((x , m) ∷ xs) ((y , n) ∷ ys)) ix) i
-
-  --------------------------------------------------------------------------------
   -- Ordering
   --
   -- For ease of use, we define the ordering of finitely supported functions
   -- via their interpretation into infinite products.
 
-  _sup<_ : Support → Support → Type (o ⊔ r)
-  xs sup< ys = support xs inf< support ys
+  _sup<_ : SupportList → SupportList → Type (o ⊔ r)
+  xs sup< ys = ⟦ xs ⟧ inf< ⟦ ys ⟧
 
   sup-is-strict-order : is-strict-order _sup<_
-  sup-is-strict-order .is-strict-order.irrefl {xs} = inf<-irrefl (support xs)
-  sup-is-strict-order .is-strict-order.trans {xs} {ys} {zs} = inf<-trans (support xs) (support ys) (support zs)
-  sup-is-strict-order .is-strict-order.has-prop {xs} {ys} = inf<-is-prop (support xs) (support ys)
+  sup-is-strict-order .is-strict-order.irrefl {xs} = inf<-irrefl ⟦ xs ⟧
+  sup-is-strict-order .is-strict-order.trans {xs} {ys} {zs} = inf<-trans ⟦ xs ⟧ ⟦ ys ⟧ ⟦ zs ⟧
+  sup-is-strict-order .is-strict-order.has-prop {xs} {ys} = inf<-is-prop ⟦ xs ⟧ ⟦ ys ⟧
 
   merge-is-displacement-algebra : is-displacement-algebra _sup<_ [] merge
   merge-is-displacement-algebra .is-displacement-algebra.has-monoid = merge-is-monoid
   merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = sup-is-strict-order
   merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} ys<zs =
-    subst (λ ϕ → ϕ inf< support (merge xs zs)) (sym (merge-sound xs ys)) $
-    subst (λ ϕ → (support xs ⊗∞ support ys) inf< ϕ) (sym (merge-sound xs zs)) $
-    ⊗∞-left-invariant (support xs) (support ys) (support zs) ys<zs
+    subst (λ ϕ → ϕ inf< ⟦ merge xs zs ⟧) (sym (merge-sound xs ys)) $
+    subst (λ ϕ → (⟦ xs ⟧ ⊗∞ ⟦ ys ⟧) inf< ϕ) (sym (merge-sound xs zs)) $
+    ⊗∞-left-invariant ⟦ xs ⟧ ⟦ ys ⟧ ⟦ zs ⟧ ys<zs
 
 FiniteSupport : ∀ {o r} → DisplacementAlgebra o r → DisplacementAlgebra o (o ⊔ r)
 FiniteSupport {o = o} {r = r} 𝒟 = displacement
@@ -186,9 +195,22 @@ FiniteSupport {o = o} {r = r} 𝒟 = displacement
     open FinSupport 𝒟
 
     displacement : DisplacementAlgebra o (o ⊔ r)
-    ⌞ displacement ⌟ = Support
+    ⌞ displacement ⌟ = SupportList
     displacement .structure .DisplacementAlgebra-on._<_ = _sup<_
     displacement .structure .DisplacementAlgebra-on.ε = []
     displacement .structure .DisplacementAlgebra-on._⊗_ = merge
     displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
-    ⌞ displacement ⌟-set = Support-is-set
+    ⌞ displacement ⌟-set = SupportList-is-set
+
+-- FiniteSupport⊆InfProd : ∀ {o r} {𝒟 : DisplacementAlgebra o r} → is-displacement-subalgebra (FiniteSupport 𝒟) (InfProd 𝒟)
+-- FiniteSupport⊆InfProd {𝒟 = 𝒟} = {!!}
+--   where
+--     open FinSupport 𝒟
+
+--     subalg : is-displacement-subalgebra (FiniteSupport 𝒟) (InfProd 𝒟)
+--     subalg .is-displacement-subalgebra.into ._⟨$⟩_ = support
+--     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
+--     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ = merge-sound
+--     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono xs<ys = xs<ys
+--     subalg .is-displacement-subalgebra.inj {xs} {ys} p = {!xs!}
+
