@@ -11,8 +11,9 @@ open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder
 
 module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
-  module 𝒟 = DisplacementAlgebra 𝒟
-  open 𝒟 using (ε; _⊗_)
+  private
+    module 𝒟 = DisplacementAlgebra 𝒟
+    open 𝒟 using (ε; _⊗_)
 
   -- NOTE: This is classically equivalent to the definition presented in the paper,
   -- but less annoying to work with constructively.
