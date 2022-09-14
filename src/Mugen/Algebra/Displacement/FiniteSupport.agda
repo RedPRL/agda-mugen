@@ -12,7 +12,7 @@ open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
-open import Mugen.Data.Nat
+open import Mugen.Data.Nat hiding (_<_)
 open import Data.Bool
 
 module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
@@ -21,10 +21,28 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
     open 𝒟 using (ε; _⊗_)
     open Inf 𝒟
 
-  -- We represent support as a sort of gap-list, where each of the nats specifies
-  -- the offset from the last value that is not equal to 'ε'.
+  --------------------------------------------------------------------------------
+  -- Finitely Supported Functions
+  --
+  -- We represent support as a sort of Gap List, where each of the nats specifies
+  -- the offset (plus one) from the last value that is not equal to 'ε'.
+  -- For instance, the function
+  --
+  -- > λ x | x = 3 -> 10
+  -- >     | x = 5 -> 13
+  -- >     | x = 6 -> 100
+  -- >     | otherwise -> ε
+  --
+  -- would be represented by the list [(2, 10), (1, 13), (0, 100)]
+
   Support : Type o
   Support = List (⌞ 𝒟 ⌟ × Nat)
+
+  Support-is-set : is-set Support
+  Support-is-set = ListPath.is-set→List-is-set (×-is-hlevel 2 ⌞ 𝒟 ⌟-set (hlevel 2))
+
+  --------------------------------------------------------------------------------
+  -- Algebra
 
   shift : Support → Support
   shift [] = []
@@ -90,7 +108,7 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
     merge (shift (merge ((x , m) ∷ xs) ((y , n) ∷ ys))) ((z , suc o) ∷ zs) ∎
 
   merge-is-magma : is-magma merge
-  merge-is-magma .has-is-set = ListPath.is-set→List-is-set (×-is-hlevel 2 ⌞ 𝒟 ⌟-set (hlevel 2 ))
+  merge-is-magma .has-is-set = Support-is-set
 
   merge-is-semigroup : is-semigroup merge
   merge-is-semigroup .has-is-magma = merge-is-magma
@@ -139,3 +157,38 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
     (shift-zero (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ∙ sym 𝒟.idl) i
   merge-sound ((x , suc m) ∷ xs) ((y , suc n) ∷ ys) i (suc ix) =
     (shift-suc (merge ((x , m) ∷ xs) ((y , n) ∷ ys)) ix ∙ happly (merge-sound ((x , m) ∷ xs) ((y , n) ∷ ys)) ix) i
+
+  --------------------------------------------------------------------------------
+  -- Ordering
+  --
+  -- For ease of use, we define the ordering of finitely supported functions
+  -- via their interpretation into infinite products.
+
+  _sup<_ : Support → Support → Type (o ⊔ r)
+  xs sup< ys = support xs inf< support ys
+
+  sup-is-strict-order : is-strict-order _sup<_
+  sup-is-strict-order .is-strict-order.irrefl {xs} = inf<-irrefl (support xs)
+  sup-is-strict-order .is-strict-order.trans {xs} {ys} {zs} = inf<-trans (support xs) (support ys) (support zs)
+  sup-is-strict-order .is-strict-order.has-prop {xs} {ys} = inf<-is-prop (support xs) (support ys)
+
+  merge-is-displacement-algebra : is-displacement-algebra _sup<_ [] merge
+  merge-is-displacement-algebra .is-displacement-algebra.has-monoid = merge-is-monoid
+  merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = sup-is-strict-order
+  merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} ys<zs =
+    subst (λ ϕ → ϕ inf< support (merge xs zs)) (sym (merge-sound xs ys)) $
+    subst (λ ϕ → (support xs ⊗∞ support ys) inf< ϕ) (sym (merge-sound xs zs)) $
+    ⊗∞-left-invariant (support xs) (support ys) (support zs) ys<zs
+
+FiniteSupport : ∀ {o r} → DisplacementAlgebra o r → DisplacementAlgebra o (o ⊔ r)
+FiniteSupport {o = o} {r = r} 𝒟 = displacement
+  where
+    open FinSupport 𝒟
+
+    displacement : DisplacementAlgebra o (o ⊔ r)
+    ⌞ displacement ⌟ = Support
+    displacement .structure .DisplacementAlgebra-on._<_ = _sup<_
+    displacement .structure .DisplacementAlgebra-on.ε = []
+    displacement .structure .DisplacementAlgebra-on._⊗_ = merge
+    displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
+    ⌞ displacement ⌟-set = Support-is-set
