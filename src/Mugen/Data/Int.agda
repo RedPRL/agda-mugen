@@ -17,6 +17,10 @@ data Int : Type where
 
 pattern 0ℤ = pos zero
 
+-_ : Nat → Int
+- zero = pos zero
+- suc x = negsuc x
+
 abs : Int → Nat
 abs (pos n) = n
 abs (negsuc n) = suc n
@@ -174,6 +178,19 @@ infixr 5 _+ℤ_
   negsuc (suc (suc x) + (y + z)) ≡˘⟨ ap negsuc (+-sucr (suc x) (y + z)) ⟩
   negsuc (suc x + suc (y + z)) ∎
 
+
++ℤ-negate : ∀ x y → - (x + y) ≡ (- x) +ℤ (- y)
++ℤ-negate zero zero = refl
++ℤ-negate zero (suc y) = refl
++ℤ-negate (suc x) zero = ap negsuc (+-zeror x)
++ℤ-negate (suc x) (suc y) = ap negsuc (+-sucr  x y)
+
+negate-inj : ∀ x y → (- x) ≡ (- y) → x ≡ y
+negate-inj zero zero p = refl
+negate-inj zero (suc y) p = absurd (pos≠negsuc p)
+negate-inj (suc x) zero p = absurd (pos≠negsuc (sym p))
+negate-inj (suc x) (suc y) p = ap suc (negsuc-inj p)
+
 +ℤ-is-magma : is-magma _+ℤ_
 +ℤ-is-magma .has-is-set = hlevel 2
 
@@ -185,6 +202,7 @@ infixr 5 _+ℤ_
 +ℤ-0ℤ-is-monoid .has-is-semigroup = +ℤ-is-semigroup
 +ℤ-0ℤ-is-monoid .idl {x} = +ℤ-idl x
 +ℤ-0ℤ-is-monoid .idr {y} =  +ℤ-idr y
+
 
 --------------------------------------------------------------------------------
 -- Order
@@ -415,3 +433,7 @@ maxℤ-is-lub (pos x) (negsuc y) (pos z) x≤z y≤z = x≤z
 maxℤ-is-lub (negsuc x) (pos y) (pos z) x≤z y≤z = y≤z
 maxℤ-is-lub (negsuc x) (negsuc y) (pos z) x≤z y≤z = tt
 maxℤ-is-lub (negsuc x) (negsuc y) (negsuc z) x≤z y≤z = min-is-glb x y z x≤z y≤z
+
+negate-anti-mono : ∀ x y → x < y → (- y) <ℤ (- x)
+negate-anti-mono zero (suc y) x<y = tt
+negate-anti-mono (suc x) (suc y) x<y = x<y

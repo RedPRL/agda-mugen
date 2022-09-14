@@ -40,7 +40,6 @@ record DisplacementAlgebra-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔
 
   open is-displacement-algebra has-displacement-algebra public
 
-
 DisplacementAlgebra : ∀ o r → Type (lsuc o ⊔ lsuc r)
 DisplacementAlgebra o r = SetStructure (DisplacementAlgebra-on {o} r)
 
@@ -59,6 +58,43 @@ _[_<_]ᵈ : (𝒟 : DisplacementAlgebra o r) → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ �
 
 _[_≤_]ᵈ : (𝒟 : DisplacementAlgebra o r) → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type (o ⊔ r)
 𝒟 [ x ≤ y ]ᵈ = DisplacementAlgebra-on._≤_ (structure 𝒟) x y
+
+--------------------------------------------------------------------------------
+-- Homomorphisms of Displacement Algebras
+
+record is-displacement-algebra-homomorphism
+  {o r}
+  (X Y : DisplacementAlgebra o r)
+  (f : ⌞ X ⌟ → ⌞ Y ⌟)
+  : Type (o ⊔ r)
+  where
+  private
+    module X = DisplacementAlgebra X
+    module Y = DisplacementAlgebra Y
+  field
+    pres-ε : f X.ε ≡ Y.ε
+    pres-⊗ : ∀ (x y : ⌞ X ⌟) → f (x X.⊗ y) ≡ (f x Y.⊗ f y)
+    strictly-mono : ∀ {x y} → X [ x < y ]ᵈ → Y [ f x < f y ]ᵈ
+
+DisplacementAlgebra-hom : ∀ {o r} → (X Y : DisplacementAlgebra o r) → Type (o ⊔ r)
+DisplacementAlgebra-hom = Homomorphism is-displacement-algebra-homomorphism
+
+module DisplacementAlgebra-hom
+  {o r} {X Y : DisplacementAlgebra o r}
+  (f : DisplacementAlgebra-hom X Y)
+  where
+
+  open is-displacement-algebra-homomorphism (homo f)
+
+--------------------------------------------------------------------------------
+-- Subalgebras of Displacement Algebras
+
+record is-displacement-subalgebra {o r} (X Y : DisplacementAlgebra o r) : Type (o ⊔ r) where
+  field
+    into : DisplacementAlgebra-hom X Y
+    inj  : ∀ {x y} → into ⟨$⟩ x ≡ into ⟨$⟩ y → x ≡ y
+
+  open DisplacementAlgebra-hom into public
 
 --------------------------------------------------------------------------------
 -- Some Properties of Displacement Algebras
