@@ -95,3 +95,35 @@ module Coimage {o r} {X Y : DisplacementAlgebra o r} (f : DisplacementAlgebra-ho
   ⊗coim-is-displacement-algebra .is-displacement-algebra.has-monoid = ⊗coim-is-monoid
   ⊗coim-is-displacement-algebra .is-displacement-algebra.has-strict-order = coim<-is-strict-order
   ⊗coim-is-displacement-algebra .is-displacement-algebra.left-invariant {x} {y} {z} = ⊗coim-left-invariant x y z
+
+Coimage : ∀ {o r} {X Y : DisplacementAlgebra o r} (f : DisplacementAlgebra-hom X Y) → DisplacementAlgebra o r
+Coimage {o} {r} f = displacement
+  where
+    open Coimage f
+
+    displacement : DisplacementAlgebra o r
+    ⌞ displacement ⌟ = X/f
+    displacement .structure .DisplacementAlgebra-on._<_ = _coim<_
+    displacement .structure .DisplacementAlgebra-on.ε = εcoim
+    displacement .structure .DisplacementAlgebra-on._⊗_ = _⊗coim_
+    displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = ⊗coim-is-displacement-algebra
+    ⌞ displacement ⌟-set = squash
+
+Coimage-subalgebra : ∀ {o r} {X Y : DisplacementAlgebra o r} {f : DisplacementAlgebra-hom X Y} → is-displacement-subalgebra (Coimage f) Y
+Coimage-subalgebra {X = X} {Y = Y} {f = f} = subalgebra
+  where
+    open Coimage f
+    module Y = DisplacementAlgebra Y
+    open DisplacementAlgebra-hom f
+
+    into : ⌞ Coimage f ⌟ → ⌞ Y ⌟
+    into = Coim-rec  ⌞ Y ⌟-set (f ⟨$⟩_) λ _ _ p → p
+
+    subalgebra : is-displacement-subalgebra (Coimage f) Y
+    subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
+    subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = pres-ε
+    subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ = Coim-elim-prop₂ (λ _ _ → ⌞ Y ⌟-set _ _) pres-⊗
+    subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {x} {y} =
+      Coim-elim-prop₂ {C = λ x y → x coim< y → into x Y.< into y} (λ _ _ → Π-is-hlevel 1 (λ _ → Y.<-is-prop)) (λ x y p → p) x y
+    subalgebra .is-displacement-subalgebra.inj {x} {y} =
+      Coim-elim-prop₂ {C = λ x y → into x ≡ into y → x ≡ y} (λ _ _ → Π-is-hlevel 1 λ _ → squash _ _) glue x y
