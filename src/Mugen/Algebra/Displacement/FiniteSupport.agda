@@ -7,14 +7,13 @@ open import Algebra.Semigroup
 open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
+open import Mugen.Algebra.Displacement.Coimage
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
 open import Mugen.Data.Nat hiding (_<_)
-open import Data.Bool
-open import Data.Set.Coequaliser
 
 module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   private
@@ -43,9 +42,8 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   -- To see why, consider support lists that contain the identity of 𝒟, such
   -- as '[ε, 0]': both it and [] will get mapped to ε∞.
   --
-  -- We resolve this by taking the coequalizer of support lists by the
-  -- interpretation into the infinite product, which kills off any such
-  -- differences.
+  -- We can resolve this by doing an epi/mono factorisation, and working
+  -- with the coimage of ⟦_⟧.
 
   SupportList : Type o
   SupportList = List (⌞ 𝒟 ⌟ × Nat)
@@ -56,6 +54,9 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
   ⟦ ((x , zero) ∷ xs) ⟧ (suc n) = ⟦ xs ⟧ n
   ⟦ ((x , suc m) ∷ xs) ⟧ zero = ε
   ⟦ ((x , suc m) ∷ xs) ⟧ (suc n) = ⟦ ((x , m) ∷ xs) ⟧ n
+
+  Support : Type o
+  Support = Coeq ⟦_⟧ ⟦_⟧
 
   --------------------------------------------------------------------------------
   -- Algebra
@@ -190,27 +191,24 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) where
     ⊗∞-left-invariant ⟦ xs ⟧ ⟦ ys ⟧ ⟦ zs ⟧ ys<zs
 
 FiniteSupport : ∀ {o r} → DisplacementAlgebra o r → DisplacementAlgebra o (o ⊔ r)
-FiniteSupport {o = o} {r = r} 𝒟 = displacement
+FiniteSupport {o = o} {r = r} 𝒟 = Coimage ⟦⟧-homo
   where
+    module 𝒟 = DisplacementAlgebra 𝒟
     open FinSupport 𝒟
 
-    displacement : DisplacementAlgebra o (o ⊔ r)
-    ⌞ displacement ⌟ = SupportList
-    displacement .structure .DisplacementAlgebra-on._<_ = _sup<_
-    displacement .structure .DisplacementAlgebra-on.ε = []
-    displacement .structure .DisplacementAlgebra-on._⊗_ = merge
-    displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
-    ⌞ displacement ⌟-set = SupportList-is-set
+    Sup : DisplacementAlgebra o (o ⊔ r)
+    ⌞ Sup ⌟ = SupportList
+    Sup .structure .DisplacementAlgebra-on._<_ = _sup<_
+    Sup .structure .DisplacementAlgebra-on.ε = []
+    Sup .structure .DisplacementAlgebra-on._⊗_ = merge
+    Sup .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
+    ⌞ Sup ⌟-set = SupportList-is-set
 
--- FiniteSupport⊆InfProd : ∀ {o r} {𝒟 : DisplacementAlgebra o r} → is-displacement-subalgebra (FiniteSupport 𝒟) (InfProd 𝒟)
--- FiniteSupport⊆InfProd {𝒟 = 𝒟} = {!!}
---   where
---     open FinSupport 𝒟
+    ⟦⟧-homo : DisplacementAlgebra-hom Sup (InfProd 𝒟)
+    ⟦⟧-homo ._⟨$⟩_ = ⟦_⟧
+    ⟦⟧-homo .homo .is-displacement-algebra-homomorphism.pres-ε = refl
+    ⟦⟧-homo .homo .is-displacement-algebra-homomorphism.pres-⊗ = merge-sound
+    ⟦⟧-homo .homo .is-displacement-algebra-homomorphism.strictly-mono p = p
 
---     subalg : is-displacement-subalgebra (FiniteSupport 𝒟) (InfProd 𝒟)
---     subalg .is-displacement-subalgebra.into ._⟨$⟩_ = support
---     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
---     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ = merge-sound
---     subalg .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono xs<ys = xs<ys
---     subalg .is-displacement-subalgebra.inj {xs} {ys} p = {!xs!}
-
+FiniteSupport⊆InfProd : ∀ {o r} {𝒟 : DisplacementAlgebra o r} → is-displacement-subalgebra (FiniteSupport 𝒟) (InfProd 𝒟)
+FiniteSupport⊆InfProd = Coimage-subalgebra
