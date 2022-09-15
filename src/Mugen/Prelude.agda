@@ -98,3 +98,10 @@ instance
 dec-map : ∀ {ℓ ℓ′} {P : Type ℓ} {Q : Type ℓ′} → (P → Q) → (Q → P) → Dec P → Dec Q
 dec-map to from (yes p) = yes (to p)
 dec-map to from (no ¬p) = no (λ q → ¬p (from q))
+
+--------------------------------------------------------------------------------
+-- Misc.
+
+subst₂ : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (P : A → B → Type ℓ₃) {a1 a2 : A} {b1 b2 : B}
+       → a1 ≡ a2 → b1 ≡ b2 → P a1 b1 → P a2 b2
+subst₂ P p q x = subst (λ a → P a _) p (subst (λ b → P _ b) q x) 

@@ -84,7 +84,7 @@ module DisplacementAlgebra-hom
   (f : DisplacementAlgebra-hom X Y)
   where
 
-  open is-displacement-algebra-homomorphism (homo f)
+  open is-displacement-algebra-homomorphism (homo f) public
 
 --------------------------------------------------------------------------------
 -- Subalgebras of Displacement Algebras
