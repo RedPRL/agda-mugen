@@ -12,8 +12,25 @@ data Coim {ℓ ℓ′} {A : Type ℓ} {B : Type ℓ′} (f : A → B) : Type (�
   glue : ∀ x y → f x ≡ f y → inc x ≡ inc y
   squash : is-set (Coim f)
 
+
 --------------------------------------------------------------------------------
 -- Eliminators
+
+Coim-elim : ∀ {ℓ} {f : A → B} {C : Coim f → Type ℓ}
+            → (∀ x → is-set (C x))
+            → (ci : ∀ x → C (inc x))
+            → (∀ x y → (p : f x ≡ f y) → PathP (λ i → C (glue x y p i)) (ci x) (ci y))
+            → ∀ x → C x
+Coim-elim cset ci cglue (inc x) = ci x
+Coim-elim cset ci cglue (glue x y p i) = cglue x y p i
+Coim-elim cset ci cglue (squash x y p q i j) =
+  is-set→squarep (λ i j → cset (squash x y p q i j))
+    (λ i → map x)
+    (λ i → map (p i))
+    (λ i → map (q i))
+    (λ i → map y)
+    i j
+  where map = Coim-elim cset ci cglue
 
 Coim-elim-prop : ∀ {ℓ} {f : A → B} {C : Coim f → Type ℓ}
                  → (∀ x → is-prop (C x))
@@ -103,3 +120,41 @@ Coim-rec₂ cset h h-pres (squash w x p q i j) z =
   cset (map w z) (map x z) (λ j → map (p j) z) (λ j → map (q j) z) i j
   where
     map = Coim-rec₂ cset h h-pres
+
+Coim-map₂ : ∀ {f : A → B}
+            → (h : A → A → A)
+            → (∀ w x y z → f w ≡ f x → f y ≡ f z → f (h w y) ≡ f (h x z))
+            → Coim f → Coim f → Coim f
+Coim-map₂ h h-pres = Coim-rec₂ squash
+  (λ x y → inc (h x y))
+  (λ w x y z p q → glue (h w y) (h x z) (h-pres w x y z p q)) 
+
+
+module Coim-Path (f : A → B) (B-set : is-set B) where
+  private
+    Code : Coim f → Coim f → Prop _
+    Code =
+      Coim-rec₂ (hlevel 2)
+        (λ x y → el (f x ≡ f y) (B-set (f x) (f y)))
+        (λ w x y z p q → n-ua (prop-ext (B-set (f w) (f y)) (B-set (f x) (f z)) (λ r → sym p ∙ r ∙ q) λ r → p ∙ r ∙ sym q))
+
+    code-refl : ∀ x → ∣ Code x x ∣
+    code-refl = Coim-elim-prop (λ x → is-tr (Code x x)) λ _ → refl
+
+    encode : ∀ x y → (p : x ≡ y) → ∣ Code x y ∣
+    encode x y p = subst (λ y → ∣ Code x y ∣) p (code-refl x)
+
+    decode : ∀ x y → ∣ Code x y ∣ → x ≡ y
+    decode = Coim-elim-prop₂ (λ x y → Π-is-hlevel 1 λ _ → squash _ _) glue
+
+  Coim-image : Coim f → B
+  Coim-image = Coim-rec B-set f (λ _ _ p → p)
+
+  Coim-path : ∀ {x y : Coim f} → x ≡ y → Coim-image x ≡ Coim-image y
+  Coim-path {x} {y} p =
+    Coim-elim-prop₂ {C = λ x y → x ≡ y → Coim-image x ≡ Coim-image y}
+      (λ x y → Π-is-hlevel 1 λ _ → B-set _ _) (λ x y p → encode (inc x) (inc y) p) x y p
+
+  Coim-effectful : ∀ {x y} → Path (Coim f) (inc x) (inc y) → f x ≡ f y
+  Coim-effectful = Coim-path
+          

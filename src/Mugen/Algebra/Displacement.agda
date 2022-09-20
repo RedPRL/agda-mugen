@@ -76,6 +76,10 @@ record is-displacement-algebra-homomorphism
     pres-⊗ : ∀ (x y : ⌞ X ⌟) → f (x X.⊗ y) ≡ (f x Y.⊗ f y)
     strictly-mono : ∀ {x y} → X [ x < y ]ᵈ → Y [ f x < f y ]ᵈ
 
+  mono : ∀ {x y} → X [ x ≤ y ]ᵈ → Y [ f x ≤ f y ]ᵈ
+  mono (inl x≡y) = inl (ap f x≡y)
+  mono (inr x<y) = inr (strictly-mono x<y)
+
 DisplacementAlgebra-hom : ∀ {o r} → (X Y : DisplacementAlgebra o r) → Type (o ⊔ r)
 DisplacementAlgebra-hom = Homomorphism is-displacement-algebra-homomorphism
 
@@ -149,6 +153,11 @@ module _ {o r} (𝒟 : DisplacementAlgebra o r) where
     field
       bot : ⌞ 𝒟 ⌟
       is-bottom : ∀ x → bot ≤ x
+
+preserves-joins : {X Y : DisplacementAlgebra o r} (X-joins : has-joins X) (Y-joins : has-joins Y) → (f : DisplacementAlgebra-hom X Y) → Type o
+preserves-joins X Y f = ∀ x y → f ⟨$⟩ X .join x y ≡ Y .join (f ⟨$⟩ x) (f ⟨$⟩ y)
+  where
+    open has-joins
 
 --------------------------------------------------------------------------------
 -- Displacement Actions
