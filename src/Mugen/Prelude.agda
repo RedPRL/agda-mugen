@@ -105,3 +105,13 @@ dec-map to from (no ¬p) = no (λ q → ¬p (from q))
 subst₂ : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (P : A → B → Type ℓ₃) {a1 a2 : A} {b1 b2 : B}
        → a1 ≡ a2 → b1 ≡ b2 → P a1 b1 → P a2 b2
 subst₂ P p q x = subst (λ a → P a _) p (subst (λ b → P _ b) q x) 
+
+record Reveal_·_is_ {a b} {A : Type a} {B : A → Type b}
+                    (f : (x : A) → B x) (x : A) (y : B x) :
+                    Type (a ⊔ b) where
+  constructor evidence
+  field eq : f x ≡ y
+
+remember : ∀ {a b} {A : Type a} {B : A → Type b}
+          (f : (x : A) → B x) (x : A) → Reveal f · x is f x
+remember f x = evidence refl
