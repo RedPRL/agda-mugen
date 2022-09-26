@@ -1,5 +1,7 @@
 module Mugen.Algebra.Displacement.DenseFiniteSupport where
 
+open import 1Lab.Reflection.Record
+
 open import Algebra.Magma
 open import Algebra.Monoid
 open import Algebra.Semigroup
@@ -271,6 +273,13 @@ module DenseFinSupport {o r} (𝒟 : DisplacementAlgebra o r) (ε? : ∀ x → D
         (ys .canonical)
         i
 
+    private unquoteDecl eqv = declare-record-iso eqv (quote SupportList)
+
+    SupportList-is-set : is-set SupportList
+    SupportList-is-set =
+      is-hlevel≃ 2 (Iso→Equiv eqv e⁻¹)
+        (Σ-is-hlevel 2 (Bwd-is-hlevel 0  ⌞ 𝒟 ⌟-set) λ xs → is-prop→is-set (is-compact-is-prop xs))
+
     empty : SupportList
     empty .support = []
     empty .canonical = tt
@@ -315,3 +324,18 @@ module DenseFinSupport {o r} (𝒟 : DisplacementAlgebra o r) (ε? : ∀ x → D
       compact (bwd (merge-list (fwd (compact (bwd (merge-list (fwd (xs .support)) (fwd (ys .support)))))) (fwd (zs .support))))
         ≡⟨⟩
       merge (merge xs ys) zs .support ∎
+
+    --------------------------------------------------------------------------------
+    -- Algebraic Structure of Support Lists.
+
+    merge-is-magma : is-magma merge
+    merge-is-magma .has-is-set = SupportList-is-set
+    
+    merge-is-semigroup : is-semigroup merge
+    merge-is-semigroup .has-is-magma = merge-is-magma
+    merge-is-semigroup .associative {xs} {ys} {zs} = merge-assoc xs ys zs
+
+    merge-is-monoid : is-monoid empty merge
+    merge-is-monoid .has-is-semigroup = merge-is-semigroup
+    merge-is-monoid .idl {xs} = merge-idl xs
+    merge-is-monoid .idr {xs} = merge-idr xs

@@ -80,6 +80,7 @@ bwd xs = [] ◁⊗ xs
 fwd : Bwd A → List A
 fwd xs = xs ⊗▷ []
 
+
 _++r_ : Bwd A → Bwd A → Bwd A
 xs ++r [] = xs
 xs ++r (ys #r y) = (xs ++r ys) #r y
@@ -145,6 +146,19 @@ bwd-fwd (xs #r x) =
   bwd (fwd xs ++ x ∷ []) ≡⟨ bwd-++ (fwd xs) (x ∷ []) ⟩
   bwd (fwd xs) #r x      ≡⟨ ap (_#r x) (bwd-fwd xs) ⟩
   xs #r x ∎
+
+List≃Bwd : List A ≃ Bwd A
+List≃Bwd = Iso→Equiv (bwd , iso fwd bwd-fwd fwd-bwd)
+
+Bwd-is-hlevel : (n : Nat) → is-hlevel A (2 + n) → is-hlevel (Bwd A) (2 + n)
+Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) List≃Bwd (List-is-hlevel n ahl)
+  where open ListPath
+
+instance
+  H-Level-Bwd : ∀ {n} {k} → ⦃ H-Level A (2 + n) ⦄ → H-Level (Bwd A) (2 + n + k)
+  H-Level-Bwd {n = n} ⦃ x ⦄ = 
+    basic-instance (2 + n) (Bwd-is-hlevel n (H-Level.has-hlevel x))
+
 
 fwd-#r : ∀ (xs : Bwd A) (x : A) → Σ[ y ∈ A ] Σ[ ys ∈ List A ] (y ∷ ys ≡ fwd (xs #r x))
 fwd-#r [] x = x , [] , refl
