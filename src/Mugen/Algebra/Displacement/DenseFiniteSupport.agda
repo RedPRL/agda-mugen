@@ -15,12 +15,18 @@ open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
-open import Mugen.Data.Nat hiding (_<_)
 
 module DenseFinSupport {o r} (𝒟 : DisplacementAlgebra o r) (ε? : ∀ x → Dec (x ≡ DisplacementAlgebra.ε 𝒟)) where
   private
     module 𝒟 = DisplacementAlgebra 𝒟
-    open 𝒟 using (ε; _⊗_)
+    open 𝒟 using (ε; _⊗_; _<_; _≤_)
+
+    instance
+      HLevel-< : ∀ {x y} {n} → H-Level (x < y) (suc n)
+      HLevel-< = prop-instance 𝒟.<-is-prop
+
+      HLevel-≤ : ∀ {x y} {n} → H-Level (x ≤ y) (suc n)
+      HLevel-≤ = prop-instance 𝒟.≤-is-prop
 
     --------------------------------------------------------------------------------
     -- Densely Finitely Supported Functions
@@ -339,3 +345,94 @@ module DenseFinSupport {o r} (𝒟 : DisplacementAlgebra o r) (ε? : ∀ x → D
     merge-is-monoid .has-is-semigroup = merge-is-semigroup
     merge-is-monoid .idl {xs} = merge-idl xs
     merge-is-monoid .idr {xs} = merge-idr xs
+
+    --------------------------------------------------------------------------------
+    -- Ordering
+
+    All₂ : ∀ {ℓ} (P : ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type ℓ) → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type ℓ
+    All₂ P [] [] = Lift _ ⊤
+    All₂ P [] (y ∷ ys) = P ε y × All₂ P [] ys
+    All₂ P (x ∷ xs) [] = P x ε × All₂ P xs []
+    All₂ P (x ∷ xs) (y ∷ ys) = P x y × All₂ P xs ys
+
+    Some₂ : ∀ {ℓ} (P : ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type ℓ) → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type ℓ
+    Some₂ P [] [] = Lift _ ⊥
+    Some₂ P [] (y ∷ ys) = P ε y ⊎ Some₂ P [] ys
+    Some₂ P (x ∷ xs) [] = P x ε ⊎ Some₂ P xs []
+    Some₂ P (x ∷ xs) (y ∷ ys) = P x y ⊎ Some₂ P xs ys
+
+    _merge-list≤_ : List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
+    _merge-list≤_ = All₂ _≤_
+
+    record _merge-list<_ (xs ys : List ⌞ 𝒟 ⌟) : Type (o ⊔ r) where
+      field
+        ≤-everywhere : xs merge-list≤ ys
+        <-somewhere  : ∥ Some₂ _<_ xs ys ∥
+
+    open _merge-list<_
+
+    merge-list<-irrefl : ∀ xs → xs merge-list< xs → ⊥
+    merge-list<-irrefl xs xs<xs = ∥-∥-elim (λ _ → hlevel 1) (pf xs) (xs<xs .<-somewhere)
+      where
+        pf : ∀ xs → Some₂ _<_ xs xs → ⊥
+        pf (x ∷ xs) (inl x<x) = 𝒟.irrefl x<x
+        pf (x ∷ xs) (inr xs<xs) = pf xs xs<xs
+
+    merge-list≤-trans : ∀ xs ys zs → xs merge-list≤ ys → ys merge-list≤ zs → xs merge-list≤ zs
+    merge-list≤-trans [] [] [] xs≤ys ys≤zs = lift tt
+    merge-list≤-trans [] [] (z ∷ zs) []≤[] []≤zs = []≤zs
+    merge-list≤-trans [] (y ∷ ys) [] (ε≤y , []≤ys) (y≤ε , ys≤[]) = lift tt
+    merge-list≤-trans [] (y ∷ ys) (z ∷ zs) (ε≤y , []≤ys) (y≤z , ys≤zs) = (𝒟.≤-trans ε≤y y≤z) , (merge-list≤-trans [] ys zs []≤ys ys≤zs)
+    merge-list≤-trans (x ∷ xs) [] [] xs≤[] []≤[] = xs≤[]
+    merge-list≤-trans (x ∷ xs) [] (z ∷ zs) (x≤ε , xs≤[]) (ε≤z , []≤zs) = (𝒟.≤-trans x≤ε ε≤z) , (merge-list≤-trans xs [] zs xs≤[] []≤zs)
+    merge-list≤-trans (x ∷ xs) (y ∷ ys) [] (x≤y , xs≤ys) (y≤ε , ys≤[]) = (𝒟.≤-trans x≤y y≤ε) , merge-list≤-trans xs ys [] xs≤ys ys≤[]
+    merge-list≤-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (x≤y , xs≤ys) (y≤z , ys≤zs) = (𝒟.≤-trans x≤y y≤z) , (merge-list≤-trans xs ys zs xs≤ys ys≤zs)
+
+    merge-list≤-is-prop : ∀ xs ys → is-prop (xs merge-list≤ ys)
+    merge-list≤-is-prop [] [] = hlevel 1
+    merge-list≤-is-prop [] (y ∷ ys) = ×-is-hlevel 1 (hlevel 1) (merge-list≤-is-prop [] ys)
+    merge-list≤-is-prop (x ∷ xs) [] = ×-is-hlevel 1 (hlevel 1) (merge-list≤-is-prop xs [])
+    merge-list≤-is-prop (x ∷ xs) (y ∷ ys) = ×-is-hlevel 1 (hlevel 1) (merge-list≤-is-prop xs ys)
+
+    some<-trans : ∀ xs ys zs → All₂ _≤_ xs ys → Some₂ _<_ xs ys → All₂ _≤_ ys zs → Some₂ _<_ ys zs → Some₂ _<_ xs zs
+    some<-trans []       (y ∷ ys) []       (ε≤y , []≤ys) (inl ε<y)   (y≤ε , ys≤[]) (inl y<ε)   = lift (𝒟.irrefl (𝒟.trans ε<y y<ε))
+    some<-trans []       (y ∷ ys) []       (ε≤y , []≤ys) (inl ε<y)   (y≤ε , ys≤[]) (inr ys<[]) = lift (𝒟.irrefl (𝒟.≤-transr ε<y y≤ε))
+    some<-trans []       (y ∷ ys) []       (ε≤y , []≤ys) (inr []<y)  (y≤ε , ys≤[]) (inl y<ε)   = lift (𝒟.irrefl (𝒟.≤-transl ε≤y y<ε))
+    some<-trans []       (y ∷ ys) []       (ε≤y , []≤ys) (inr []<y)  (y≤ε , ys≤[]) (inr ys<[]) = some<-trans [] ys [] []≤ys []<y ys≤[] ys<[]
+    some<-trans []       (y ∷ ys) (z ∷ zs) (ε≤y , []≤ys) (inl ε<y)   (y≤z , ys≤zs) (inl y<z)   = inl (𝒟.trans ε<y y<z)
+    some<-trans []       (y ∷ ys) (z ∷ zs) (ε≤y , []≤ys) (inl ε<y)   (y≤z , ys≤zs) (inr ys<zs) = inl (𝒟.≤-transr ε<y y≤z)
+    some<-trans []       (y ∷ ys) (z ∷ zs) (ε≤y , []≤ys) (inr []<ys) (y≤z , ys≤zs) (inl y<z)   = inl (𝒟.≤-transl ε≤y y<z)
+    some<-trans []       (y ∷ ys) (z ∷ zs) (ε≤y , []≤ys) (inr []<ys) (y≤z , ys≤zs) (inr ys<zs) = inr (some<-trans [] ys zs []≤ys []<ys ys≤zs ys<zs)
+    some<-trans (x ∷ xs) []       (z ∷ zs) (x≤ε , xs≤[]) (inl x<ε)   (ε≤z , []≤zs) (inl ε<z)   = inl (𝒟.trans x<ε ε<z)
+    some<-trans (x ∷ xs) []       (z ∷ zs) (x≤ε , xs≤[]) (inl x<ε)   (ε≤z , []≤zs) (inr []<zs) = inl (𝒟.≤-transr x<ε ε≤z)
+    some<-trans (x ∷ xs) []       (z ∷ zs) (x≤ε , xs≤[]) (inr xs<[]) (ε≤z , []≤zs) (inl ε<z)   = inl (𝒟.≤-transl x≤ε ε<z)
+    some<-trans (x ∷ xs) []       (z ∷ zs) (x≤ε , xs≤[]) (inr xs<[]) (ε≤z , []≤zs) (inr []<zs) = inr (some<-trans xs [] zs xs≤[] xs<[] []≤zs []<zs)
+    some<-trans (x ∷ xs) (y ∷ ys) []       (x≤y , xs≤ys) (inl x<y)   (y≤ε , ys≤[]) (inl y<ε)   = inl (𝒟.trans x<y y<ε)
+    some<-trans (x ∷ xs) (y ∷ ys) []       (x≤y , xs≤ys) (inl x<y)   (y≤ε , ys≤[]) (inr ys<[]) = inl (𝒟.≤-transr x<y y≤ε)
+    some<-trans (x ∷ xs) (y ∷ ys) []       (x≤y , xs≤ys) (inr xs<ys) (y≤ε , ys≤[]) (inl y<ε)   = inl (𝒟.≤-transl x≤y y<ε)
+    some<-trans (x ∷ xs) (y ∷ ys) []       (x≤y , xs≤ys) (inr xs<ys) (y≤ε , ys≤[]) (inr ys<[]) = inr (some<-trans xs ys [] xs≤ys xs<ys ys≤[] ys<[])
+    some<-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (x≤y , xs≤ys) (inl x<y)   (y≤z , ys≤zs) (inl y<z)   = inl (𝒟.trans x<y y<z)
+    some<-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (x≤y , xs≤ys) (inl x<y)   (y≤z , ys≤zs) (inr ys<zs) = inl (𝒟.≤-transr x<y y≤z)
+    some<-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (x≤y , xs≤ys) (inr xs<ys) (y≤z , ys≤zs) (inl y<z)   = inl (𝒟.≤-transl x≤y y<z)
+    some<-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (x≤y , xs≤ys) (inr xs<ys) (y≤z , ys≤zs) (inr ys<zs) = inr (some<-trans xs ys zs xs≤ys xs<ys ys≤zs ys<zs)
+
+    merge-list<-trans : ∀ xs ys zs → xs merge-list< ys → ys merge-list< zs → xs merge-list< zs
+    merge-list<-trans xs ys zs xs<ys ys<zs .≤-everywhere = merge-list≤-trans xs ys zs (xs<ys .≤-everywhere) (ys<zs .≤-everywhere)
+    merge-list<-trans xs ys zs xs<ys ys<zs .<-somewhere = do
+        x<y ← xs<ys .<-somewhere
+        y<z ← ys<zs .<-somewhere
+        pure (some<-trans xs ys zs (xs<ys .≤-everywhere) x<y (ys<zs .≤-everywhere) y<z)
+
+    merge-list<-is-prop : ∀ xs ys → is-prop (xs merge-list< ys)
+    merge-list<-is-prop xs ys p q i .≤-everywhere =
+      is-prop→pathp (λ i → merge-list≤-is-prop xs ys) (p .≤-everywhere) (q .≤-everywhere) i
+    merge-list<-is-prop xs ys p q i .<-somewhere =
+      is-prop→pathp (λ i → squash) (p .<-somewhere) (q .<-somewhere) i
+
+    _merge<_ : SupportList → SupportList → Type (o ⊔ r)
+    xs merge< ys = (fwd (xs .support)) merge-list< (fwd (ys .support))
+
+    merge<-is-strict-order : is-strict-order _merge<_
+    merge<-is-strict-order .is-strict-order.irrefl {xs} = merge-list<-irrefl (fwd (xs .support))
+    merge<-is-strict-order .is-strict-order.trans {xs} {ys} {zs} = merge-list<-trans (fwd (xs .support)) (fwd (ys .support)) (fwd (zs .support))
+    merge<-is-strict-order .is-strict-order.has-prop {xs} {ys} = merge-list<-is-prop (fwd (xs .support)) (fwd (ys .support))
