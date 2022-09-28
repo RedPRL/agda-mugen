@@ -69,6 +69,13 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
       (λ _ → xs #r x)
       (x ≡? base)
 
+  compact-case : ∀ xs {x base} → Dec (x ≡ base) → Bwd ⌞ 𝒟 ⌟
+  compact-case xs {x = x} {base = base} p =
+    case _
+      (λ _ → compact base xs)
+      (λ _ → xs #r x)
+      p
+
   -- Propositional computation helpers for 'compact'
   compact-step : ∀ xs {x base} → x ≡ base → compact base (xs #r x) ≡ compact base xs
   compact-step xs {x = x} {base = base} base! with x ≡? base
@@ -98,7 +105,28 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   ... | no _ = absurd $ #r≠[] ys-vanish
 
   compact-++r : ∀ {base} xs ys zs → compact base ys ≡ compact base zs → compact base (xs ++r ys) ≡ compact base (xs ++r zs)
-  compact-++r = {!!}
+  compact-++r {base = base} xs [] [] p =
+    refl
+  compact-++r {base = base} xs [] (zs #r z) p =
+    sym (compact-vanish-++r xs (zs #r z) (sym p))
+  compact-++r {base = base} xs (ys #r y) [] p =
+    compact-vanish-++r xs (ys #r y) p
+  compact-++r {base = base} xs (ys #r y) (zs #r z) =
+    -- Cannot be done using with-abstraction /or/ a helper function because the termination
+    -- checker gets confused.
+    -- Ouch.
+    case (λ p → compact-case ys p ≡ compact base (zs #r z) → compact-case (xs ++r ys) p ≡ compact base (xs ++r (zs #r z)))
+      (λ y-base! →
+        case (λ p → compact base ys ≡ compact-case zs p → compact base (xs ++r ys) ≡ compact-case (xs ++r zs) p)
+          (λ z-base! p → compact-++r xs ys zs p)
+          (λ ¬z-base p → compact-++r xs ys (zs #r z) (p ∙ sym (compact-done zs ¬z-base)) ∙ compact-done (xs ++r zs) ¬z-base)
+          (z ≡? base))
+      (λ ¬y-base →
+        case (λ p → ys #r y ≡ compact-case zs p → (xs ++r ys) #r y ≡ compact-case (xs ++r zs) p)
+          (λ z-base! p → sym (compact-done ((xs ++r ys)) ¬y-base) ∙ compact-++r xs (ys #r y) zs (compact-done ys ¬y-base ∙ p))
+          (λ ¬z-base p → ap (xs ++r_) p)
+          (z ≡? base))
+      (y ≡? base)
 
   --------------------------------------------------------------------------------
   -- Merging Lists
