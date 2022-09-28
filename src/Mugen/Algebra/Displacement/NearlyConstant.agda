@@ -16,7 +16,7 @@ open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
 
-module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
+module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
 
   private
     module 𝒟 = DisplacementAlgebra 𝒟
@@ -359,6 +359,9 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
     compact ((xs .base ⊗ ys .base) ⊗ zs .base) (bwd (merge-list _ (fwd (compact _ (bwd (merge-support xs ys)))) _ (list zs)))
       ∎
 
+  --------------------------------------------------------------------------------
+  -- Algebraic Structure
+
   merge-is-magma : is-magma merge
   merge-is-magma .has-is-set = SupportList-is-set
 
@@ -370,3 +373,197 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   merge-is-monoid .has-is-semigroup = merge-is-semigroup
   merge-is-monoid .idl {xs} = merge-idl xs
   merge-is-monoid .idr {ys} = merge-idr ys
+
+  --------------------------------------------------------------------------------
+  -- Order
+  -- We choose to have our orders compute like this, as we get to avoid
+  -- a propositional truncation compared to the All _≤_ + Some _<_ represenation.
+
+  merge-list≤ : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
+  merge-list≤ b1 [] b2 [] =
+    b1 ≤ b2
+  merge-list≤ b1 [] b2 (y ∷ ys) =
+    tri-rec
+      (merge-list≤ b1 [] b2 ys)
+      (merge-list≤ b1 [] b2 ys)
+      (Lift _ ⊥)
+      (cmp b1 y)
+  merge-list≤ b1 (x ∷ xs) b2 [] =
+    tri-rec
+      (merge-list≤ b1 xs b2 [])
+      (merge-list≤ b1 xs b2 [])
+      (Lift _ ⊥)
+      (cmp x b2)
+  merge-list≤ b1 (x ∷ xs) b2 (y ∷ ys) =
+    tri-rec
+      (merge-list≤ b1 xs b2 ys)
+      (merge-list≤ b1 xs b2 ys)
+      (Lift _ ⊥)
+      (cmp x y)
+
+  merge-list< : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
+  merge-list< b1 [] b2 [] =
+    Lift o (b1 < b2)
+  merge-list< b1 [] b2 (y ∷ ys) =
+    tri-rec
+      (merge-list≤ b1 [] b2 ys)
+      (merge-list< b1 [] b2 ys)
+      (Lift _ ⊥)
+      (cmp b1 y)
+  merge-list< b1 (x ∷ xs) b2 [] =
+    tri-rec
+      (merge-list≤ b1 xs b2 [])
+      (merge-list< b1 xs b2 [])
+      (Lift _ ⊥)
+      (cmp x b2)
+  merge-list< b1 (x ∷ xs) b2 (y ∷ ys) =
+    tri-rec
+      (merge-list≤ b1 xs b2 ys)
+      (merge-list< b1 xs b2 ys)
+      (Lift _ ⊥)
+      (cmp x y)
+
+  merge-list≤-is-prop : ∀ b1 xs b2 ys → is-prop (merge-list≤ b1 xs b2 ys)
+  merge-list≤-is-prop b1 [] b2 [] = hlevel 1
+  merge-list≤-is-prop b1 [] b2 (y ∷ ys) with cmp b1 y
+  ... | lt _ = merge-list≤-is-prop b1 [] b2 ys
+  ... | eq _ = merge-list≤-is-prop b1 [] b2 ys
+  ... | gt _ = hlevel 1
+  merge-list≤-is-prop b1 (x ∷ xs) b2 [] with cmp x b2
+  ... | lt _ = merge-list≤-is-prop b1 xs b2 []
+  ... | eq _ = merge-list≤-is-prop b1 xs b2 []
+  ... | gt _ = hlevel 1
+  merge-list≤-is-prop b1 (x ∷ xs) b2 (y ∷ ys) with cmp x y
+  ... | lt _ = merge-list≤-is-prop b1 xs b2 ys
+  ... | eq _ = merge-list≤-is-prop b1 xs b2 ys
+  ... | gt _ = hlevel 1
+
+  merge-list<-is-prop : ∀ b1 xs b2 ys → is-prop (merge-list< b1 xs b2 ys)
+  merge-list<-is-prop b1 [] b2 [] = hlevel 1
+  merge-list<-is-prop b1 [] b2 (y ∷ ys) with cmp b1 y
+  ... | lt _ = merge-list≤-is-prop b1 [] b2 ys
+  ... | eq _ = merge-list<-is-prop b1 [] b2 ys
+  ... | gt _ = hlevel 1
+  merge-list<-is-prop b1 (x ∷ xs) b2 [] with cmp x b2
+  ... | lt _ = merge-list≤-is-prop b1 xs b2 []
+  ... | eq _ = merge-list<-is-prop b1 xs b2 []
+  ... | gt _ = hlevel 1
+  merge-list<-is-prop b1 (x ∷ xs) b2 (y ∷ ys) with cmp x y
+  ... | lt _ = merge-list≤-is-prop b1 xs b2 ys
+  ... | eq _ = merge-list<-is-prop b1 xs b2 ys
+  ... | gt _ = hlevel 1
+
+  -- Computational helpers for merge-list≤ and merge-list<
+  merge-list≤-step≤ : ∀ b1 xs b2 ys {x y} → x ≤ y → merge-list≤ b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list≤ b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
+  merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inl x≡y) pf with cmp x y
+  ... | lt _ = pf
+  ... | eq _ = pf
+  ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+  merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inr x<y) pf with cmp x y 
+  ... | lt _ = pf
+  ... | eq _ = pf
+  ... | gt y<x = lift (𝒟.asym x<y y<x)
+
+  merge-list<-step< : ∀ b1 xs b2 ys {x y} → x < y → merge-list≤ b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
+  merge-list<-step< _ _ _ _ {x = x} {y = y} x<y pf with cmp x y 
+  ... | lt _ = pf
+  ... | eq x≡y = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  ... | gt y<x = lift (𝒟.asym x<y y<x)
+
+  merge-list<-step≡ : ∀ b1 xs b2 ys {x y} → x ≡ y → merge-list< b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
+  merge-list<-step≡ _ _ _ _ {x = x} {y = y} x≡y pf with cmp x y 
+  ... | lt x<y = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  ... | eq _ = pf
+  ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+
+  weaken-< : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → merge-list≤ b1 xs b2 ys
+  weaken-< b1 [] b2 [] (lift b1<b2) = inr b1<b2
+  weaken-< b1 [] b2 (y ∷ ys) xs<ys with cmp b1 y
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 [] b2 ys xs<ys
+  ... | gt _ = xs<ys
+  weaken-< b1 (x ∷ xs) b2 [] xs<ys with cmp x b2
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 xs b2 [] xs<ys
+  weaken-< b1 (x ∷ xs) b2 (y ∷ ys) xs<ys with cmp x y
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 xs b2 ys xs<ys
+
+  merge-list≤-trans : ∀ b1 xs b2 ys b3 zs → merge-list≤ b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list≤ b1 xs b3 zs
+  merge-list≤-trans b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      go : ∀ xs ys zs → merge-list≤ b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list≤ b1 xs b3 zs
+      go [] [] [] b1≤b2 b2≤b3 =
+        𝒟.≤-trans b1≤b2 b2≤b3
+      go [] [] (z ∷ zs) b1≤b2 ys≤zs with cmp b2 z
+      ... | lt b2<z = merge-list≤-step≤ b1 [] b3 zs (𝒟.≤-trans b1≤b2 (inr b2<z)) (go [] [] zs b1≤b2 ys≤zs)
+      ... | eq b2≡z = merge-list≤-step≤ b1 [] b3 zs (𝒟.≤-trans b1≤b2 (inl b2≡z)) (go [] [] zs b1≤b2 ys≤zs)
+      go [] (y ∷ ys) [] xs≤ys ys≤zs with cmp b1 y | cmp y b3
+      ... | lt b1<y | lt y<b3 = inr (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | eq y≡b3 = inr (𝒟.≡-transr b1<y y≡b3)
+      ... | eq b1≡y | lt y<b3 = inr (𝒟.≡-transl b1≡y y<b3)
+      ... | eq b1≡y | eq y≡b3 = inl (b1≡y ∙ y≡b3)
+      go [] (y ∷ ys) (z ∷ zs) xs≤ys ys≤zs with cmp b1 y | cmp y z
+      ... | lt b1<y | lt y<z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.trans b1<y y<z)) (go [] ys zs xs≤ys ys≤zs)
+      ... | lt b1<y | eq y≡z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.≡-transr b1<y y≡z)) (go [] ys zs xs≤ys ys≤zs)
+      ... | eq b1≡y | lt y<z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.≡-transl b1≡y y<z)) (go [] ys zs xs≤ys ys≤zs)
+      ... | eq b1≡y | eq y≡z = merge-list≤-step≤ b1 [] b3 zs (inl (b1≡y ∙ y≡z)) (go [] ys zs xs≤ys ys≤zs)
+      go (x ∷ xs) [] [] xs≤ys b2≤b3 with cmp x b2
+      ... | lt x<b2 = merge-list≤-step≤ b1 xs b3 [] (𝒟.≤-trans (inr x<b2) b2≤b3) (go xs [] [] xs≤ys b2≤b3)
+      ... | eq x≡b2 = merge-list≤-step≤ b1 xs b3 [] (𝒟.≤-trans (inl x≡b2) b2≤b3) (go xs [] [] xs≤ys b2≤b3)
+      go (x ∷ xs) [] (z ∷ zs) xs≤ys ys≤zs with cmp x b2 | cmp b2 z
+      ... | lt x<b2 | lt b2<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.trans x<b2 b2<z)) (go xs [] zs xs≤ys ys≤zs)
+      ... | lt x<b2 | eq b2≡z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transr x<b2 b2≡z)) (go xs [] zs xs≤ys ys≤zs)
+      ... | eq x≡b2 | lt b2<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transl x≡b2 b2<z)) (go xs [] zs xs≤ys ys≤zs)
+      ... | eq x≡b2 | eq b2≡z = merge-list≤-step≤ b1 xs b3 zs (inl (x≡b2 ∙ b2≡z)) (go xs [] zs xs≤ys ys≤zs)
+      go (x ∷ xs) (y ∷ ys) [] xs≤ys ys≤zs with cmp x y | cmp y b3
+      ... | lt x<y | lt y<b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.trans x<y y<b3)) (go xs ys [] xs≤ys ys≤zs)
+      ... | lt x<y | eq y≡b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.≡-transr x<y y≡b3)) (go xs ys [] xs≤ys ys≤zs)
+      ... | eq x≡y | lt y<b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.≡-transl x≡y y<b3)) (go xs ys [] xs≤ys ys≤zs)
+      ... | eq x≡y | eq y≡b3 = merge-list≤-step≤ b1 xs b3 [] (inl (x≡y ∙ y≡b3)) (go xs ys [] xs≤ys ys≤zs)
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys≤zs with cmp x y | cmp y z
+      ... | lt x<y | lt y<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.trans x<y y<z)) (go xs ys zs xs≤ys ys≤zs)
+      ... | lt x<y | eq y≡z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transr x<y y≡z)) (go xs ys zs xs≤ys ys≤zs)
+      ... | eq x≡y | lt y<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transl x≡y y<z)) (go xs ys zs xs≤ys ys≤zs)
+      ... | eq x≡y | eq y≡z = merge-list≤-step≤ b1 xs b3 zs (inl (x≡y ∙ y≡z)) (go xs ys zs xs≤ys ys≤zs)
+
+  merge-list<-trans : ∀ b1 xs b2 ys b3 zs → merge-list< b1 xs b2 ys → merge-list< b2 ys b3 zs → merge-list< b1 xs b3 zs
+  merge-list<-trans b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      go≤ : ∀ xs ys zs → merge-list≤ b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list≤ b1 xs b3 zs
+      go≤ xs ys zs = merge-list≤-trans b1 xs b2 ys b3 zs
+
+      go : ∀ xs ys zs → merge-list< b1 xs b2 ys → merge-list< b2 ys b3 zs → merge-list< b1 xs b3 zs
+      go [] [] [] (lift b1<b2) (lift b2<b3) =
+        lift (𝒟.trans b1<b2 b2<b3)
+      go [] [] (z ∷ zs) (lift b1<b2) ys<zs with cmp b2 z
+      ... | lt b2<z = merge-list<-step< b1 [] b3 zs (𝒟.trans b1<b2 b2<z) (go≤ [] [] zs (inr b1<b2) ys<zs)
+      ... | eq b2≡z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transr b1<b2 b2≡z) (go≤ [] [] zs (inr b1<b2) (weaken-< b2 [] b3 zs ys<zs))
+      go [] (y ∷ ys) [] xs<ys ys<zs with cmp b1 y | cmp y b3
+      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
+      ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
+      ... | eq b1≡y | eq y≡b3 = merge-list<-trans b1 [] b2 ys b3 [] xs<ys ys<zs
+      go [] (y ∷ ys) (z ∷ zs) xs<ys ys<zs with cmp b1 y | cmp y z
+      ... | lt b1<y | lt y<z = merge-list<-step< b1 [] b3 zs (𝒟.trans b1<y y<z) (go≤ [] ys zs xs<ys ys<zs)
+      ... | lt b1<y | eq y≡z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transr b1<y y≡z) (go≤ [] ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs))
+      ... | eq b1≡y | lt y<z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transl b1≡y y<z) (go≤ [] ys zs (weaken-< b1 [] b2 ys xs<ys) ys<zs)
+      ... | eq b1≡y | eq y≡z = merge-list<-step≡ b1 [] b3 zs (b1≡y ∙ y≡z) (go [] ys zs xs<ys ys<zs)
+      go (x ∷ xs) [] [] xs<ys (lift b2<b3) with cmp x b2
+      ... | lt x<b2 = merge-list<-step< b1 xs b3 [] (𝒟.trans x<b2 b2<b3) (go≤ xs [] [] xs<ys (inr b2<b3))
+      ... | eq x≡b2 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡b2 b2<b3) (go≤ xs [] [] (weaken-< b1 xs b2 [] xs<ys) (inr b2<b3))
+      go (x ∷ xs) [] (z ∷ zs) xs<ys ys<zs with cmp x b2 | cmp b2 z
+      ... | lt x<b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.trans x<b2 b2<z) (go≤ xs [] zs xs<ys ys<zs) 
+      ... | lt x<b2 | eq b2≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<b2 b2≡z) (go≤ xs [] zs xs<ys (weaken-< b2 [] b3 zs ys<zs))  
+      ... | eq x≡b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡b2 b2<z) (go≤ xs [] zs (weaken-< b1 xs b2 [] xs<ys) ys<zs)  
+      ... | eq x≡b2 | eq b2≡z = merge-list<-step≡ b1 xs b3 zs (x≡b2 ∙ b2≡z) (go xs [] zs xs<ys ys<zs)  
+      go (x ∷ xs) (y ∷ ys) [] xs<ys ys<zs with cmp x y | cmp y b3
+      ... | lt x<y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.trans x<y y<b3) (go≤ xs ys [] xs<ys ys<zs) 
+      ... | lt x<y | eq y≡b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transr x<y y≡b3) (go≤ xs ys [] xs<ys (weaken-< b2 ys b3 [] ys<zs)) 
+      ... | eq x≡y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡y y<b3) (go≤ xs ys [] (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
+      ... | eq x≡y | eq y≡b3 = merge-list<-step≡ b1 xs b3 [] (x≡y ∙ y≡b3) (go xs ys [] xs<ys ys<zs) 
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs<ys ys<zs with cmp x y | cmp y z
+      ... | lt x<y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.trans x<y y<z) (go≤ xs ys zs xs<ys ys<zs) 
+      ... | lt x<y | eq y≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<y y≡z) (go≤ xs ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs)) 
+      ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
+      ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs) 
