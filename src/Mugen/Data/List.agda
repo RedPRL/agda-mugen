@@ -180,16 +180,16 @@ bwd-∷ x (x′ ∷ xs) =
   let (ys , y , p) = bwd-∷ x′ xs
   in ([] #r x) ++r ys , y , ap (([] #r x) ++r_) p ∙ sym (bwd-++ (x ∷ []) (x′ ∷ xs))
 
-All₂ : (P : A → A → Type ℓ′) → A → List A → List A → Type ℓ′
-All₂ P def [] [] = Lift _ ⊤
-All₂ P def [] (y ∷ ys) = P def y × All₂ P def [] ys
-All₂ P def (x ∷ xs) [] = P x def × All₂ P def xs []
-All₂ P def (x ∷ xs) (y ∷ ys) = P x y × All₂ P def xs ys
+All₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
+All₂ P b1 [] b2 [] = Lift _ ⊤
+All₂ P b1 [] b2 (y ∷ ys) = P b1 y × All₂ P b1 [] b2 ys
+All₂ P b1 (x ∷ xs) b2 [] = P x b2 × All₂ P b1 xs b2 []
+All₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y × All₂ P b1 xs b2 ys
 
-Some₂ : (P : A → A → Type ℓ′) → A → List A → List A → Type ℓ′
-Some₂ P def [] [] = Lift _ ⊥
-Some₂ P def [] (y ∷ ys) = P def y ⊎ Some₂ P def [] ys
-Some₂ P def (x ∷ xs) [] = P x def ⊎ Some₂ P def xs []
-Some₂ P def (x ∷ xs) (y ∷ ys) = P x y ⊎ Some₂ P def xs ys
+Some₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
+Some₂ P b1 [] b2 [] = Lift _ ⊥
+Some₂ P b1 [] b2 (y ∷ ys) = P b1 y ⊎ Some₂ P b1 [] b2 ys
+Some₂ P b1 (x ∷ xs) b2 [] = P x b2 ⊎ Some₂ P b1 xs b2 []
+Some₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y ⊎ Some₂ P b1 xs b2 ys
 
 
