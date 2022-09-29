@@ -119,6 +119,7 @@ xs ++r (ys #r y) = (xs ++r ys) #r y
   (xs ⊗▷ (x ∷ [])) ++ ys   ≡⟨⟩
   fwd (xs #r x) ++ ys      ∎
 
+
 fwd-++r : ∀ (xs ys : Bwd A) → fwd (xs ++r ys) ≡ fwd xs ++ fwd ys
 fwd-++r xs [] = sym (++-idr (fwd (xs ++r [])))
 fwd-++r xs (ys #r y) =
@@ -137,6 +138,7 @@ bwd-++ (x ∷ xs) ys =
   ((([] #r x) ++r bwd xs) ++r bwd ys) ≡˘⟨ ap (_++r bwd ys) (◁⊗-bwd ([] #r x) xs) ⟩
   ((([] #r x) ◁⊗ xs) ++r bwd ys) ∎
 
+
 fwd-bwd : ∀ (xs : List A) → fwd (bwd xs) ≡ xs
 fwd-bwd [] = refl
 fwd-bwd (x ∷ xs) =
@@ -154,6 +156,22 @@ bwd-fwd (xs #r x) =
   bwd (fwd xs ++ x ∷ []) ≡⟨ bwd-++ (fwd xs) (x ∷ []) ⟩
   bwd (fwd xs) #r x      ≡⟨ ap (_#r x) (bwd-fwd xs) ⟩
   xs #r x ∎
+
+⊗▷-fwd-swap : ∀ (xs : Bwd A) (ys : List A) → xs ⊗▷ ys ≡ fwd (xs ◁⊗ ys)
+⊗▷-fwd-swap xs ys =
+  xs ⊗▷ ys               ≡⟨ ⊗▷-fwd xs ys ⟩
+  fwd xs ++ ys           ≡˘⟨ ap (fwd xs ++_) (fwd-bwd ys) ⟩
+  fwd xs ++ fwd (bwd ys) ≡˘⟨ fwd-++r xs (bwd ys) ⟩
+  fwd (xs ++r bwd ys)    ≡˘⟨ ap fwd (◁⊗-bwd xs ys) ⟩
+  fwd (xs ◁⊗ ys) ∎
+
+◁⊗-bwd-swap : ∀ (xs : Bwd A) (ys : List A) → xs ◁⊗ ys ≡ bwd (xs ⊗▷ ys)
+◁⊗-bwd-swap xs ys =
+  xs ◁⊗ ys                  ≡⟨ ◁⊗-bwd xs ys ⟩
+  (xs ++r bwd ys)           ≡˘⟨ ap (_++r bwd ys) (bwd-fwd xs) ⟩
+  (bwd (fwd xs) ++r bwd ys) ≡˘⟨ bwd-++ (fwd xs) ys ⟩
+  bwd (fwd xs ++ ys)        ≡˘⟨ ap bwd (⊗▷-fwd xs ys) ⟩
+  bwd (xs ⊗▷ ys) ∎
 
 List≃Bwd : List A ≃ Bwd A
 List≃Bwd = Iso→Equiv (bwd , iso fwd bwd-fwd fwd-bwd)
@@ -180,14 +198,57 @@ bwd-∷ x (x′ ∷ xs) =
   let (ys , y , p) = bwd-∷ x′ xs
   in ([] #r x) ++r ys , y , ap (([] #r x) ++r_) p ∙ sym (bwd-++ (x ∷ []) (x′ ∷ xs))
 
+
+++-injr : ∀ (xs ys zs : List A) → xs ++ ys ≡ xs ++ zs → ys ≡ zs
+++-injr [] ys zs p = p
+++-injr (x ∷ xs) ys zs p = ++-injr xs ys zs (∷-tail-inj p)
+
+++r-injl : ∀ (xs ys zs : Bwd A) → xs ++r zs ≡ ys ++r zs → xs ≡ ys
+++r-injl xs ys [] p = p
+++r-injl xs ys (zs #r z) p = ++r-injl xs ys zs (#r-init-inj p)
+
+++-injl : ∀ (xs ys zs : List A) → xs ++ zs ≡ ys ++ zs → xs ≡ ys
+++-injl xs ys zs p =
+  xs           ≡˘⟨ fwd-bwd xs ⟩
+  fwd (bwd xs) ≡⟨ ap fwd (++r-injl (bwd xs) (bwd ys) (bwd zs) (sym (bwd-++ xs zs) ∙ ap bwd p ∙ bwd-++ ys zs)) ⟩
+  fwd (bwd ys) ≡⟨ fwd-bwd ys ⟩
+  ys ∎
+
+++r-inrj : ∀ (xs ys zs : Bwd A) → xs ++r ys ≡ xs ++r zs → ys ≡ zs
+++r-inrj xs ys zs p =
+  ys ≡˘⟨ bwd-fwd ys ⟩
+  bwd (fwd ys) ≡⟨ ap bwd (++-injr (fwd xs) (fwd ys) (fwd zs) (sym (fwd-++r xs ys) ∙ ap fwd p ∙ fwd-++r xs zs)) ⟩
+  bwd (fwd zs) ≡⟨ bwd-fwd zs ⟩
+  zs ∎
+
+⊗▷-injr : ∀ (xs : Bwd A) (ys zs : List A) → (xs ⊗▷ ys) ≡ (xs ⊗▷ zs) → ys ≡ zs
+⊗▷-injr [] ys zs p = p
+⊗▷-injr (xs #r x) ys zs p = ∷-tail-inj $ ⊗▷-injr xs (x ∷ ys) (x ∷ zs) p
+
+◁⊗-injl : ∀ (xs ys : Bwd A) (zs : List A) → (xs ◁⊗ zs) ≡ (ys ◁⊗ zs) → xs ≡ ys
+◁⊗-injl xs ys [] p = p
+◁⊗-injl xs ys (z ∷ zs) p = #r-init-inj $ ◁⊗-injl (xs #r z) (ys #r z) zs p
+
+⊗▷-injl : ∀ (xs ys : Bwd A) (zs : List A) → (xs ⊗▷ zs) ≡ (ys ⊗▷ zs) → xs ≡ ys
+⊗▷-injl xs ys zs p = ◁⊗-injl xs ys zs $ ◁⊗-bwd-swap xs zs ·· ap bwd p ·· sym (◁⊗-bwd-swap ys zs)
+
+◁⊗-injr : ∀ (xs : Bwd A) (ys zs : List A) → (xs ◁⊗ ys) ≡ (xs ◁⊗ zs) → ys ≡ zs
+◁⊗-injr xs ys zs p = ⊗▷-injr xs ys zs $ ⊗▷-fwd-swap xs ys ·· ap fwd p ·· sym (⊗▷-fwd-swap xs zs)
+
+fwd-inj : ∀ {xs ys : Bwd A} → fwd xs ≡ fwd ys → xs ≡ ys
+fwd-inj p = ⊗▷-injl _ _ [] p
+
+bwd-inj : ∀ {xs ys : List A} → bwd xs ≡ bwd ys → xs ≡ ys
+bwd-inj p = ◁⊗-injr [] _ _ p
+
 All₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
-All₂ P b1 [] b2 [] = Lift _ ⊤
+All₂ P b1 [] b2 [] = P b1 b2
 All₂ P b1 [] b2 (y ∷ ys) = P b1 y × All₂ P b1 [] b2 ys
 All₂ P b1 (x ∷ xs) b2 [] = P x b2 × All₂ P b1 xs b2 []
 All₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y × All₂ P b1 xs b2 ys
 
 Some₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
-Some₂ P b1 [] b2 [] = Lift _ ⊥
+Some₂ P b1 [] b2 [] = P b1 b2
 Some₂ P b1 [] b2 (y ∷ ys) = P b1 y ⊎ Some₂ P b1 [] b2 ys
 Some₂ P b1 (x ∷ xs) b2 [] = P x b2 ⊎ Some₂ P b1 xs b2 []
 Some₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y ⊎ Some₂ P b1 xs b2 ys

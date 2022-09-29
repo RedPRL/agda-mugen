@@ -54,6 +54,19 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   base-isnt-compact xs {x = x} {base = base} base! is-compact with x ≡? base
   ... | no ¬base = ¬base base!
 
+  base-isnt-compact-∷ : ∀ {xs x base} → xs ≡ [] → x ≡ base → is-compact base (bwd (x ∷ xs)) → ⊥
+  base-isnt-compact-∷ {xs = []} p base! is-compact = base-isnt-compact [] base! is-compact
+  base-isnt-compact-∷ {xs = x ∷ xs} p base! is-compact = ∷≠[] p
+
+  is-compact-++r : ∀ xs ys base → is-compact base (xs ++r ys) → is-compact base ys
+  is-compact-++r xs [] base compact = tt
+  is-compact-++r xs (ys #r x) base compact with x ≡? base
+  ... | no ¬base = tt
+
+  is-compact-tail : ∀ x xs base → is-compact base (bwd (x ∷ xs)) → is-compact base (bwd xs)
+  is-compact-tail x xs base compact =
+     is-compact-++r ([] #r x) (bwd xs) base (subst (is-compact base) (bwd-++ (x ∷ []) xs) compact)
+
   is-compact-is-prop : ∀ base xs → is-prop (is-compact base xs)
   is-compact-is-prop base [] = hlevel 1
   is-compact-is-prop base (xs #r x) with x ≡? base
@@ -127,6 +140,13 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
           (λ ¬z-base p → ap (xs ++r_) p)
           (z ≡? base))
       (y ≡? base)
+
+  compact-◁⊗ : ∀ {base} xs ys zs → compact base (bwd ys) ≡ compact base (bwd zs) → compact base (xs ◁⊗ ys) ≡ compact base (xs ◁⊗ zs)
+  compact-◁⊗ {base = base} xs ys zs p =
+    compact base (xs ◁⊗ ys)      ≡⟨ ap (compact base) (◁⊗-bwd xs ys) ⟩
+    compact base (xs ++r bwd ys) ≡⟨ compact-++r xs (bwd ys) (bwd zs) p ⟩
+    compact base (xs ++r bwd zs) ≡˘⟨ ap (compact base) (◁⊗-bwd xs zs) ⟩
+    compact base (xs ◁⊗ zs) ∎
 
   --------------------------------------------------------------------------------
   -- Merging Lists
@@ -275,6 +295,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   -- Compact Support Lists
 
   record SupportList : Type o where
+    constructor support-list
     no-eta-equality
     field
       base : ⌞ 𝒟 ⌟
@@ -423,6 +444,27 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
       (Lift _ ⊥)
       (cmp x y)
 
+  merge-list-base< : ∀ b1 xs b2 ys → xs ≡ ys → b1 < b2 → merge-list< b1 xs b2 ys
+  merge-list-base< b1 [] b2 [] p b1<b2 = lift b1<b2
+  merge-list-base< b1 [] b2 (y ∷ ys) p b1<b2 = absurd $ ∷≠[] (sym p)
+  merge-list-base< b1 (x ∷ xs) b2 [] p b1<b2 = absurd $ ∷≠[] p
+  merge-list-base< b1 (x ∷ xs) b2 (y ∷ ys) p b1<b2 with cmp x y
+  ... | lt x<y = absurd $ 𝒟.irrefl (𝒟.≡-transl (sym $ ∷-head-inj p) x<y)
+  ... | eq _ = merge-list-base< b1 xs b2 ys (∷-tail-inj p) b1<b2
+  ... | gt y<x = lift $ 𝒟.irrefl (𝒟.≡-transl (∷-head-inj p) y<x)
+
+  merge-list≤→base≤ : ∀ b1 xs b2 ys → merge-list≤ b1 xs b2 ys → b1 ≤ b2
+  merge-list≤→base≤ b1 [] b2 [] xs≤ys = xs≤ys
+  merge-list≤→base≤ b1 [] b2 (y ∷ ys) xs≤ys with cmp b1 y
+  ... | lt _ = merge-list≤→base≤ b1 [] b2 ys xs≤ys
+  ... | eq _ = merge-list≤→base≤ b1 [] b2 ys xs≤ys
+  merge-list≤→base≤ b1 (x ∷ xs) b2 [] xs≤ys with cmp x b2
+  ... | lt _ = merge-list≤→base≤ b1 xs b2 [] xs≤ys
+  ... | eq _ = merge-list≤→base≤ b1 xs b2 [] xs≤ys
+  merge-list≤→base≤ b1 (x ∷ xs) b2 (y ∷ ys) xs≤ys with cmp x y
+  ... | lt _ = merge-list≤→base≤ b1 xs b2 ys xs≤ys
+  ... | eq _ = merge-list≤→base≤ b1 xs b2 ys xs≤ys
+
   merge-list≤-is-prop : ∀ b1 xs b2 ys → is-prop (merge-list≤ b1 xs b2 ys)
   merge-list≤-is-prop b1 [] b2 [] = hlevel 1
   merge-list≤-is-prop b1 [] b2 (y ∷ ys) with cmp b1 y
@@ -488,6 +530,19 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   weaken-< b1 (x ∷ xs) b2 (y ∷ ys) xs<ys with cmp x y
   ... | lt _ = xs<ys
   ... | eq _ = weaken-< b1 xs b2 ys xs<ys
+
+  merge-list≤-refl : ∀ b xs → merge-list≤ b xs b xs
+  merge-list≤-refl b [] = inl refl
+  merge-list≤-refl b (x ∷ xs) with cmp x x
+  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | eq x≡x = merge-list≤-refl b xs
+  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+
+  merge-list<-irrefl : ∀ b xs → merge-list< b xs b xs → ⊥
+  merge-list<-irrefl b [] (lift b<b) = 𝒟.irrefl b<b
+  merge-list<-irrefl b (x ∷ xs) xs<xs with cmp x x
+  ... | lt x<x = 𝒟.irrefl x<x
+  ... | eq x≡x = merge-list<-irrefl b xs xs<xs
 
   merge-list≤-trans : ∀ b1 xs b2 ys b3 zs → merge-list≤ b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list≤ b1 xs b3 zs
   merge-list≤-trans b1 xs b2 ys b3 zs = go xs ys zs
@@ -567,3 +622,102 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
       ... | lt x<y | eq y≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<y y≡z) (go≤ xs ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs)) 
       ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
       ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs) 
+
+  _merge<_ : SupportList → SupportList → Type (o ⊔ r)
+  xs merge< ys = merge-list< (xs .base) (list xs) (ys .base) (list ys)
+
+  _merge≤_ : SupportList → SupportList → Type (o ⊔ r)
+  xs merge≤ ys = merge-list≤ (xs .base) (list xs) (ys .base) (list ys)
+
+  merge-is-strict-order : is-strict-order _merge<_
+  merge-is-strict-order .is-strict-order.irrefl {xs} =
+    merge-list<-irrefl (xs .base) (list xs)
+  merge-is-strict-order .is-strict-order.trans {xs} {ys} {zs} =
+    merge-list<-trans (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
+  merge-is-strict-order .is-strict-order.has-prop {xs} {ys} =
+    merge-list<-is-prop (xs .base) (list xs) (ys .base) (list ys)
+
+  merge≤→non-strict : ∀ xs ys → xs merge≤ ys → non-strict _merge<_ xs ys
+  merge≤→non-strict xs ys xs≤ys =
+    -- This subst is required due to issues with with-abstraction.
+    -- In order to get the merge-list≤ to compute, we need to induct
+    -- on lists. Trying to with-abstract and induct on 'list xs' and 'list ys'
+    -- causes termination issues; therefore, we need to factor things out into
+    -- a helper function. However, this causes the goal to be off by a bwd-fwd,
+    -- requiring the following big subst.
+    -- Again, Ouch!
+    let xs′-compact = subst (is-compact (xs .base)) (sym $ bwd-fwd (xs .elts)) (xs .compacted)
+        ys′-compact = subst (is-compact (ys .base)) (sym $ bwd-fwd (ys .elts)) (ys .compacted)
+        xs′ = support-list (xs .base) (bwd (list xs)) xs′-compact
+        ys′ = support-list (ys .base) (bwd (list ys)) ys′-compact
+    in subst₂ (λ ϕ ψ → ϕ ≡ ψ ⊎ merge-list< (xs .base) (list xs) (ys .base) (list ys))
+       (support-list-path refl (bwd-fwd (xs .elts)))
+       (support-list-path refl (bwd-fwd (ys .elts))) $
+       go (xs .base) (list xs) (ys .base) (list ys) xs′-compact ys′-compact xs≤ys
+    where
+      go : ∀ b1 xs b2 ys
+           → (xs-compact : is-compact b1 (bwd xs))
+           → (ys-compact : is-compact b2 (bwd ys))
+           → merge-list≤ b1 xs b2 ys
+           → support-list b1 (bwd xs) xs-compact ≡ support-list b2 (bwd ys) ys-compact ⊎ merge-list< b1 xs b2 ys
+      go b1 [] b2 [] xs-compact ys-compact (inl b1≡b2) = inl $ support-list-path b1≡b2 refl
+      go b1 [] b2 [] xs-compact ys-compact (inr b1<b2) = inr (lift b1<b2)
+      go b1 [] b2 (y ∷ ys) xs-compact ys-compact xs≤ys with cmp b1 y
+      ... | lt b1<y = inr xs≤ys
+      ... | eq b1≡y =
+        -- This is done to avoid yet another helper function.
+        go b1 [] b2 ys xs-compact (is-compact-tail y ys b2 ys-compact) xs≤ys
+        |> ⊎-mapl $ λ p →
+          let ys≡[] : ys ≡ []
+              ys≡[] = bwd-inj $ ap elts (sym p)
+              
+              b1≡b2 : b1 ≡ b2
+              b1≡b2 = ap base p
+
+              ¬y≡b2 : y ≡ b2 → ⊥
+              ¬y≡b2 y≡b2 = base-isnt-compact-∷ ys≡[] y≡b2 ys-compact
+          in absurd $ ¬y≡b2 $ (sym b1≡y) ∙ b1≡b2
+      go b1 (x ∷ xs) b2 [] xs-compact ys-compact xs≤ys with cmp x b2
+      ... | lt x<b2 = inr xs≤ys
+      ... | eq x≡b2 =
+        go b1 xs b2 [] (is-compact-tail x xs b1 xs-compact) ys-compact xs≤ys
+        |> ⊎-mapl $ λ p →
+          let xs≡[] : xs ≡ []
+              xs≡[] = bwd-inj $ ap elts p
+              
+              b1≡b2 : b1 ≡ b2
+              b1≡b2 = ap base p
+
+              ¬x≡b1 : x ≡ b1 → ⊥
+              ¬x≡b1 x≡b1 = base-isnt-compact-∷ xs≡[] x≡b1 xs-compact
+          in absurd $ ¬x≡b1 $ x≡b2 ∙ sym b1≡b2
+      go b1 (x ∷ xs) b2 (y ∷ ys) xs-compact ys-compact xs≤ys with cmp x y
+      ... | lt x<y = inr xs≤ys
+      ... | eq x≡y =
+        go b1 xs b2 ys (is-compact-tail x xs b1 xs-compact) (is-compact-tail y ys b2 ys-compact) xs≤ys
+        |> ⊎-mapl $ λ p →
+          let xs≡ys : xs ≡ ys
+              xs≡ys = bwd-inj $ ap elts p
+
+              b1≡b2 : b1 ≡ b2
+              b1≡b2 = ap base p
+          in support-list-path b1≡b2 (ap bwd (ap₂ _∷_ x≡y xs≡ys))
+
+  --------------------------------------------------------------------------------
+  -- Notational Tricks
+  --
+  -- We define a strict-ordering structure for _merge<_ purely to
+  -- be able to use equational reasoning for the later proofs.
+  -- This is marked private, as we will expose it as part of
+  -- the displacement algebra structure later.
+
+  private
+    MergeOrd : StrictOrder o (o ⊔ r)
+    ⌞ MergeOrd ⌟ = SupportList
+    MergeOrd .structure .StrictOrder-on._<_ = _merge<_
+    MergeOrd .structure .StrictOrder-on.has-is-strict-order = merge-is-strict-order
+    ⌞ MergeOrd ⌟-set = SupportList-is-set
+
+ 
+  open StrictOrder-Reasoning MergeOrd
+

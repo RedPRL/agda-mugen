@@ -115,3 +115,9 @@ record Reveal_·_is_ {a b} {A : Type a} {B : A → Type b}
 remember : ∀ {a b} {A : Type a} {B : A → Type b}
           (f : (x : A) → B x) (x : A) → Reveal f · x is f x
 remember f x = evidence refl
+
+infixr -1 _|>_
+
+_|>_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} → (x : A) → ((x : A) → B x) → B x
+x |> f = f x
+{-# INLINE _|>_ #-}
