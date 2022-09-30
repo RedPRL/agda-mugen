@@ -21,6 +21,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   private
     module 𝒟 = DisplacementAlgebra 𝒟
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
+    open Inf 𝒟
 
     instance
       HLevel-< : ∀ {x y} {n} → H-Level (x < y) (suc n)
@@ -264,11 +265,14 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   -- We start by defining how to merge two lists without performing
   -- compaction.
 
+  merge-with : (⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟) → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
+  merge-with f b1 [] b2 [] = []
+  merge-with f b1 [] b2 (y ∷ ys) = f b1 y ∷ merge-with f b1 [] b2 ys
+  merge-with f b1 (x ∷ xs) b2 [] = f x b2 ∷ merge-with f b1 xs b2 []
+  merge-with f b1 (x ∷ xs) b2 (y ∷ ys) = f x y ∷ merge-with f b1 xs b2 ys
+
   merge-list : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
-  merge-list b1 [] b2 [] = []
-  merge-list b1 [] b2 (y ∷ ys) = (b1 ⊗ y) ∷ merge-list b1 [] b2 ys
-  merge-list b1 (x ∷ xs) b2 [] = (x ⊗ b2) ∷ merge-list b1 xs b2 []
-  merge-list b1 (x ∷ xs) b2 (y ∷ ys) = (x ⊗ y) ∷ merge-list b1 xs b2 ys
+  merge-list = merge-with _⊗_
 
   module _ where
     private variable
@@ -922,6 +926,13 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-is-strict-order .is-strict-order.has-prop {xs} {ys} =
     merge-list<-is-prop (xs .base) (list xs) (ys .base) (list ys)
 
+  --------------------------------------------------------------------------------
+  -- Converting between non-strict and the nice ≤
+
+  non-strict→merge≤ : ∀ xs ys → non-strict _merge<_ xs ys → xs merge≤ ys
+  non-strict→merge≤ xs ys (inl xs≡ys) = subst (xs merge≤_) xs≡ys (merge-list≤-refl (xs .base) (list xs))
+  non-strict→merge≤ xs ys (inr xs<ys) = weaken-< (xs .base) (list xs) (ys .base) (list ys) xs<ys
+
   merge≤→non-strict : ∀ xs ys → xs merge≤ ys → non-strict _merge<_ xs ys
   merge≤→non-strict xs ys xs≤ys =
     -- This subst is required due to issues with with-abstraction.
@@ -1162,30 +1173,8 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = merge-is-strict-order
   merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} = merge-left-invariant xs ys zs
 
---------------------------------------------------------------------------------
--- Bundled Instances
-
-module _ {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
-  open NearlyConst 𝒟 cmp
-
-  NearlyConstant : DisplacementAlgebra o (o ⊔ r)
-  ⌞ NearlyConstant ⌟ = SupportList
-  NearlyConstant .structure .DisplacementAlgebra-on._<_ = _merge<_
-  NearlyConstant .structure .DisplacementAlgebra-on.ε = empty
-  NearlyConstant .structure .DisplacementAlgebra-on._⊗_ = merge
-  NearlyConstant .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
-  ⌞ NearlyConstant ⌟-set = SupportList-is-set
-
-
---------------------------------------------------------------------------------
--- Subalgebra Structure
-
-module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
-  private
-    module 𝒟 = DisplacementAlgebra 𝒟
-    open 𝒟 using (ε; _⊗_; _<_; _≤_)
-    open NearlyConst 𝒟 cmp
-    open Inf 𝒟
+  --------------------------------------------------------------------------------
+  -- Indexing
 
   index : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
   index b [] n = b
@@ -1300,6 +1289,32 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
         where
           xs<∞ys = go xs ys xs<ys
 
+--------------------------------------------------------------------------------
+-- Bundled Instances
+
+module _ {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+  open NearlyConst 𝒟 cmp
+
+  NearlyConstant : DisplacementAlgebra o (o ⊔ r)
+  ⌞ NearlyConstant ⌟ = SupportList
+  NearlyConstant .structure .DisplacementAlgebra-on._<_ = _merge<_
+  NearlyConstant .structure .DisplacementAlgebra-on.ε = empty
+  NearlyConstant .structure .DisplacementAlgebra-on._⊗_ = merge
+  NearlyConstant .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
+  ⌞ NearlyConstant ⌟-set = SupportList-is-set
+
+
+--------------------------------------------------------------------------------
+-- Subalgebra Structure
+
+module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+  private
+    module 𝒟 = DisplacementAlgebra 𝒟
+    open 𝒟 using (ε; _⊗_; _<_; _≤_)
+    open NearlyConst 𝒟 cmp
+    open Inf 𝒟
+
+
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
   NearlyConstant⊆InfProd = subalgebra
     where
@@ -1372,3 +1387,128 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ xs ys = funext (into-preserves-⊗ xs ys)
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {xs} {ys} = index-strictly-mono (xs .base) (list xs) (ys .base) (list ys)
       subalgebra .is-displacement-subalgebra.inj {xs} {ys} p = into-inj xs ys (happly p)
+
+--------------------------------------------------------------------------------
+-- Joins
+
+module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+  private
+    module 𝒟 = DisplacementAlgebra 𝒟
+    open 𝒟 using (ε; _⊗_; _<_; _≤_)
+    open NearlyConst 𝒟 cmp
+    open Inf 𝒟
+    open has-joins 𝒟-joins
+
+  join-list : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
+  join-list = merge-with join
+
+  join-support : SupportList → SupportList → SupportList
+  join-support xs ys .base = join (xs .base) (ys .base)
+  join-support xs ys .elts = compact (join (xs .base) (ys .base)) (bwd (join-list (xs .base) (list xs) (ys .base) (list ys)))
+  join-support xs ys .compacted = compact-is-compact (join (xs .base) (ys .base)) (bwd (join-list (xs .base) (list xs) (ys .base) (list ys)))
+
+  join-list-joinl : ∀ b1 xs b2 ys → merge-list≤ b1 xs (join b1 b2) (join-list b1 xs b2 ys)
+  join-list-joinl b1 [] b2 [] =
+    joinl
+  join-list-joinl b1 [] b2 (y ∷ ys) =
+    merge-list≤-step≤ b1 [] (join b1 b2) (join-list b1 [] b2 ys) joinl (join-list-joinl b1 [] b2 ys)
+  join-list-joinl b1 (x ∷ xs) b2 [] =
+    merge-list≤-step≤ b1 xs (join b1 b2) (join-list b1 xs b2 []) joinl (join-list-joinl b1 xs b2 [])
+  join-list-joinl b1 (x ∷ xs) b2 (y ∷ ys) =
+    merge-list≤-step≤ b1 xs (join b1 b2) (join-list b1 xs b2 ys) joinl (join-list-joinl b1 xs b2 ys)
+
+  join-list-joinr : ∀ b1 xs b2 ys → merge-list≤ b2 ys (join b1 b2) (join-list b1 xs b2 ys)
+  join-list-joinr b1 [] b2 [] =
+    joinr
+  join-list-joinr b1 [] b2 (y ∷ ys) =
+    merge-list≤-step≤ b2 ys (join b1 b2) (join-list b1 [] b2 ys) joinr (join-list-joinr b1 [] b2 ys)
+  join-list-joinr b1 (x ∷ xs) b2 [] =
+    merge-list≤-step≤ b2 [] (join b1 b2) (join-list b1 xs b2 []) joinr (join-list-joinr b1 xs b2 [])
+  join-list-joinr b1 (x ∷ xs) b2 (y ∷ ys) =
+    merge-list≤-step≤ b2 ys (join b1 b2) (join-list b1 xs b2 ys) joinr (join-list-joinr b1 xs b2 ys)
+
+  join-list-universal : ∀ b1 xs b2 ys b3 zs
+                        → merge-list≤ b1 xs b3 zs
+                        → merge-list≤ b2 ys b3 zs
+                        → merge-list≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs
+  join-list-universal b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      step≤ : ∀ xs ys zs {x y z}
+              → tri-rec
+                (merge-list≤ b1 xs b3 zs)
+                (merge-list≤ b1 xs b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp x z)
+              → tri-rec
+                (merge-list≤ b2 ys b3 zs)
+                (merge-list≤ b2 ys b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp y z)
+              → tri-rec
+                (merge-list≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs)
+                (merge-list≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp (join x y) z)
+      step≤ xs ys zs {x = x} {y = y} {z = z} xs≤ys ys≤zs with cmp x z | cmp y z
+      ... | lt x<z | lt y<z =
+        merge-list≤-step≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs (universal (inr x<z) (inr y<z)) (join-list-universal b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+      ... | lt x<z | eq y≡z =
+        merge-list≤-step≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs (universal (inr x<z) (inl y≡z)) (join-list-universal b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+      ... | eq x≡z | lt y<z =
+        merge-list≤-step≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs (universal (inl x≡z) (inr y<z)) (join-list-universal b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+      ... | eq x≡z | eq y≡z =
+        merge-list≤-step≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs (universal (inl x≡z) (inl y≡z)) (join-list-universal b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+
+      go : ∀ xs ys zs → merge-list≤ b1 xs b3 zs → merge-list≤ b2 ys b3 zs → merge-list≤ (join b1 b2) (join-list b1 xs b2 ys) b3 zs
+      go [] [] [] xs≤zs ys≤zs =
+        universal xs≤zs ys≤zs
+      go [] [] (z ∷ zs) xs≤zs ys≤zs =
+        step≤ [] [] zs xs≤zs ys≤zs
+      go [] (y ∷ ys) [] b1≤b3 ys≤zs =
+        step≤ [] ys [] (merge-list≤-step≤ b1 [] b3 [] b1≤b3 b1≤b3) ys≤zs
+      go [] (y ∷ ys) (z ∷ zs) xs≤zs ys≤zs =
+        step≤ [] ys zs xs≤zs ys≤zs
+      go (x ∷ xs) [] [] xs≤zs b2≤b3 =
+        step≤ xs [] [] xs≤zs (merge-list≤-step≤ b2 [] b3 [] b2≤b3 b2≤b3)
+      go (x ∷ xs) [] (z ∷ zs) xs≤zs ys≤zs =
+        step≤ xs [] zs xs≤zs ys≤zs
+      go (x ∷ xs) (y ∷ ys) [] xs≤zs ys≤zs =
+        step≤ xs ys [] xs≤zs ys≤zs
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤zs ys≤zs =
+        step≤ xs ys zs xs≤zs ys≤zs
+
+  nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 cmp)
+  nearly-constant-has-joins .has-joins.join =
+    join-support
+  nearly-constant-has-joins .has-joins.joinl {xs} {ys} =
+    merge≤→non-strict xs (join-support xs ys) $
+      merge-list≤-trans
+        (xs .base) (list xs)
+        (join (xs .base) (ys .base)) (fwd $ bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+        (join (xs .base) (ys .base)) (fwd $ compact (join (xs .base) (ys .base)) $ bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+        (subst (λ ϕ → merge-list≤ (xs .base) (list xs) (join (xs .base) (ys .base)) ϕ)
+          (sym $ fwd-bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+          (join-list-joinl (xs .base) (list xs) (ys .base) (list ys)))
+        (compact-≤ (join (xs .base) (ys .base)) (bwd $ join-list (xs .base) (list xs) (ys .base) (list ys)))
+  nearly-constant-has-joins .has-joins.joinr {xs} {ys} =
+    merge≤→non-strict ys (join-support xs ys) $
+      merge-list≤-trans
+        (ys .base) (list ys)
+        (join (xs .base) (ys .base)) (fwd $ bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+        (join (xs .base) (ys .base)) (fwd $ compact (join (xs .base) (ys .base)) $ bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+        (subst (λ ϕ → merge-list≤ (ys .base) (list ys) (join (xs .base) (ys .base)) ϕ)
+          (sym $ fwd-bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+          (join-list-joinr (xs .base) (list xs) (ys .base) (list ys)))
+        (compact-≤ (join (xs .base) (ys .base)) (bwd $ join-list (xs .base) (list xs) (ys .base) (list ys)))
+  nearly-constant-has-joins .has-joins.universal {xs} {ys} {zs} xs≤zs ys≤zs =
+    merge≤→non-strict (join-support xs ys) zs $
+      merge-list≤-trans
+        (join (xs .base) (ys .base)) (fwd $ compact (join (xs .base) (ys .base)) $ bwd (join-list (xs .base) (list xs) (ys .base) (list ys)))
+        (join (xs .base) (ys .base)) (fwd $ bwd $ join-list (xs .base) (list xs) (ys .base) (list ys))
+        (zs .base) (list zs)
+        (compact-≥ (join (xs .base) (ys .base)) (bwd $ join-list (xs .base) (list xs) (ys .base) (list ys)))
+        (subst (λ ϕ → merge-list≤ (join (xs .base) (ys .base)) ϕ (zs .base) (list zs))
+          (sym $ fwd-bwd ( join-list (xs .base) (list xs) (ys .base) (list ys)))
+          (join-list-universal (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
+            (non-strict→merge≤ xs zs xs≤zs)
+            (non-strict→merge≤ ys zs ys≤zs)))
