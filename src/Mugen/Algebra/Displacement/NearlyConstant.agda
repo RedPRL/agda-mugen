@@ -1253,6 +1253,55 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
     index b (fwd (compact b (bwd xs))) n                     ≡⟨ index-compact b xs n ⟩
     index b xs n ∎
 
+  index-mono : ∀ b1 xs b2 ys → merge-list≤ b1 xs b2 ys → ∀ n → (index b1 xs n) ≤ (index b2 ys n)
+  index-mono b1 [] b2 [] xs≤ys n = xs≤ys
+  index-mono b1 [] b2 (y ∷ ys) xs≤ys zero with cmp b1 y
+  ... | lt b1<y = inr b1<y
+  ... | eq b1≡y = inl b1≡y
+  index-mono b1 [] b2 (y ∷ ys) xs≤ys (suc n) with cmp b1 y
+  ... | lt b1<y = index-mono b1 [] b2 ys xs≤ys n
+  ... | eq b1≡y = index-mono b1 [] b2 ys xs≤ys n
+  index-mono b1 (x ∷ xs) b2 [] xs≤ys zero with cmp x b2
+  ... | lt x<b2 = inr x<b2
+  ... | eq x≡b2 = inl x≡b2
+  index-mono b1 (x ∷ xs) b2 [] xs≤ys (suc n) with cmp x b2
+  ... | lt x<b2 = index-mono b1 xs b2 [] xs≤ys n
+  ... | eq x≡b2 = index-mono b1 xs b2 [] xs≤ys n
+  index-mono b1 (x ∷ xs) b2 (y ∷ ys) xs≤ys zero with cmp x y
+  ... | lt x<y = inr x<y
+  ... | eq x≡y = inl x≡y
+  index-mono b1 (x ∷ xs) b2 (y ∷ ys) xs≤ys (suc n) with cmp x y
+  ... | lt x<y = index-mono b1 xs b2 ys xs≤ys n
+  ... | eq x≡y = index-mono b1 xs b2 ys xs≤ys n
+
+  index-strictly-mono : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
+  index-strictly-mono b1 xs b2 ys = go xs ys
+    where
+      go : ∀ xs ys → merge-list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
+      go [] [] (lift b1<b2) =
+        inf-< (λ _ → inr b1<b2) (inc (0 , b1<b2))
+      go [] (y ∷ ys) xs<ys with cmp b1 y
+      ... | lt b1<y =
+        inf-< (λ { zero → inr b1<y ; (suc n) → index-mono b1 [] b2 ys xs<ys n }) (inc (0 , b1<y))
+      ... | eq b1≡y =
+        inf-< (λ { zero → inl b1≡y; (suc n) →  []<∞ys .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) ([]<∞ys .<-somewhere))
+        where
+          []<∞ys = go [] ys xs<ys
+      go (x ∷ xs) [] xs<ys with cmp x b2
+      ... | lt x<b2 =
+        inf-< (λ { zero → inr x<b2 ; (suc n) → index-mono b1 xs b2 [] xs<ys n }) (inc (0 , x<b2))
+      ... | eq x≡b2 =
+        inf-< (λ { zero → inl x≡b2; (suc n) →  xs<∞[] .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) (xs<∞[] .<-somewhere))
+        where
+          xs<∞[] = go xs [] xs<ys
+      go (x ∷ xs) (y ∷ ys) xs<ys with cmp x y
+      ... | lt x<y =
+        inf-< (λ { zero → inr x<y ; (suc n) → index-mono b1 xs b2 ys xs<ys n }) (inc (0 , x<y))
+      ... | eq x≡y =
+        inf-< (λ { zero → inl x≡y; (suc n) →  xs<∞ys .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) (xs<∞ys .<-somewhere))
+        where
+          xs<∞ys = go xs ys xs<ys
+
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
   NearlyConstant⊆InfProd = subalgebra
     where
@@ -1282,5 +1331,5 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
       subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ xs ys = funext (into-preserves-⊗ xs ys)
-      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono = {!!}
+      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {xs} {ys} = index-strictly-mono (xs .base) (list xs) (ys .base) (list ys)
       subalgebra .is-displacement-subalgebra.inj = {!!}
