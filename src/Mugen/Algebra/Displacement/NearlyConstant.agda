@@ -933,8 +933,6 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
     -- Again, Ouch!
     let xs′-compact = subst (is-compact (xs .base)) (sym $ bwd-fwd (xs .elts)) (xs .compacted)
         ys′-compact = subst (is-compact (ys .base)) (sym $ bwd-fwd (ys .elts)) (ys .compacted)
-        xs′ = support-list (xs .base) (bwd (list xs)) xs′-compact
-        ys′ = support-list (ys .base) (bwd (list ys)) ys′-compact
     in subst₂ (λ ϕ ψ → ϕ ≡ ψ ⊎ merge-list< (xs .base) (list xs) (ys .base) (list ys))
        (support-list-path refl (bwd-fwd (xs .elts)))
        (support-list-path refl (bwd-fwd (ys .elts))) $
@@ -1327,9 +1325,50 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
           go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
           go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
 
+      index≡→base≡ : ∀ b1 xs b2 ys → (∀ n → index b1 xs n ≡ index b2 ys n) → b1 ≡ b2
+      index≡→base≡ b1 [] b2 [] p = p 0
+      index≡→base≡ b1 [] b2 (y ∷ ys) p = index≡→base≡ b1 [] b2 ys λ n → p (suc n)
+      index≡→base≡ b1 (x ∷ xs) b2 [] p = index≡→base≡ b1 xs b2 [] λ n → p (suc n)
+      index≡→base≡ b1 (x ∷ xs) b2 (y ∷ ys) p = index≡→base≡ b1 xs b2 ys λ n → p (suc n)
+
+      all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
+      all-base→¬compact b x [] p xs-compact with x ≡? b
+      ... | no x≠base = x≠base (p 0)
+      all-base→¬compact b x (y ∷ xs) p xs-compact =
+        all-base→¬compact b y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) b xs-compact)
+
+      into-inj : ∀ xs ys → (∀ n → into xs n ≡ into ys n) → xs ≡ ys
+      into-inj xs ys p =
+        -- Same situation as merge≤-non-strict.
+        let xs′-compact = subst (is-compact (xs .base)) (sym $ bwd-fwd (xs .elts)) (xs .compacted)
+            ys′-compact = subst (is-compact (ys .base)) (sym $ bwd-fwd (ys .elts)) (ys .compacted)
+        in subst₂ (_≡_)
+             (support-list-path refl (bwd-fwd (xs .elts)))
+             (support-list-path refl (bwd-fwd (ys .elts)))
+             (go (xs .base) (list xs) (ys .base) (list ys) xs′-compact ys′-compact p)
+        where
+          go : ∀ b1 xs b2 ys
+               → (xs-compact : is-compact b1 (bwd xs))
+               → (ys-compact : is-compact b2 (bwd ys))
+               → (∀ n → index b1 xs n ≡ index b2 ys n)
+               → support-list b1 (bwd xs) xs-compact ≡ support-list b2 (bwd ys) ys-compact
+          go b1 [] b2 [] xs-compact ys-compact p = support-list-path (p 0) refl
+          go b1 [] b2 (y ∷ ys) xs-compact ys-compact p =
+            absurd $ all-base→¬compact b2 y ys (λ n → sym (p n) ∙ (index≡→base≡ b1 [] b2 (y ∷ ys) p)) ys-compact
+          go b1 (x ∷ xs) b2 [] xs-compact ys-compact p =
+            absurd $ all-base→¬compact b1 x xs (λ n → p n ∙ sym (index≡→base≡ b1 (x ∷ xs) b2 [] p)) xs-compact
+          go b1 (x ∷ xs) b2 (y ∷ ys) xs-compact ys-compact p =
+            support-list-path (ap base xs≡ys) (ap bwd (ap₂ _∷_ (p 0) ((over {x = xs} {y = ys} fwd-bwd (ap list xs≡ys)))))
+            where
+              xs≡ys =
+                go b1 xs b2 ys
+                  (is-compact-tail x xs b1 xs-compact)
+                  (is-compact-tail y ys b2 ys-compact)
+                  (λ n → p (suc n))
+
       subalgebra : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
       subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ xs ys = funext (into-preserves-⊗ xs ys)
       subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {xs} {ys} = index-strictly-mono (xs .base) (list xs) (ys .base) (list ys)
-      subalgebra .is-displacement-subalgebra.inj = {!!}
+      subalgebra .is-displacement-subalgebra.inj {xs} {ys} p = into-inj xs ys (happly p)

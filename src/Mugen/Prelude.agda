@@ -121,3 +121,6 @@ infixr -1 _|>_
 _|>_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} → (x : A) → ((x : A) → B x) → B x
 x |> f = f x
 {-# INLINE _|>_ #-}
+
+over : ∀ {ℓ} {A : Type ℓ} {x y : A} {f : A → A} → (∀ x → f x ≡ x) → f x ≡ f y → x ≡ y
+over {x = x} {y = y} p q =  sym (p x) ·· q ·· p y 
