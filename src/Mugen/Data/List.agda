@@ -198,7 +198,6 @@ bwd-∷ x (x′ ∷ xs) =
   let (ys , y , p) = bwd-∷ x′ xs
   in ([] #r x) ++r ys , y , ap (([] #r x) ++r_) p ∙ sym (bwd-++ (x ∷ []) (x′ ∷ xs))
 
-
 ++-injr : ∀ (xs ys zs : List A) → xs ++ ys ≡ xs ++ zs → ys ≡ zs
 ++-injr [] ys zs p = p
 ++-injr (x ∷ xs) ys zs p = ++-injr xs ys zs (∷-tail-inj p)

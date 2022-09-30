@@ -120,6 +120,12 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   ... | yes _ = compact-is-compact base xs
   ... | no ¬base = ¬base-is-compact xs ¬base
 
+  compact-last : ∀ base xs ys y → compact base xs ≡ ys #r y → y ≡ base → ⊥
+  compact-last base [] ys y p y≡base = #r≠[] (sym p)
+  compact-last base (xs #r x) ys y p y≡base with x ≡? base
+  ... | yes x≡base = compact-last base xs ys y p y≡base
+  ... | no x≠base = x≠base (#r-last-inj p ∙ y≡base)
+
   --------------------------------------------------------------------------------
   -- Vanishing Lists
   -- 
@@ -156,11 +162,17 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   ... | yes base! = vanishes-⊗▷-compact base xs (x ∷ ys) compacts (vanish-step base x ys base! vanishes)
   ... | no _ = absurd $ #r≠[] compacts
 
-  vanishes-bwd : ∀ base xs → vanishes base xs → compact base (bwd xs) ≡ []
-  vanishes-bwd base xs vanishes = vanishes-◁⊗-compact base [] xs refl vanishes
+  compacts-bwd : ∀ base xs → vanishes base xs → compact base (bwd xs) ≡ []
+  compacts-bwd base xs vanishes = vanishes-◁⊗-compact base [] xs refl vanishes
+
+  compacts-fwd : ∀ base xs → vanishes base (fwd xs) → compact base xs ≡ []
+  compacts-fwd base xs vanishes = subst (λ ϕ → compact base ϕ ≡ []) (bwd-fwd xs) (compacts-bwd base (fwd xs) vanishes)
 
   vanishes-fwd : ∀ base xs → compact base xs ≡ [] → vanishes base (fwd xs)
   vanishes-fwd base xs compacts = vanishes-⊗▷-compact base xs [] compacts tt
+
+  vanishes-bwd : ∀ base xs → compact base (bwd xs) ≡ [] → vanishes base xs
+  vanishes-bwd base xs compacts = subst (vanishes base) (fwd-bwd xs) (vanishes-fwd base (bwd xs) compacts)
 
   vanish-++ : ∀ {base} xs ys → vanishes base (xs ++ ys) → vanishes base ys
   vanish-++ [] ys vanish = vanish
@@ -183,24 +195,24 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   compacts-tail-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → compact base (bwd xs) ≡ []
   compacts-tail-∷ base x xs compacts =
-    vanishes-bwd base xs $
+    compacts-bwd base xs $
     vanish-tail-∷ base x xs $
     subst (vanishes base) (fwd-bwd (x ∷ xs)) $
     vanishes-fwd base (bwd (x ∷ xs)) compacts 
 
-  compact-vanish-++r : ∀ {base} xs ys → compact base ys ≡ [] → compact base (xs ++r ys) ≡ compact base xs
-  compact-vanish-++r {base = base} xs [] ys-vanish = refl
-  compact-vanish-++r {base = base} xs (ys #r y) ys-vanish with y ≡? base
-  ... | yes _ = compact-vanish-++r xs ys ys-vanish
+  compact-vanishr-++r : ∀ {base} xs ys → compact base ys ≡ [] → compact base (xs ++r ys) ≡ compact base xs
+  compact-vanishr-++r {base = base} xs [] ys-vanish = refl
+  compact-vanishr-++r {base = base} xs (ys #r y) ys-vanish with y ≡? base
+  ... | yes _ = compact-vanishr-++r xs ys ys-vanish
   ... | no _ = absurd $ #r≠[] ys-vanish
 
   compact-++r : ∀ {base} xs ys zs → compact base ys ≡ compact base zs → compact base (xs ++r ys) ≡ compact base (xs ++r zs)
   compact-++r {base = base} xs [] [] p =
     refl
   compact-++r {base = base} xs [] (zs #r z) p =
-    sym (compact-vanish-++r xs (zs #r z) (sym p))
+    sym (compact-vanishr-++r xs (zs #r z) (sym p))
   compact-++r {base = base} xs (ys #r y) [] p =
-    compact-vanish-++r xs (ys #r y) p
+    compact-vanishr-++r xs (ys #r y) p
   compact-++r {base = base} xs (ys #r y) (zs #r z) =
     -- Cannot be done using with-abstraction /or/ a helper function because the termination
     -- checker gets confused.
@@ -224,6 +236,27 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
     compact base (xs ++r bwd ys) ≡⟨ compact-++r xs (bwd ys) (bwd zs) p ⟩
     compact base (xs ++r bwd zs) ≡˘⟨ ap (compact base) (◁⊗-bwd xs zs) ⟩
     compact base (xs ◁⊗ zs) ∎
+
+  compact-◁⊗-¬base : ∀ xs ys {x base} → (x ≡ base → ⊥) → compact base ((xs #r x) ◁⊗ ys) ≡ (xs #r x) ++r compact base (bwd ys)
+  compact-◁⊗-¬base xs ys {x = x} {base = base} x≠base with inspect (compact base (bwd ys))
+  ... | [] , p =
+    compact base ((xs #r x) ◁⊗ ys) ≡⟨ compact-◁⊗ (xs #r x) ys [] p ⟩
+    compact base ((xs #r x))       ≡⟨ compact-done xs x≠base ⟩
+    xs #r x                        ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
+    (xs #r x) ++r compact base (bwd ys) ∎
+  ... | cs #r c , p =
+    compact base ((xs #r x) ◁⊗ ys)                   ≡⟨ compact-◁⊗ (xs #r x) ys (fwd (cs #r c)) (p ∙ sym cs#rc-compact ∙ sym (ap (compact base) (bwd-fwd (cs #r c)))) ⟩
+    compact base ((xs #r x) ◁⊗ fwd (cs #r c))        ≡⟨ ap (compact base) (◁⊗-bwd (xs #r x) (fwd (cs #r c))) ⟩
+    compact base ((xs #r x) ++r bwd (fwd (cs #r c))) ≡⟨ ap (λ ϕ → compact base ((xs #r x) ++r ϕ)) (bwd-fwd (cs #r c)) ⟩
+    compact base ((xs #r x) ++r (cs #r c))           ≡⟨ compact-done ((xs #r x) ++r cs) c≠base ⟩
+    (xs #r x) ++r (cs #r c)                          ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
+    (xs #r x) ++r compact base (bwd ys) ∎
+    where
+      c≠base : c ≡ base → ⊥
+      c≠base = compact-last base (bwd ys) cs c p
+
+      cs#rc-compact : compact base (cs #r c) ≡ cs #r c
+      cs#rc-compact = compact-done cs c≠base
 
   --------------------------------------------------------------------------------
   -- Merging Lists
@@ -382,7 +415,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
     list : List ⌞ 𝒟 ⌟
     list = fwd elts
 
-  open SupportList
+  open SupportList public
 
   support-list-path : ∀ {xs ys : SupportList} → xs .base ≡ ys .base → xs .elts ≡ ys .elts → xs ≡ ys
   support-list-path p q i .base = p i
@@ -1130,3 +1163,124 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-is-displacement-algebra .is-displacement-algebra.has-monoid = merge-is-monoid
   merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = merge-is-strict-order
   merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} = merge-left-invariant xs ys zs
+
+--------------------------------------------------------------------------------
+-- Bundled Instances
+
+module _ {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+  open NearlyConst 𝒟 cmp
+
+  NearlyConstant : DisplacementAlgebra o (o ⊔ r)
+  ⌞ NearlyConstant ⌟ = SupportList
+  NearlyConstant .structure .DisplacementAlgebra-on._<_ = _merge<_
+  NearlyConstant .structure .DisplacementAlgebra-on.ε = empty
+  NearlyConstant .structure .DisplacementAlgebra-on._⊗_ = merge
+  NearlyConstant .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
+  ⌞ NearlyConstant ⌟-set = SupportList-is-set
+
+
+--------------------------------------------------------------------------------
+-- Subalgebra Structure
+
+module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+  private
+    module 𝒟 = DisplacementAlgebra 𝒟
+    open 𝒟 using (ε; _⊗_; _<_; _≤_)
+    open NearlyConst 𝒟 cmp
+    open Inf 𝒟
+
+  index : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
+  index b [] n = b
+  index b (x ∷ xs) zero = x
+  index b (x ∷ xs) (suc n) = index b xs n
+
+  index-vanishes : ∀ b xs n → vanishes b xs → index b xs n ≡ b
+  index-vanishes b [] n vanishes = refl
+  index-vanishes b (x ∷ xs) zero vanishes with x ≡? b
+  ... | yes x≡b = x≡b
+  index-vanishes b (x ∷ xs) (suc n) vanishes with x ≡? b
+  ... | yes _ = index-vanishes b xs n vanishes
+
+  index-compact : ∀ b xs n → index b (fwd (compact b (bwd xs))) n ≡ index b xs n
+  index-compact b [] n = refl
+  index-compact b (x ∷ xs) zero with x ≡? b
+  ... | yes x≡b with inspect (compact b (bwd xs))
+  ... | [] , p =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0 ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-◁⊗ ([] #r x) xs [] p) ⟩
+    index b (fwd (compact b ([] #r x))) 0         ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-step [] x≡b) ⟩
+    b                                             ≡˘⟨ x≡b ⟩
+    x                                             ∎
+  ... | cs #r c , p =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0         ≡⟨ ap (λ ϕ → index b (fwd (compact b ϕ)) 0) (◁⊗-bwd ([] #r x) xs) ⟩
+    index b (fwd (compact b (([] #r x) ++r bwd xs))) 0    ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
+    index b (fwd (compact b (([] #r x) ++r (cs #r c)))) 0 ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-done (([] #r x) ++r cs) c≠base) ⟩
+    index b (fwd (([] #r x) ++r (cs #r c))) 0             ≡⟨ ap (λ ϕ → index b ϕ 0) (fwd-++r ([] #r x) (cs #r c)) ⟩
+    x ∎
+    where
+      c≠base : c ≡ b → ⊥
+      c≠base = compact-last b (bwd xs) cs c p
+
+      cs#r-compact : compact b (cs #r c) ≡ cs #r c
+      cs#r-compact = compact-done cs c≠base
+  index-compact b (x ∷ xs) zero | no ¬x≡b =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0      ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-◁⊗-¬base [] xs ¬x≡b) ⟩
+    index b (fwd (([] #r x) ++r compact b (bwd xs))) 0 ≡⟨ ap (λ ϕ → index b ϕ 0) (fwd-++r ([] #r x) (compact b (bwd xs))) ⟩
+    x ∎
+  index-compact b (x ∷ xs) (suc n) with x ≡? b
+  ... | yes x≡b with inspect (compact b (bwd xs))
+  ... | [] , p =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n) ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-◁⊗ ([] #r x) xs [] p) ⟩
+    index b (fwd (compact b ([] #r x))) (suc n)         ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-step [] x≡b) ⟩
+    b                                                   ≡˘⟨ index-vanishes b xs n (vanishes-bwd b xs p) ⟩
+    index b xs n ∎
+  ... | cs #r c , p =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n)         ≡⟨ ap (λ ϕ → index b (fwd (compact b ϕ)) (suc n)) (◁⊗-bwd ([] #r x) xs) ⟩
+    index b (fwd (compact b (([] #r x) ++r bwd xs))) (suc n)    ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
+    index b (fwd (compact b (([] #r x) ++r (cs #r c)))) (suc n) ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-done (([] #r x) ++r cs) c≠base) ⟩
+    index b (fwd ((([] #r x) ++r cs) #r c)) (suc n)             ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (cs #r c)) ⟩     
+    index b (fwd (cs #r c)) n                                   ≡˘⟨ ap (λ ϕ → index b (fwd ϕ) n) p ⟩
+    index b (fwd (compact b (bwd xs))) n                        ≡⟨ index-compact b xs n ⟩
+    index b xs n ∎
+    where
+      c≠base : c ≡ b → ⊥
+      c≠base = compact-last b (bwd xs) cs c p
+
+      cs#r-compact : compact b (cs #r c) ≡ cs #r c
+      cs#r-compact = compact-done cs c≠base
+  index-compact b (x ∷ xs) (suc n) | no ¬x≡b =
+    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n)      ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-◁⊗-¬base [] xs ¬x≡b) ⟩
+    index b (fwd (([] #r x) ++r compact b (bwd xs))) (suc n) ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (compact b (bwd xs))) ⟩
+    index b (fwd (compact b (bwd xs))) n                     ≡⟨ index-compact b xs n ⟩
+    index b xs n ∎
+
+  NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
+  NearlyConstant⊆InfProd = subalgebra
+    where
+
+      into : SupportList → Nat → ⌞ 𝒟 ⌟
+      into xs n = index (xs .base) (list xs) n
+
+      into-preserves-⊗ : ∀ xs ys n → into (merge xs ys) n ≡ (into xs ⊗∞ into ys) n
+      into-preserves-⊗  xs ys n =
+        index (xs .base ⊗ ys .base) (fwd (compact (xs .base ⊗ ys .base) (bwd (merge-list (xs .base) (list xs) (ys .base) (list ys))))) n
+          ≡⟨ index-compact (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n ⟩
+        index (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n
+          ≡⟨ go (xs .base) (list xs) (ys .base) (list ys) n ⟩
+        (into xs ⊗∞ into ys) n
+          ∎
+        where
+          go : ∀ b1 xs b2 ys n → index (b1 ⊗ b2) (merge-list b1 xs b2 ys) n ≡ (index b1 xs ⊗∞ index b2 ys) n
+          go b1 [] b2 [] n = refl
+          go b1 [] b2 (y ∷ ys) zero = refl
+          go b1 [] b2 (y ∷ ys) (suc n) = go b1 [] b2 ys n
+          go b1 (x ∷ xs) b2 [] zero = refl
+          go b1 (x ∷ xs) b2 [] (suc n) = go b1 xs b2 [] n
+          go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
+          go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
+
+      subalgebra : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
+      subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
+      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
+      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ xs ys = funext (into-preserves-⊗ xs ys)
+      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono = {!!}
+      subalgebra .is-displacement-subalgebra.inj = {!!}
