@@ -16,7 +16,7 @@ open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
 
-module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
 
   private
     module 𝒟 = DisplacementAlgebra 𝒟
@@ -28,6 +28,15 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
 
       HLevel-≤ : ∀ {x y} {n} → H-Level (x ≤ y) (suc n)
       HLevel-≤ = prop-instance 𝒟.≤-is-prop
+
+  _≡?_ : Discrete ⌞ 𝒟 ⌟
+  x ≡? y =
+    tri-elim
+      (λ _ → Dec (x ≡ y))
+      (λ x<y → no λ x≡y → 𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
+      yes
+      (λ y<x → no λ x≡y → 𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+      (cmp x y)
 
   is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type
   is-compact base [] = ⊤
