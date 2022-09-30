@@ -419,7 +419,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
     list : List ⌞ 𝒟 ⌟
     list = fwd elts
 
-  open SupportList public
+  open SupportList
 
   support-list-path : ∀ {xs ys : SupportList} → xs .base ≡ ys .base → xs .elts ≡ ys .elts → xs ≡ ys
   support-list-path p q i .base = p i
@@ -1313,7 +1313,7 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
     open NearlyConst 𝒟 cmp
     open Inf 𝒟
-
+    open SupportList
 
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
   NearlyConstant⊆InfProd = subalgebra
@@ -1398,6 +1398,7 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (c
     open NearlyConst 𝒟 cmp
     open Inf 𝒟
     open has-joins 𝒟-joins
+    open SupportList
 
   join-list : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
   join-list = merge-with join
@@ -1512,3 +1513,24 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (c
           (join-list-universal (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
             (non-strict→merge≤ xs zs xs≤zs)
             (non-strict→merge≤ ys zs ys≤zs)))
+
+module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-bottom : has-bottom 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) (b : ⌞ 𝒟 ⌟) where
+  private
+    module 𝒟 = DisplacementAlgebra 𝒟
+    open 𝒟 using (ε; _⊗_; _<_; _≤_)
+    open NearlyConst 𝒟 cmp
+    open Inf 𝒟
+    open SupportList
+    open has-bottom 𝒟-bottom
+
+  bot-list : SupportList
+  bot-list = support-list bot [] tt
+
+  bot-list-is-bottom : ∀ b xs → merge-list≤ bot [] b xs
+  bot-list-is-bottom b [] = is-bottom b
+  bot-list-is-bottom b (x ∷ xs) = merge-list≤-step≤ bot [] b xs (is-bottom x) (bot-list-is-bottom b xs)
+
+  nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 cmp)
+  nearly-constant-has-bottom .has-bottom.bot = bot-list
+  nearly-constant-has-bottom .has-bottom.is-bottom xs =
+    merge≤→non-strict bot-list xs $ bot-list-is-bottom (xs .base) (list xs)
