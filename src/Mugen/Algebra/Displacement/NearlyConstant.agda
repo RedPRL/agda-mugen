@@ -111,6 +111,74 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   ... | yes _ = compact-is-compact base xs
   ... | no ¬base = ¬base-is-compact xs ¬base
 
+  --------------------------------------------------------------------------------
+  -- Vanishing Lists
+  -- 
+  -- We say a list vanishes relative to some base 'b' if it /only/ contains 'b'.
+  -- Furthermore, we say a /backward/ list compacts relative to some base if 
+  -- it's compaction is equal to [].
+  --
+  -- These conditions may seems somewhat redundant. Why not define one as
+  -- primary, and the reversed version with fwd/bwd? Indeed, both conditions
+  -- are equivalent! However, the induction orders are different, and we want
+  -- to *trust the natural recursion*.
+
+  vanishes : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type
+  vanishes b [] = ⊤
+  vanishes b (x ∷ xs) =
+    case _
+      (λ _ → vanishes b xs)
+      (λ _ → ⊥)
+      (x ≡? b)
+
+  vanish-step : ∀ base x xs → x ≡ base → vanishes base xs → vanishes base (x ∷ xs)
+  vanish-step base x xs base! vanish with x ≡? base
+  ... | yes _ = vanish
+  ... | no ¬base = absurd $ ¬base base!
+
+  vanishes-◁⊗-compact : ∀ base xs ys → compact base xs ≡ [] → vanishes base ys → compact base (xs ◁⊗ ys) ≡ []
+  vanishes-◁⊗-compact base xs [] compacts vanishes = compacts
+  vanishes-◁⊗-compact base xs (y ∷ ys) compacts vanishes with y ≡? base
+  ... | yes base! = vanishes-◁⊗-compact base (xs #r y) ys (compact-step xs base! ∙ compacts) vanishes
+
+  vanishes-⊗▷-compact : ∀ base xs ys → compact base xs ≡ [] → vanishes base ys → vanishes base (xs ⊗▷ ys)
+  vanishes-⊗▷-compact base [] ys compacts vanishes = vanishes
+  vanishes-⊗▷-compact base (xs #r x) ys compacts vanishes with x ≡? base
+  ... | yes base! = vanishes-⊗▷-compact base xs (x ∷ ys) compacts (vanish-step base x ys base! vanishes)
+  ... | no _ = absurd $ #r≠[] compacts
+
+  vanishes-bwd : ∀ base xs → vanishes base xs → compact base (bwd xs) ≡ []
+  vanishes-bwd base xs vanishes = vanishes-◁⊗-compact base [] xs refl vanishes
+
+  vanishes-fwd : ∀ base xs → compact base xs ≡ [] → vanishes base (fwd xs)
+  vanishes-fwd base xs compacts = vanishes-⊗▷-compact base xs [] compacts tt
+
+  vanish-++ : ∀ {base} xs ys → vanishes base (xs ++ ys) → vanishes base ys
+  vanish-++ [] ys vanish = vanish
+  vanish-++ {base = base} (x ∷ xs) ys vanish with x ≡? base
+  ... | yes _ = vanish-++ xs ys vanish
+
+  vanish-head-∷ : ∀ base x xs → vanishes base (x ∷ xs) → x ≡ base
+  vanish-head-∷ base x xs v with x ≡? base
+  ... | yes base! = base!
+
+  vanish-tail-∷ : ∀ base x xs → vanishes base (x ∷ xs) → vanishes base xs
+  vanish-tail-∷ base x xs vanish with x ≡? base
+  ... | yes base! = vanish
+
+  compacts-head-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → x ≡ base
+  compacts-head-∷ base x xs compacts =
+    vanish-head-∷ base x xs $
+    subst (vanishes base) (fwd-bwd (x ∷ xs)) $
+    vanishes-fwd base (bwd (x ∷ xs)) compacts 
+
+  compacts-tail-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → compact base (bwd xs) ≡ []
+  compacts-tail-∷ base x xs compacts =
+    vanishes-bwd base xs $
+    vanish-tail-∷ base x xs $
+    subst (vanishes base) (fwd-bwd (x ∷ xs)) $
+    vanishes-fwd base (bwd (x ∷ xs)) compacts 
+
   compact-vanish-++r : ∀ {base} xs ys → compact base ys ≡ [] → compact base (xs ++r ys) ≡ compact base xs
   compact-vanish-++r {base = base} xs [] ys-vanish = refl
   compact-vanish-++r {base = base} xs (ys #r y) ys-vanish with y ≡? base
@@ -518,6 +586,46 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
   ... | eq _ = pf
   ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
 
+  merge-list≤-vanish : ∀ b xs → vanishes b xs → merge-list≤ b xs b []
+  merge-list≤-vanish b [] vanish = inl refl
+  merge-list≤-vanish b (x ∷ xs) vanish =
+    merge-list≤-step≤ b xs b []
+      (inl (vanish-head-∷ b x xs vanish))
+      (merge-list≤-vanish b xs (vanish-tail-∷ b x xs vanish))
+
+  merge-list≥-vanish : ∀ b xs → vanishes b xs → merge-list≤ b [] b xs
+  merge-list≥-vanish b [] vanish = inl refl
+  merge-list≥-vanish b (x ∷ xs) vanish =
+    merge-list≤-step≤ b [] b xs
+      (inl (sym $ vanish-head-∷ b x xs vanish))
+      (merge-list≥-vanish b xs (vanish-tail-∷ b x xs vanish))
+
+  merge-list≤-++-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b (xs ++ ys) b xs
+  merge-list≤-++-vanish b [] ys ys-vanish = merge-list≤-vanish b ys ys-vanish
+  merge-list≤-++-vanish b (x ∷ xs) ys ys-vanish with cmp x x
+  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | eq x≡x = merge-list≤-++-vanish b xs ys ys-vanish
+  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+
+  merge-list≥-++-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b xs b (xs ++ ys)
+  merge-list≥-++-vanish b [] ys ys-vanish = merge-list≥-vanish b ys ys-vanish
+  merge-list≥-++-vanish b (x ∷ xs) ys ys-vanish with cmp x x
+  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | eq x≡x = merge-list≥-++-vanish b xs ys ys-vanish
+  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+
+  merge-list≤-⊗▷-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b (xs ⊗▷ ys) b (fwd xs)
+  merge-list≤-⊗▷-vanish b xs ys ys-vanish =
+    subst (λ ϕ → merge-list≤ b ϕ b (fwd xs))
+      (sym $ ⊗▷-fwd xs ys)
+      (merge-list≤-++-vanish b (fwd xs) ys ys-vanish)
+
+  merge-list≥-⊗▷-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b (fwd xs) b (xs ⊗▷ ys)
+  merge-list≥-⊗▷-vanish b xs ys ys-vanish =
+    subst (λ ϕ → merge-list≤ b (fwd xs) b ϕ)
+      (sym $ ⊗▷-fwd xs ys)
+      (merge-list≥-++-vanish b (fwd xs) ys ys-vanish)
+
   weaken-< : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → merge-list≤ b1 xs b2 ys
   weaken-< b1 [] b2 [] (lift b1<b2) = inr b1<b2
   weaken-< b1 [] b2 (y ∷ ys) xs<ys with cmp b1 y
@@ -623,6 +731,141 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
       ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
       ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs) 
 
+  --------------------------------------------------------------------------------
+  -- Heterogenous Compositions
+  --
+  -- These proofs may seem redundant but converting from 'merge-list≤' to 'non-strict merge-list<' doesn't quite work,
+  -- due to the behaviour around the bases. In particular, this relies on compactness, and we want to use these results
+  -- when we don't have compactness yet (for instance, showing that 'compact' is strictly monotonic).
+
+  merge-list≤-transl : ∀ b1 xs b2 ys b3 zs → merge-list≤ b1 xs b2 ys → merge-list< b2 ys b3 zs → merge-list< b1 xs b3 zs
+  merge-list≤-transl b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      step< : ∀ xs ys zs {x z}
+              → (x < z)
+              → merge-list≤ b1 xs b2 ys
+              → merge-list≤ b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ b1 xs b3 zs)
+                (merge-list< b1 xs b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp x z)
+      step< xs ys zs x<z xs≤ys ys≤zs =
+        merge-list<-step< b1 xs b3 zs x<z (merge-list≤-trans b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+
+      step≤ : ∀ xs ys zs {x z}
+              → (x ≤ z)
+              → merge-list≤ b1 xs b2 ys
+              → merge-list< b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ b1 xs b3 zs)
+                (merge-list< b1 xs b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp x z)
+      step≤ xs ys zs (inl x≡z) xs≤ys ys<zs =
+        merge-list<-step≡ b1 xs b3 zs x≡z (merge-list≤-transl b1 xs b2 ys b3 zs xs≤ys ys<zs)
+      step≤ xs ys zs (inr x<z) xs≤ys ys<zs =
+        merge-list<-step< b1 xs b3 zs x<z (merge-list≤-trans b1 xs b2 ys b3 zs xs≤ys (weaken-< b2 ys b3 zs ys<zs))
+
+      go : ∀ xs ys zs → merge-list≤ b1 xs b2 ys → merge-list< b2 ys b3 zs → merge-list< b1 xs b3 zs
+      go [] [] [] b1≤b2 (lift b2<b3) =
+        lift (𝒟.≤-transl b1≤b2 b2<b3)
+      go [] [] (z ∷ zs) b1≤b2 ys<zs with cmp b2 z
+      ... | lt b2<z = step< [] [] zs (𝒟.≤-transl b1≤b2 b2<z) b1≤b2 ys<zs
+      ... | eq b2≡z = step≤ [] [] zs (𝒟.≤-trans b1≤b2 (inl b2≡z)) b1≤b2 ys<zs
+      go [] (y ∷ ys) [] xs≤ys ys<zs with cmp b1 y | cmp y b3
+      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
+      ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
+      ... | eq b1≡y | eq y≡b3 = go [] ys [] xs≤ys ys<zs
+      go [] (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp b1 y | cmp y z
+      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.trans b1<y y<z) xs≤ys ys<zs
+      ... | lt b1<y | eq y≡z = step< [] ys zs (𝒟.≡-transr b1<y y≡z) xs≤ys (weaken-< b2 ys b3 zs ys<zs)
+      ... | eq b1≡y | lt y<z = step< [] ys zs (𝒟.≡-transl b1≡y y<z) xs≤ys ys<zs
+      ... | eq b1≡y | eq y≡z = step≤ [] ys zs (inl (b1≡y ∙ y≡z)) xs≤ys ys<zs
+      go (x ∷ xs) [] [] xs≤ys (lift b2<b3) with cmp x b2
+      ... | lt x<b2 = step< xs [] [] (𝒟.trans x<b2 b2<b3) xs≤ys (inr b2<b3)
+      ... | eq x≡b2 = step< xs [] [] (𝒟.≡-transl x≡b2 b2<b3) xs≤ys (inr b2<b3)
+      go (x ∷ xs) [] (z ∷ zs) xs≤ys ys<zs with cmp x b2 | cmp b2 z
+      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.trans x<b2 b2<z) xs≤ys ys<zs
+      ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys (weaken-< b2 [] b3 zs ys<zs) 
+      ... | eq x≡b2 | lt b2<z = step< xs [] zs (𝒟.≡-transl x≡b2 b2<z) xs≤ys ys<zs
+      ... | eq x≡b2 | eq b2≡z = step≤ xs [] zs (inl (x≡b2 ∙ b2≡z)) xs≤ys ys<zs
+      go (x ∷ xs) (y ∷ ys) [] xs≤ys ys<zs with cmp x y | cmp y b3
+      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.trans x<y y<b3) xs≤ys ys<zs
+      ... | lt x<y | eq y≡b3 = step< xs ys [] (𝒟.≡-transr x<y y≡b3) xs≤ys (weaken-< b2 ys b3 [] ys<zs)
+      ... | eq x≡y | lt y<b3 = step< xs ys [] (𝒟.≡-transl x≡y y<b3) xs≤ys ys<zs
+      ... | eq x≡y | eq y≡b3 = step≤ xs ys [] (inl (x≡y ∙ y≡b3)) xs≤ys ys<zs
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp x y | cmp y z
+      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.trans x<y y<z) xs≤ys ys<zs
+      ... | lt x<y | eq y≡z = step< xs ys zs (𝒟.≡-transr x<y y≡z) xs≤ys (weaken-< b2 ys b3 zs ys<zs)
+      ... | eq x≡y | lt y<z = step< xs ys zs (𝒟.≡-transl x≡y y<z) xs≤ys ys<zs
+      ... | eq x≡y | eq y≡z = step≤ xs ys zs (inl (x≡y ∙ y≡z)) xs≤ys ys<zs
+
+  merge-list≤-transr : ∀ b1 xs b2 ys b3 zs → merge-list< b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list< b1 xs b3 zs
+  merge-list≤-transr b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      step< : ∀ xs ys zs {x z}
+              → (x < z)
+              → merge-list≤ b1 xs b2 ys
+              → merge-list≤ b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ b1 xs b3 zs)
+                (merge-list< b1 xs b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp x z)
+      step< xs ys zs x<z xs≤ys ys≤zs =
+        merge-list<-step< b1 xs b3 zs x<z (merge-list≤-trans b1 xs b2 ys b3 zs xs≤ys ys≤zs)
+
+      step≤ : ∀ xs ys zs {x z}
+              → (x ≤ z)
+              → merge-list< b1 xs b2 ys
+              → merge-list≤ b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ b1 xs b3 zs)
+                (merge-list< b1 xs b3 zs)
+                (Lift (o ⊔ r) ⊥)
+                (cmp x z)
+      step≤ xs ys zs (inl x≡z) xs≤ys ys<zs =
+        merge-list<-step≡ b1 xs b3 zs x≡z (merge-list≤-transr b1 xs b2 ys b3 zs xs≤ys ys<zs)
+      step≤ xs ys zs (inr x<z) xs<ys ys≤zs =
+        merge-list<-step< b1 xs b3 zs x<z (merge-list≤-trans b1 xs b2 ys b3 zs (weaken-< b1 xs b2 ys xs<ys) ys≤zs)
+
+      go : ∀ xs ys zs → merge-list< b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list< b1 xs b3 zs
+      go [] [] [] (lift b1<b2) b2≤b3 =
+        lift (𝒟.≤-transr b1<b2 b2≤b3)
+      go [] [] (z ∷ zs) (lift b1<b2) ys<zs with cmp b2 z
+      ... | lt b2<z = step< [] [] zs (𝒟.trans b1<b2 b2<z) (inr b1<b2) ys<zs
+      ... | eq b2≡z = step≤ [] [] zs (inr (𝒟.≡-transr b1<b2 b2≡z)) (lift b1<b2) ys<zs
+      go [] (y ∷ ys) [] xs≤ys ys<zs with cmp b1 y | cmp y b3
+      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
+      ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
+      ... | eq b1≡y | eq y≡b3 = go [] ys [] xs≤ys ys<zs
+      go [] (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp b1 y | cmp y z
+      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.trans b1<y y<z) xs≤ys ys<zs
+      ... | lt b1<y | eq y≡z = step< [] ys zs (𝒟.≡-transr b1<y y≡z) xs≤ys ys<zs
+      ... | eq b1≡y | lt y<z = step< [] ys zs (𝒟.≡-transl b1≡y y<z) (weaken-< b1 [] b2 ys xs≤ys) ys<zs
+      ... | eq b1≡y | eq y≡z = step≤ [] ys zs (inl (b1≡y ∙ y≡z)) xs≤ys ys<zs
+      go (x ∷ xs) [] [] xs<ys b2≤b3 with cmp x b2
+      ... | lt x<b2 = step< xs [] [] (𝒟.≤-transr x<b2 b2≤b3) xs<ys b2≤b3
+      ... | eq x≡b2 = step≤ xs [] [] (𝒟.≤-trans (inl x≡b2) b2≤b3) xs<ys b2≤b3
+      go (x ∷ xs) [] (z ∷ zs) xs≤ys ys<zs with cmp x b2 | cmp b2 z
+      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.trans x<b2 b2<z) xs≤ys ys<zs
+      ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys ys<zs
+      ... | eq x≡b2 | lt b2<z = step< xs [] zs (𝒟.≡-transl x≡b2 b2<z) (weaken-< b1 xs b2 [] xs≤ys) ys<zs
+      ... | eq x≡b2 | eq b2≡z = step≤ xs [] zs (inl (x≡b2 ∙ b2≡z)) xs≤ys ys<zs
+      go (x ∷ xs) (y ∷ ys) [] xs≤ys ys<zs with cmp x y | cmp y b3
+      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.trans x<y y<b3) xs≤ys ys<zs
+      ... | lt x<y | eq y≡b3 = step< xs ys [] (𝒟.≡-transr x<y y≡b3) xs≤ys ys<zs
+      ... | eq x≡y | lt y<b3 = step< xs ys [] (𝒟.≡-transl x≡y y<b3) (weaken-< b1 xs b2 ys xs≤ys) ys<zs
+      ... | eq x≡y | eq y≡b3 = step≤ xs ys [] (inl (x≡y ∙ y≡b3)) xs≤ys ys<zs
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp x y | cmp y z
+      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.trans x<y y<z) xs≤ys ys<zs
+      ... | lt x<y | eq y≡z = step< xs ys zs (𝒟.≡-transr x<y y≡z) xs≤ys ys<zs
+      ... | eq x≡y | lt y<z = step< xs ys zs (𝒟.≡-transl x≡y y<z) (weaken-< b1 xs b2 ys xs≤ys) ys<zs
+      ... | eq x≡y | eq y≡z = step≤ xs ys zs (inl (x≡y ∙ y≡z)) xs≤ys ys<zs
+
   _merge<_ : SupportList → SupportList → Type (o ⊔ r)
   xs merge< ys = merge-list< (xs .base) (list xs) (ys .base) (list ys)
 
@@ -704,20 +947,177 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (_≡?_ : Discrete ⌞
           in support-list-path b1≡b2 (ap bwd (ap₂ _∷_ x≡y xs≡ys))
 
   --------------------------------------------------------------------------------
-  -- Notational Tricks
-  --
-  -- We define a strict-ordering structure for _merge<_ purely to
-  -- be able to use equational reasoning for the later proofs.
-  -- This is marked private, as we will expose it as part of
-  -- the displacement algebra structure later.
+  -- Compaction + Orderings
 
-  private
-    MergeOrd : StrictOrder o (o ⊔ r)
-    ⌞ MergeOrd ⌟ = SupportList
-    MergeOrd .structure .StrictOrder-on._<_ = _merge<_
-    MergeOrd .structure .StrictOrder-on.has-is-strict-order = merge-is-strict-order
-    ⌞ MergeOrd ⌟-set = SupportList-is-set
+  compact-≤ : ∀ b xs → merge-list≤ b (fwd xs) b (fwd (compact b xs))
+  compact-≤ b [] =
+    inl refl
+  compact-≤ b (xs #r x) with x ≡? b
+  ... | yes x≡b =
+    merge-list≤-trans
+      b (xs ⊗▷ (x ∷ []))
+      b (fwd xs)
+      b (fwd (compact b xs))
+      (merge-list≤-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b tt))
+      (compact-≤ b xs)
+  ... | no ¬x≡b =
+    merge-list≤-refl b (fwd (xs #r x))
 
- 
-  open StrictOrder-Reasoning MergeOrd
+  compact-≥ : ∀ b xs → merge-list≤ b (fwd (compact b xs)) b (fwd xs)
+  compact-≥ b [] =
+    inl refl
+  compact-≥ b (xs #r x) with x ≡? b
+  ... | yes x≡b =
+    merge-list≤-trans
+      b (fwd (compact b xs))
+      b (fwd xs)
+      b (xs ⊗▷ (x ∷ []))
+      (compact-≥ b xs)
+      (merge-list≥-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b tt))
+  ... | no ¬x≡b =
+    merge-list≤-refl b (fwd (xs #r x))
 
+  compact-mono-≤ : ∀ b1 xs b2 ys → merge-list≤ b1 xs b2 ys → merge-list≤ b1 (fwd (compact b1 (bwd xs))) b2 (fwd (compact b2 (bwd ys)))
+  compact-mono-≤ b1 xs b2 ys xs≤ys =
+    merge-list≤-trans
+      b1 (fwd (compact b1 (bwd xs)))
+      b1 (fwd (bwd xs))
+      b2 (fwd (compact b2 (bwd ys)))
+      (compact-≥ b1 (bwd xs)) $
+    merge-list≤-trans
+      b1 (fwd (bwd xs))
+      b2 (fwd (bwd ys))
+      b2 (fwd (compact b2 (bwd ys)))
+      (subst₂ (λ ϕ ψ → merge-list≤ b1 ϕ b2 ψ) (sym $ fwd-bwd xs) (sym $ fwd-bwd ys) xs≤ys)
+      (compact-≤ b2 (bwd ys))
+
+  compact-mono-< : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → merge-list< b1 (fwd (compact b1 (bwd xs))) b2 (fwd (compact b2 (bwd ys)))
+  compact-mono-< b1 xs b2 ys xs<ys =
+    merge-list≤-transl
+      b1 (fwd (compact b1 (bwd xs)))
+      b1 (fwd (bwd xs))
+      b2 (fwd (compact b2 (bwd ys)))
+      (compact-≥ b1 (bwd xs)) $
+    merge-list≤-transr
+      b1 (fwd (bwd xs))
+      b2 (fwd (bwd ys))
+      b2 (fwd (compact b2 (bwd ys)))
+      (subst₂ (λ ϕ ψ → merge-list< b1 ϕ b2 ψ) (sym $ fwd-bwd xs) (sym $ fwd-bwd ys) xs<ys)
+      (compact-≤ b2 (bwd ys))
+
+  --------------------------------------------------------------------------------
+  -- Left-Invariance
+
+  merge-list≤-left-invariant : ∀ b1 xs b2 ys b3 zs → merge-list≤ b2 ys b3 zs → merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+  merge-list≤-left-invariant b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      -- We are going to be making a /lot/ of common recursive calls, so let's factor those
+      -- out before doing the monster case bash.
+      step≤ : ∀ xs ys zs {x y}
+              → (x ≤ y)
+              → merge-list≤ b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (Lift (o ⊔ r) ⊥)
+                (cmp x y)
+      step≤ xs ys zs x≤y xs≤ys =
+        merge-list≤-step≤
+          (b1 ⊗ b2) (merge-list b1 xs b2 ys)
+          (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+          x≤y
+          (merge-list≤-left-invariant b1 xs b2 ys b3 zs xs≤ys)
+
+      go : ∀ xs ys zs → merge-list≤ b2 ys b3 zs → merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+      go [] [] [] b2≤b3 =
+        𝒟.left-invariant-≤ b2≤b3
+      go [] [] (z ∷ zs) ys<zs with cmp b2 z
+      ... | lt b2<z = step≤ [] [] zs (inr $ 𝒟.left-invariant b2<z) ys<zs
+      ... | eq b2≡z = step≤ [] [] zs (inl $ ap (b1 ⊗_) b2≡z) ys<zs
+      go [] (y ∷ ys) [] ys<zs with cmp y b3
+      ... | lt y<b3 = step≤ [] ys [] (inr $ 𝒟.left-invariant y<b3) ys<zs
+      ... | eq y≡b3 = step≤ [] ys [] (inl $ ap (b1 ⊗_) y≡b3) ys<zs
+      go [] (y ∷ ys) (z ∷ zs) ys<zs with cmp y z
+      ... | lt y<z = step≤ [] ys zs (inr $ 𝒟.left-invariant y<z) ys<zs
+      ... | eq y≡z = step≤ [] ys zs (inl $ ap (b1 ⊗_) y≡z) ys<zs
+      go (x ∷ xs) [] [] b2<b3 =
+        step≤ xs [] [] (𝒟.left-invariant-≤ b2<b3) b2<b3
+      go (x ∷ xs) [] (z ∷ zs) ys<zs with cmp b2 z
+      ... | lt b2<z = step≤ xs [] zs (inr $ 𝒟.left-invariant b2<z) ys<zs
+      ... | eq b2≡z = step≤ xs [] zs (inl $ ap (x ⊗_) b2≡z) ys<zs
+      go (x ∷ xs) (y ∷ ys) [] ys<zs with cmp y b3
+      ... | lt y<b3 = step≤ xs ys [] (inr $ 𝒟.left-invariant y<b3) ys<zs
+      ... | eq y≡b3 = step≤ xs ys [] (inl $ ap (x ⊗_) y≡b3) ys<zs
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) ys<zs with cmp y z
+      ... | lt y<z = step≤ xs ys zs (inr $ 𝒟.left-invariant y<z) ys<zs
+      ... | eq y≡z = step≤ xs ys zs (inl $ ap (x ⊗_) y≡z) ys<zs
+
+  merge-list<-left-invariant : ∀ b1 xs b2 ys b3 zs → merge-list< b2 ys b3 zs → merge-list< (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+  merge-list<-left-invariant b1 xs b2 ys b3 zs = go xs ys zs
+    where
+      -- same idea as above: factor out the shape of the recursive calls.
+      step< : ∀ xs ys zs {x y}
+              → (x < y)
+              → merge-list≤ b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (merge-list< (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (Lift (o ⊔ r) ⊥)
+                (cmp x y)
+      step< xs ys zs x<y ys≤zs =
+        merge-list<-step<
+          (b1 ⊗ b2) (merge-list b1 xs b2 ys)
+          (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+          x<y
+          (merge-list≤-left-invariant b1 xs b2 ys b3 zs ys≤zs)
+
+      step≡ : ∀ xs ys zs {x y}
+              → (x ≡ y)
+              → merge-list< b2 ys b3 zs
+              → tri-rec
+                (merge-list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (merge-list< (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs))
+                (Lift (o ⊔ r) ⊥)
+                (cmp x y)
+      step≡ xs ys zs x≡y ys<zs =
+        merge-list<-step≡
+          (b1 ⊗ b2) (merge-list b1 xs b2 ys)
+          (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+          x≡y
+          (merge-list<-left-invariant b1 xs b2 ys b3 zs ys<zs)
+
+      go : ∀ xs ys zs → merge-list< b2 ys b3 zs → merge-list< (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs)
+      go [] [] [] (lift b2<b3) =
+        lift (𝒟.left-invariant b2<b3)
+      go [] [] (z ∷ zs) ys<zs with cmp b2 z
+      ... | lt b2<z = step< [] [] zs (𝒟.left-invariant b2<z) ys<zs
+      ... | eq b2≡z = step≡ [] [] zs (ap (b1 ⊗_) b2≡z) ys<zs
+      go [] (y ∷ ys) [] ys<zs with cmp y b3
+      ... | lt y<b3 = step< [] ys [] (𝒟.left-invariant y<b3) ys<zs
+      ... | eq y≡b3 = step≡ [] ys [] (ap (b1 ⊗_) y≡b3) ys<zs
+      go [] (y ∷ ys) (z ∷ zs) ys<zs with cmp y z
+      ... | lt y<z = step< [] ys zs (𝒟.left-invariant y<z) ys<zs
+      ... | eq y≡z = step≡ [] ys zs (ap (b1 ⊗_) y≡z) ys<zs
+      go (x ∷ xs) [] [] (lift b2<b3) =
+        step< xs [] [] (𝒟.left-invariant b2<b3) (inr b2<b3)
+      go (x ∷ xs) [] (z ∷ zs) ys<zs with cmp b2 z
+      ... | lt b2<z = step< xs [] zs (𝒟.left-invariant b2<z) ys<zs
+      ... | eq b2≡z = step≡ xs [] zs (ap (x ⊗_) b2≡z) ys<zs
+      go (x ∷ xs) (y ∷ ys) [] ys<zs with cmp y b3
+      ... | lt y<b3 = step< xs ys [] (𝒟.left-invariant y<b3) ys<zs
+      ... | eq y≡b3 = step≡ xs ys [] (ap (x ⊗_) y≡b3) ys<zs
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) ys<zs with cmp y z
+      ... | lt y<z = step< xs ys zs (𝒟.left-invariant y<z) ys<zs
+      ... | eq y≡z = step≡ xs ys zs (ap (x ⊗_) y≡z) ys<zs
+
+  merge-left-invariant : ∀ xs ys zs → ys merge< zs → (merge xs ys) merge< (merge xs zs)
+  merge-left-invariant xs ys zs ys<zs =
+    compact-mono-<
+      (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys))
+      (xs .base ⊗ zs .base) (merge-list (xs .base) (list xs) (zs .base) (list zs))
+      (merge-list<-left-invariant (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs) ys<zs)
+
+  merge-is-displacement-algebra : is-displacement-algebra _merge<_ empty merge
+  merge-is-displacement-algebra .is-displacement-algebra.has-monoid = merge-is-monoid
+  merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = merge-is-strict-order
+  merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} = merge-left-invariant xs ys zs
