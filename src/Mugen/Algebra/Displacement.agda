@@ -90,6 +90,20 @@ module DisplacementAlgebra-hom
 
   open is-displacement-algebra-homomorphism (homo f) public
 
+displacement-hom-∘ : ∀ {o r} {X Y Z : DisplacementAlgebra o r}
+                     → DisplacementAlgebra-hom Y Z
+                     → DisplacementAlgebra-hom X Y
+                     → DisplacementAlgebra-hom X Z
+displacement-hom-∘ {X = X} {Z = Z} f g = f∘g
+  where
+    open is-displacement-algebra-homomorphism
+
+    f∘g : DisplacementAlgebra-hom X Z
+    f∘g ⟨$⟩ x = f ⟨$⟩ (g ⟨$⟩ x)
+    f∘g .homo .pres-ε = ap (f ⟨$⟩_) (g .homo .pres-ε) ∙ f .homo .pres-ε 
+    f∘g .homo .pres-⊗ x y = ap (f ⟨$⟩_) (g .homo .pres-⊗ x y) ∙ f .homo .pres-⊗ (g ⟨$⟩ x) (g ⟨$⟩ y)
+    f∘g .homo .strictly-mono x<y = f .homo .strictly-mono (g .homo .strictly-mono x<y)
+
 --------------------------------------------------------------------------------
 -- Subalgebras of Displacement Algebras
 
@@ -99,6 +113,16 @@ record is-displacement-subalgebra {o r} (X Y : DisplacementAlgebra o r) : Type (
     inj  : ∀ {x y} → into ⟨$⟩ x ≡ into ⟨$⟩ y → x ≡ y
 
   open DisplacementAlgebra-hom into public
+
+module _ where
+  open is-displacement-subalgebra
+
+  is-displacement-subalgebra-trans : ∀ {o r} {X Y Z : DisplacementAlgebra o r}
+                                     → is-displacement-subalgebra X Y
+                                     → is-displacement-subalgebra Y Z
+                                     → is-displacement-subalgebra X Z
+  is-displacement-subalgebra-trans f g .into = displacement-hom-∘ (g .into) (f .into)
+  is-displacement-subalgebra-trans f g .is-displacement-subalgebra.inj p = f .inj (g .inj p)
 
 --------------------------------------------------------------------------------
 -- Some Properties of Displacement Algebras

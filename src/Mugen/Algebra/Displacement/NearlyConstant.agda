@@ -1401,68 +1401,72 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-ordered-monoid : has-order
     open is-ordered-monoid 𝒟-ordered-monoid
     open SupportList
 
-    merge-list≤-right-invariant : ∀ b1 xs b2 ys b3 zs
-                                  → merge-list≤ b1 xs b2 ys
-                                  → merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs)
-    merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys = go xs ys zs xs≤ys
-      where
-        step≤ : ∀ xs ys zs {x y z}
-                → tri-rec
-                    (merge-list≤ b1 xs b2 ys)
-                    (merge-list≤ b1 xs b2 ys)
-                    (Lift (o ⊔ r) ⊥)
-                    (cmp x y)
-                → tri-rec
-                    (merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs))
-                    (merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs))
-                    (Lift (o ⊔ r) ⊥)
-                    (cmp (x ⊗ z) (y ⊗ z))
-        step≤ xs ys zs {x = x} {y = y} {z = z} xs≤ys with cmp x y
-        ... | lt x<y =
-          merge-list≤-step≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs) (right-invariant (inr x<y)) $
-          merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys
-        ... | eq x≡y =
-          merge-list≤-step≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs) (right-invariant (inl x≡y)) $
-          merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys
+  merge-list≤-right-invariant : ∀ b1 xs b2 ys b3 zs
+                                → merge-list≤ b1 xs b2 ys
+                                → merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs)
+  merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys = go xs ys zs xs≤ys
+    where
+      step≤ : ∀ xs ys zs {x y z}
+              → tri-rec
+                  (merge-list≤ b1 xs b2 ys)
+                  (merge-list≤ b1 xs b2 ys)
+                  (Lift (o ⊔ r) ⊥)
+                  (cmp x y)
+              → tri-rec
+                  (merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs))
+                  (merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs))
+                  (Lift (o ⊔ r) ⊥)
+                  (cmp (x ⊗ z) (y ⊗ z))
+      step≤ xs ys zs {x = x} {y = y} {z = z} xs≤ys with cmp x y
+      ... | lt x<y =
+        merge-list≤-step≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs) (right-invariant (inr x<y)) $
+        merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys
+      ... | eq x≡y =
+        merge-list≤-step≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs) (right-invariant (inl x≡y)) $
+        merge-list≤-right-invariant b1 xs b2 ys b3 zs xs≤ys
 
-        go : ∀ xs ys zs
-             → merge-list≤ b1 xs b2 ys
-             → merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs)
-        go [] [] [] xs≤ys =
-          right-invariant xs≤ys
-        go [] [] (z ∷ zs) xs≤ys =
-          step≤ [] [] zs (merge-list≤-step≤ b1 [] b2 [] xs≤ys xs≤ys)
-        go [] (y ∷ ys) [] xs≤ys =
-          step≤ [] ys [] xs≤ys
-        go [] (y ∷ ys) (z ∷ zs) xs≤ys =
-          step≤ [] ys zs xs≤ys
-        go (x ∷ xs) [] [] xs≤ys =
-          step≤ xs [] [] xs≤ys
-        go (x ∷ xs) [] (z ∷ zs) xs≤ys =
-          step≤ xs [] zs xs≤ys
-        go (x ∷ xs) (y ∷ ys) [] xs≤ys =
-          step≤ xs ys [] xs≤ys
-        go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys =
-          step≤ xs ys zs xs≤ys
+      go : ∀ xs ys zs
+           → merge-list≤ b1 xs b2 ys
+           → merge-list≤ (b1 ⊗ b3) (merge-list b1 xs b3 zs) (b2 ⊗ b3) (merge-list b2 ys b3 zs)
+      go [] [] [] xs≤ys =
+        right-invariant xs≤ys
+      go [] [] (z ∷ zs) xs≤ys =
+        step≤ [] [] zs (merge-list≤-step≤ b1 [] b2 [] xs≤ys xs≤ys)
+      go [] (y ∷ ys) [] xs≤ys =
+        step≤ [] ys [] xs≤ys
+      go [] (y ∷ ys) (z ∷ zs) xs≤ys =
+        step≤ [] ys zs xs≤ys
+      go (x ∷ xs) [] [] xs≤ys =
+        step≤ xs [] [] xs≤ys
+      go (x ∷ xs) [] (z ∷ zs) xs≤ys =
+        step≤ xs [] zs xs≤ys
+      go (x ∷ xs) (y ∷ ys) [] xs≤ys =
+        step≤ xs ys [] xs≤ys
+      go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys =
+        step≤ xs ys zs xs≤ys
 
-    nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 cmp)
-    nearly-constant-has-ordered-monoid =
-      right-invariant→has-ordered-monoid (NearlyConstant 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
-        merge≤→non-strict (merge xs zs) (merge ys zs) $
-          merge-list≤-trans
-            (xs .base ⊗ zs .base) (fwd $ compact (xs .base ⊗ zs .base) $ bwd $ merge-list (xs .base) (list xs) (zs .base) (list zs))
-            (xs .base ⊗ zs .base) (fwd (bwd (merge-list (xs .base) (list xs) (zs .base) (list zs))))
-            (ys .base ⊗ zs .base) (fwd $ compact (ys .base ⊗ zs .base) $ bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs))
-            (compact-≥ (xs .base ⊗ zs .base) (bwd $ merge-list (xs .base) (list xs) (zs .base) (list zs))) $
-          merge-list≤-trans
-            (xs .base ⊗ zs .base) (fwd (bwd (merge-list (xs .base) (list xs) (zs .base) (list zs))))
-            (ys .base ⊗ zs .base) (fwd (bwd (merge-list (ys .base) (list ys) (zs .base) (list zs))))
-            (ys .base ⊗ zs .base) (fwd $ compact (ys .base ⊗ zs .base) $ bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs))
-            (subst₂ (λ ϕ ψ → merge-list≤ (xs .base ⊗ zs .base) ϕ (ys .base ⊗ zs .base) ψ)
-              (sym $ fwd-bwd (merge-list (xs .base) (list xs) (zs .base) (list zs)))
-              (sym $ fwd-bwd (merge-list (ys .base) (list ys) (zs .base) (list zs)))
-              (merge-list≤-right-invariant (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs) (non-strict→merge≤ xs ys xs≤ys)))
-            (compact-≤ (ys .base ⊗ zs .base) (bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs)))
+  merge-right-invariant : ∀ xs ys zs → non-strict _merge<_ xs ys → non-strict _merge<_ (merge xs zs) (merge ys zs)
+  merge-right-invariant xs ys zs xs≤ys =
+    merge≤→non-strict (merge xs zs) (merge ys zs) $
+      merge-list≤-trans
+        (xs .base ⊗ zs .base) (fwd $ compact (xs .base ⊗ zs .base) $ bwd $ merge-list (xs .base) (list xs) (zs .base) (list zs))
+        (xs .base ⊗ zs .base) (fwd (bwd (merge-list (xs .base) (list xs) (zs .base) (list zs))))
+        (ys .base ⊗ zs .base) (fwd $ compact (ys .base ⊗ zs .base) $ bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs))
+        (compact-≥ (xs .base ⊗ zs .base) (bwd $ merge-list (xs .base) (list xs) (zs .base) (list zs))) $
+      merge-list≤-trans
+        (xs .base ⊗ zs .base) (fwd (bwd (merge-list (xs .base) (list xs) (zs .base) (list zs))))
+        (ys .base ⊗ zs .base) (fwd (bwd (merge-list (ys .base) (list ys) (zs .base) (list zs))))
+        (ys .base ⊗ zs .base) (fwd $ compact (ys .base ⊗ zs .base) $ bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs))
+        (subst₂ (λ ϕ ψ → merge-list≤ (xs .base ⊗ zs .base) ϕ (ys .base ⊗ zs .base) ψ)
+          (sym $ fwd-bwd (merge-list (xs .base) (list xs) (zs .base) (list zs)))
+          (sym $ fwd-bwd (merge-list (ys .base) (list ys) (zs .base) (list zs)))
+          (merge-list≤-right-invariant (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs) (non-strict→merge≤ xs ys xs≤ys)))
+        (compact-≤ (ys .base ⊗ zs .base) (bwd $ merge-list (ys .base) (list ys) (zs .base) (list zs)))
+
+  nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 cmp)
+  nearly-constant-has-ordered-monoid =
+    right-invariant→has-ordered-monoid (NearlyConstant 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
+      merge-right-invariant xs ys zs xs≤ys
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -1589,6 +1593,9 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (c
           (join-list-universal (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
             (non-strict→merge≤ xs zs xs≤zs)
             (non-strict→merge≤ ys zs ys≤zs)))
+
+--------------------------------------------------------------------------------
+-- Bottoms
 
 module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-bottom : has-bottom 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) (b : ⌞ 𝒟 ⌟) where
   private
