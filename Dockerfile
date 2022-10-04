@@ -10,4 +10,4 @@ COPY . ./agda-mugen
 WORKDIR /build/agda-mugen
 RUN make Everything.agda
 RUN echo "/build/1lab/1lab.agda-lib" > libraries
-CMD ["agda", "-i=.", "--library-file=libraries", "src/Everything.agda"]
+CMD ["agda", "-i=.", "--library-file=libraries", "src/Mugen/Everything.agda"]
