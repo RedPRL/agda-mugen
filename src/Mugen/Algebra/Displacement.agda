@@ -183,6 +183,19 @@ preserves-joins X Y f = ∀ x y → f ⟨$⟩ X .join x y ≡ Y .join (f ⟨$⟩
   where
     open has-joins
 
+preserves-bottom : {X Y : DisplacementAlgebra o r} (X-joins : has-bottom X) (Y-joins : has-bottom Y) → (f : DisplacementAlgebra-hom X Y) → Type o
+preserves-bottom X Y f = f ⟨$⟩ X .bot ≡ Y .bot
+  where
+    open has-bottom
+
+record is-displacement-subsemilattice {X Y : DisplacementAlgebra o r} (X-joins : has-joins X) (Y-joins : has-joins Y) : Type (o ⊔ r) where
+  field
+    has-displacement-subalgebra : is-displacement-subalgebra X Y
+
+  open is-displacement-subalgebra has-displacement-subalgebra public
+  field
+    pres-joins : preserves-joins X-joins Y-joins into
+
 --------------------------------------------------------------------------------
 -- Displacement Actions
 

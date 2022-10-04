@@ -44,3 +44,10 @@ non-positive-+-has-joins .has-joins.universal {x} {y} {z} z≤x z≤y =
   min-is-glb x y z
     (to-≤ z x (to-op≤ z≤x))
     (to-≤ z y (to-op≤ z≤y))
+
+NonPositive-is-subsemilattice : is-displacement-subsemilattice non-positive-+-has-joins int+-has-joins
+NonPositive-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NonPositive+⊆Int+
+NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins zero zero = refl
+NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins zero (suc y) = refl
+NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins (suc x) zero = refl
+NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins (suc x) (suc y) = refl

@@ -8,6 +8,7 @@ open import Algebra.Semigroup
 
 open import Mugen.Prelude
 
+open import Mugen.Axioms.LPO
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Coimage
 open import Mugen.Algebra.Displacement.InfiniteProduct
@@ -1288,6 +1289,67 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
         inf-< (λ { zero → inl x≡y; (suc n) →  xs<∞ys .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) (xs<∞ys .<-somewhere))
         where
           xs<∞ys = go xs ys xs<ys
+  into : SupportList → Nat → ⌞ 𝒟 ⌟
+  into xs n = index (xs .base) (list xs) n
+
+  into-preserves-⊗ : ∀ xs ys n → into (merge xs ys) n ≡ (into xs ⊗∞ into ys) n
+  into-preserves-⊗  xs ys n =
+    index (xs .base ⊗ ys .base) (fwd (compact (xs .base ⊗ ys .base) (bwd (merge-list (xs .base) (list xs) (ys .base) (list ys))))) n
+      ≡⟨ index-compact (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n ⟩
+    index (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n
+      ≡⟨ go (xs .base) (list xs) (ys .base) (list ys) n ⟩
+    (into xs ⊗∞ into ys) n
+      ∎
+    where
+      go : ∀ b1 xs b2 ys n → index (b1 ⊗ b2) (merge-list b1 xs b2 ys) n ≡ (index b1 xs ⊗∞ index b2 ys) n
+      go b1 [] b2 [] n = refl
+      go b1 [] b2 (y ∷ ys) zero = refl
+      go b1 [] b2 (y ∷ ys) (suc n) = go b1 [] b2 ys n
+      go b1 (x ∷ xs) b2 [] zero = refl
+      go b1 (x ∷ xs) b2 [] (suc n) = go b1 xs b2 [] n
+      go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
+      go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
+
+  index≡→base≡ : ∀ b1 xs b2 ys → (∀ n → index b1 xs n ≡ index b2 ys n) → b1 ≡ b2
+  index≡→base≡ b1 [] b2 [] p = p 0
+  index≡→base≡ b1 [] b2 (y ∷ ys) p = index≡→base≡ b1 [] b2 ys λ n → p (suc n)
+  index≡→base≡ b1 (x ∷ xs) b2 [] p = index≡→base≡ b1 xs b2 [] λ n → p (suc n)
+  index≡→base≡ b1 (x ∷ xs) b2 (y ∷ ys) p = index≡→base≡ b1 xs b2 ys λ n → p (suc n)
+
+  all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
+  all-base→¬compact b x [] p xs-compact with x ≡? b
+  ... | no x≠base = x≠base (p 0)
+  all-base→¬compact b x (y ∷ xs) p xs-compact =
+    all-base→¬compact b y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) b xs-compact)
+
+  into-inj : ∀ xs ys → (∀ n → into xs n ≡ into ys n) → xs ≡ ys
+  into-inj xs ys p =
+    -- Same situation as merge≤-non-strict.
+    let xs′-compact = subst (is-compact (xs .base)) (sym $ bwd-fwd (xs .elts)) (xs .compacted)
+        ys′-compact = subst (is-compact (ys .base)) (sym $ bwd-fwd (ys .elts)) (ys .compacted)
+    in subst₂ (_≡_)
+         (support-list-path refl (bwd-fwd (xs .elts)))
+         (support-list-path refl (bwd-fwd (ys .elts)))
+         (go (xs .base) (list xs) (ys .base) (list ys) xs′-compact ys′-compact p)
+    where
+      go : ∀ b1 xs b2 ys
+           → (xs-compact : is-compact b1 (bwd xs))
+           → (ys-compact : is-compact b2 (bwd ys))
+           → (∀ n → index b1 xs n ≡ index b2 ys n)
+           → support-list b1 (bwd xs) xs-compact ≡ support-list b2 (bwd ys) ys-compact
+      go b1 [] b2 [] xs-compact ys-compact p = support-list-path (p 0) refl
+      go b1 [] b2 (y ∷ ys) xs-compact ys-compact p =
+        absurd $ all-base→¬compact b2 y ys (λ n → sym (p n) ∙ (index≡→base≡ b1 [] b2 (y ∷ ys) p)) ys-compact
+      go b1 (x ∷ xs) b2 [] xs-compact ys-compact p =
+        absurd $ all-base→¬compact b1 x xs (λ n → p n ∙ sym (index≡→base≡ b1 (x ∷ xs) b2 [] p)) xs-compact
+      go b1 (x ∷ xs) b2 (y ∷ ys) xs-compact ys-compact p =
+        support-list-path (ap base xs≡ys) (ap bwd (ap₂ _∷_ (p 0) ((over {x = xs} {y = ys} fwd-bwd (ap list xs≡ys)))))
+        where
+          xs≡ys =
+            go b1 xs b2 ys
+              (is-compact-tail x xs b1 xs-compact)
+              (is-compact-tail y ys b2 ys-compact)
+              (λ n → p (suc n))
 
 --------------------------------------------------------------------------------
 -- Bundled Instances
@@ -1315,71 +1377,11 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
     open Inf 𝒟
     open SupportList
 
+
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
   NearlyConstant⊆InfProd = subalgebra
     where
 
-      into : SupportList → Nat → ⌞ 𝒟 ⌟
-      into xs n = index (xs .base) (list xs) n
-
-      into-preserves-⊗ : ∀ xs ys n → into (merge xs ys) n ≡ (into xs ⊗∞ into ys) n
-      into-preserves-⊗  xs ys n =
-        index (xs .base ⊗ ys .base) (fwd (compact (xs .base ⊗ ys .base) (bwd (merge-list (xs .base) (list xs) (ys .base) (list ys))))) n
-          ≡⟨ index-compact (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n ⟩
-        index (xs .base ⊗ ys .base) (merge-list (xs .base) (list xs) (ys .base) (list ys)) n
-          ≡⟨ go (xs .base) (list xs) (ys .base) (list ys) n ⟩
-        (into xs ⊗∞ into ys) n
-          ∎
-        where
-          go : ∀ b1 xs b2 ys n → index (b1 ⊗ b2) (merge-list b1 xs b2 ys) n ≡ (index b1 xs ⊗∞ index b2 ys) n
-          go b1 [] b2 [] n = refl
-          go b1 [] b2 (y ∷ ys) zero = refl
-          go b1 [] b2 (y ∷ ys) (suc n) = go b1 [] b2 ys n
-          go b1 (x ∷ xs) b2 [] zero = refl
-          go b1 (x ∷ xs) b2 [] (suc n) = go b1 xs b2 [] n
-          go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
-          go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
-
-      index≡→base≡ : ∀ b1 xs b2 ys → (∀ n → index b1 xs n ≡ index b2 ys n) → b1 ≡ b2
-      index≡→base≡ b1 [] b2 [] p = p 0
-      index≡→base≡ b1 [] b2 (y ∷ ys) p = index≡→base≡ b1 [] b2 ys λ n → p (suc n)
-      index≡→base≡ b1 (x ∷ xs) b2 [] p = index≡→base≡ b1 xs b2 [] λ n → p (suc n)
-      index≡→base≡ b1 (x ∷ xs) b2 (y ∷ ys) p = index≡→base≡ b1 xs b2 ys λ n → p (suc n)
-
-      all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
-      all-base→¬compact b x [] p xs-compact with x ≡? b
-      ... | no x≠base = x≠base (p 0)
-      all-base→¬compact b x (y ∷ xs) p xs-compact =
-        all-base→¬compact b y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) b xs-compact)
-
-      into-inj : ∀ xs ys → (∀ n → into xs n ≡ into ys n) → xs ≡ ys
-      into-inj xs ys p =
-        -- Same situation as merge≤-non-strict.
-        let xs′-compact = subst (is-compact (xs .base)) (sym $ bwd-fwd (xs .elts)) (xs .compacted)
-            ys′-compact = subst (is-compact (ys .base)) (sym $ bwd-fwd (ys .elts)) (ys .compacted)
-        in subst₂ (_≡_)
-             (support-list-path refl (bwd-fwd (xs .elts)))
-             (support-list-path refl (bwd-fwd (ys .elts)))
-             (go (xs .base) (list xs) (ys .base) (list ys) xs′-compact ys′-compact p)
-        where
-          go : ∀ b1 xs b2 ys
-               → (xs-compact : is-compact b1 (bwd xs))
-               → (ys-compact : is-compact b2 (bwd ys))
-               → (∀ n → index b1 xs n ≡ index b2 ys n)
-               → support-list b1 (bwd xs) xs-compact ≡ support-list b2 (bwd ys) ys-compact
-          go b1 [] b2 [] xs-compact ys-compact p = support-list-path (p 0) refl
-          go b1 [] b2 (y ∷ ys) xs-compact ys-compact p =
-            absurd $ all-base→¬compact b2 y ys (λ n → sym (p n) ∙ (index≡→base≡ b1 [] b2 (y ∷ ys) p)) ys-compact
-          go b1 (x ∷ xs) b2 [] xs-compact ys-compact p =
-            absurd $ all-base→¬compact b1 x xs (λ n → p n ∙ sym (index≡→base≡ b1 (x ∷ xs) b2 [] p)) xs-compact
-          go b1 (x ∷ xs) b2 (y ∷ ys) xs-compact ys-compact p =
-            support-list-path (ap base xs≡ys) (ap bwd (ap₂ _∷_ (p 0) ((over {x = xs} {y = ys} fwd-bwd (ap list xs≡ys)))))
-            where
-              xs≡ys =
-                go b1 xs b2 ys
-                  (is-compact-tail x xs b1 xs-compact)
-                  (is-compact-tail y ys b2 ys-compact)
-                  (λ n → p (suc n))
 
       subalgebra : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
       subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
@@ -1471,7 +1473,7 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-ordered-monoid : has-order
 --------------------------------------------------------------------------------
 -- Joins
 
-module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+module NearlyConstJoins {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
   private
     module 𝒟 = DisplacementAlgebra 𝒟
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
@@ -1593,6 +1595,32 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (c
           (join-list-universal (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
             (non-strict→merge≤ xs zs xs≤zs)
             (non-strict→merge≤ ys zs ys≤zs)))
+
+  -- NOTE: 'into' preserves joins regardless of LPO, but the joins InfProd aren't /provably/
+  -- joins unless we have LPO, hence the extra module.
+  into-preserves-join : ∀ xs ys n → into (join-support xs ys) n ≡ join (into xs n) (into ys n)
+  into-preserves-join  xs ys n =
+    into (join-support xs ys) n
+      ≡⟨ index-compact (join (xs .base) (ys .base)) (join-list (xs .base) (list xs) (ys .base) (list ys)) n ⟩
+    index (join (xs .base) (ys .base)) (join-list (xs .base) (list xs) (ys .base) (list ys)) n
+      ≡⟨ go (xs .base) (list xs) (ys .base) (list ys) n ⟩
+    join (into xs n) (into ys n) ∎
+    where
+      go : ∀ b1 xs b2 ys n → index (join b1 b2) (join-list b1 xs b2 ys) n ≡ join (index b1 xs n) (index b2 ys n)
+      go b1 [] b2 [] n = refl
+      go b1 [] b2 (y ∷ ys) zero = refl
+      go b1 [] b2 (y ∷ ys) (suc n) = go b1 [] b2 ys n
+      go b1 (x ∷ xs) b2 [] zero = refl
+      go b1 (x ∷ xs) b2 [] (suc n) = go b1 xs b2 [] n
+      go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
+      go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
+
+  module _ (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
+    open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-lpo
+
+    nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟-joins)
+    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd cmp
+    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (into-preserves-join x y)
 
 --------------------------------------------------------------------------------
 -- Bottoms

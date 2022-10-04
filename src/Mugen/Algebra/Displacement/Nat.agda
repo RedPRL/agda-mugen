@@ -41,3 +41,7 @@ Nat+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homo
 Nat+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ _ _ = refl
 Nat+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono x<y = x<y
 Nat+⊆Int+ .is-displacement-subalgebra.inj = Int.pos-inj
+
+Nat-is-subsemilattice : is-displacement-subsemilattice nat-+-has-joins int+-has-joins
+Nat-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = Nat+⊆Int+
+Nat-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = refl
