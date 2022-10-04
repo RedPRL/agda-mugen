@@ -196,6 +196,13 @@ record is-displacement-subsemilattice {X Y : DisplacementAlgebra o r} (X-joins :
   field
     pres-joins : preserves-joins X-joins Y-joins into
 
+record is-bounded-displacement-subalgebra {X Y : DisplacementAlgebra o r} (X-bottom : has-bottom X) (Y-bottom : has-bottom Y) : Type (o ⊔ r) where
+  field
+    has-displacement-subalgebra : is-displacement-subalgebra X Y
+  open is-displacement-subalgebra has-displacement-subalgebra public
+  field
+    pres-bottom : preserves-bottom X-bottom Y-bottom into
+
 --------------------------------------------------------------------------------
 -- Displacement Actions
 

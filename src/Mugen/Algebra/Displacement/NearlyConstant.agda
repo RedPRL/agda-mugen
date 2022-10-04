@@ -1645,3 +1645,10 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-bottom : has-bottom 𝒟) 
   nearly-constant-has-bottom .has-bottom.bot = bot-list
   nearly-constant-has-bottom .has-bottom.is-bottom xs =
     merge≤→non-strict bot-list xs $ bot-list-is-bottom (xs .base) (list xs)
+
+  module _ (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
+    open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-lpo
+
+    nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟-bottom)
+    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd cmp
+    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
