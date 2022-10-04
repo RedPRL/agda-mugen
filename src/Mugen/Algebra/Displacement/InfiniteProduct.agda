@@ -4,6 +4,7 @@ open import Algebra.Magma
 open import Algebra.Monoid
 open import Algebra.Semigroup
 
+open import Mugen.Axioms.LPO
 open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
@@ -98,9 +99,13 @@ InfProd {o = o} {r = r} 𝒟 = displacement
 
   -- All of these results requires a single non-constructive principle.
   -- Namely, we require that if '∀ n. f n ≤ g n', then 'f ≡ g', or there is some 'k' where 'f k < g k'.
-module InfProperties {o r} {𝒟 : DisplacementAlgebra o r} (lpo : ∀ {f g} → (∀ n → 𝒟 [ f n ≤ g n ]ᵈ) → InfProd 𝒟 [ f ≤ g ]ᵈ) where
+  -- See Mugen.Axioms.LPO for a distillation of LPO into Markov's Principle + LEM
+module InfProperties {o r} {𝒟 : DisplacementAlgebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
   open Inf 𝒟
   open DisplacementAlgebra 𝒟
+
+  lpo : ∀ {f g} → (∀ n → 𝒟 [ f n ≤ g n ]ᵈ) → InfProd 𝒟 [ f ≤ g ]ᵈ
+  lpo p = ⊎-mapr (λ lt → Inf.inf-< p lt) (𝒟-lpo p)
 
   ⊗∞-has-ordered-monoid : (∀ {f g} → (∀ n → 𝒟 [ f n ≤ g n ]ᵈ) → non-strict _inf<_ f g) → has-ordered-monoid 𝒟 → has-ordered-monoid (InfProd 𝒟)
   ⊗∞-has-ordered-monoid lpo 𝒟-ordered-monoid = right-invariant→has-ordered-monoid (InfProd 𝒟) ⊗∞-right-invariant
