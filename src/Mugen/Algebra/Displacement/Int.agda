@@ -5,6 +5,13 @@ open import Mugen.Algebra.Displacement
 
 open import Mugen.Data.Int
 
+--------------------------------------------------------------------------------
+-- Integers
+--
+-- This is the evident displacement algebra on the integers.
+-- All of the interesting properties are proved in 'Mugen.Data.Int';
+-- this module serves only to bundle them together.
+
 +ℤ-is-displacement-algebra : is-displacement-algebra _<ℤ_ 0ℤ _+ℤ_
 +ℤ-is-displacement-algebra .is-displacement-algebra.has-monoid = +ℤ-0ℤ-is-monoid
 +ℤ-is-displacement-algebra .is-displacement-algebra.has-strict-order = <ℤ-is-strict-order
@@ -18,9 +25,15 @@ Int+ .structure .DisplacementAlgebra-on._⊗_ = _+ℤ_
 Int+ .structure .DisplacementAlgebra-on.has-displacement-algebra = +ℤ-is-displacement-algebra
 ⌞ Int+ ⌟-set = Int-is-set
 
+--------------------------------------------------------------------------------
+-- Ordered Monoid
+
 int+-has-ordered-monoid : has-ordered-monoid Int+
 int+-has-ordered-monoid = right-invariant→has-ordered-monoid Int+ $ λ {x} {y} {z} →
   +ℤ-weak-right-invariant x y z
+
+--------------------------------------------------------------------------------
+-- Joins
 
 int+-has-joins : has-joins Int+
 int+-has-joins .has-joins.join = maxℤ

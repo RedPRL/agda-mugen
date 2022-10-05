@@ -11,10 +11,47 @@ open import Mugen.Algebra.Displacement.Properties
 open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder
 
+--------------------------------------------------------------------------------
+-- Products
+--
+-- We can take the product of 2 displacement algebras. Algebraic structure
+-- is given by the product of monoids, and ordering is given by the product of the
+-- orders.
+
 module Product {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   private
     module 𝒟₁ = DisplacementAlgebra 𝒟₁
     module 𝒟₂ = DisplacementAlgebra 𝒟₂
+
+  --------------------------------------------------------------------------------
+  -- Algebra
+
+  _⊗×_ : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟ → ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟ → ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟
+  (d1 , d2) ⊗× (d1′ , d2′) = (d1 𝒟₁.⊗ d1′) , (d2 𝒟₂.⊗ d2′)
+
+  ε× : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟
+  ε× = 𝒟₁.ε , 𝒟₂.ε
+
+  ⊗×-associative : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (x ⊗× (y ⊗× z)) ≡ ((x ⊗× y) ⊗× z)
+  ⊗×-associative (d1 , d2) (d1′ , d2′) (d1″ , d2″) i = 𝒟₁.associative {d1} {d1′} {d1″} i , 𝒟₂.associative {d2} {d2′} {d2″} i
+
+  ⊗×-idl : ∀ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (ε× ⊗× x) ≡ x
+  ⊗×-idl (d1 , d2) i = 𝒟₁.idl {d1} i , 𝒟₂.idl {d2} i
+
+  ⊗×-idr : ∀ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (x ⊗× ε×) ≡ x
+  ⊗×-idr (d1 , d2) i = 𝒟₁.idr {d1} i , 𝒟₂.idr {d2} i
+
+  ⊗×-is-magma : is-magma _⊗×_
+  ⊗×-is-magma .has-is-set = ×-is-hlevel 2 ⌞ 𝒟₁ ⌟-set ⌞ 𝒟₂ ⌟-set
+
+  ⊗×-is-semigroup : is-semigroup _⊗×_
+  ⊗×-is-semigroup .has-is-magma = ⊗×-is-magma
+  ⊗×-is-semigroup .associative {x} {y} {z} = ⊗×-associative x y z
+
+  ⊗×-is-monoid : is-monoid ε× _⊗×_
+  ⊗×-is-monoid .has-is-semigroup = ⊗×-is-semigroup
+  ⊗×-is-monoid .idl {x} = ⊗×-idl x
+  ⊗×-is-monoid .idr {x} = ⊗×-idr x
 
   --------------------------------------------------------------------------------
   -- Ordering
@@ -80,34 +117,7 @@ module Product {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   ⊗×<-is-strict-order .is-strict-order.has-prop {x} {y} = ⊗×<-is-prop x y
 
   --------------------------------------------------------------------------------
-  -- Algebra
-
-  _⊗×_ : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟ → ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟ → ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟
-  (d1 , d2) ⊗× (d1′ , d2′) = (d1 𝒟₁.⊗ d1′) , (d2 𝒟₂.⊗ d2′)
-
-  ε× : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟
-  ε× = 𝒟₁.ε , 𝒟₂.ε
-
-  ⊗×-associative : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (x ⊗× (y ⊗× z)) ≡ ((x ⊗× y) ⊗× z)
-  ⊗×-associative (d1 , d2) (d1′ , d2′) (d1″ , d2″) i = 𝒟₁.associative {d1} {d1′} {d1″} i , 𝒟₂.associative {d2} {d2′} {d2″} i
-
-  ⊗×-idl : ∀ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (ε× ⊗× x) ≡ x
-  ⊗×-idl (d1 , d2) i = 𝒟₁.idl {d1} i , 𝒟₂.idl {d2} i
-
-  ⊗×-idr : ∀ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → (x ⊗× ε×) ≡ x
-  ⊗×-idr (d1 , d2) i = 𝒟₁.idr {d1} i , 𝒟₂.idr {d2} i
-
-  ⊗×-is-magma : is-magma _⊗×_
-  ⊗×-is-magma .has-is-set = ×-is-hlevel 2 ⌞ 𝒟₁ ⌟-set ⌞ 𝒟₂ ⌟-set
-
-  ⊗×-is-semigroup : is-semigroup _⊗×_
-  ⊗×-is-semigroup .has-is-magma = ⊗×-is-magma
-  ⊗×-is-semigroup .associative {x} {y} {z} = ⊗×-associative x y z
-
-  ⊗×-is-monoid : is-monoid ε× _⊗×_
-  ⊗×-is-monoid .has-is-semigroup = ⊗×-is-semigroup
-  ⊗×-is-monoid .idl {x} = ⊗×-idl x
-  ⊗×-is-monoid .idr {x} = ⊗×-idr x
+  -- Left Invariance
 
   ⊗×-left-invariant : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×< z → (x ⊗× y) ⊗×< (x ⊗× z)
   ⊗×-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst< y1<z1 y2≡z2)  = fst< (𝒟₁.left-invariant y1<z1) (ap (x2 𝒟₂.⊗_) y2≡z2)
@@ -134,25 +144,21 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r}
     module 𝒟₂ = DisplacementAlgebra 𝒟₂
     open Product 𝒟₁ 𝒟₂
 
-    ⊗×-has-ordered-monoid : has-ordered-monoid 𝒟₁ → has-ordered-monoid 𝒟₂ → has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂)
-    ⊗×-has-ordered-monoid 𝒟₁-ordered-monoid 𝒟₂-ordered-monoid =
-      right-invariant→has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂) λ x≤y → from-⊗×≤ (⊗×-right-invariant _ _ _ (to-⊗×≤ x≤y))
-      where
-        module 𝒟₁-ordered-monoid = is-ordered-monoid (𝒟₁-ordered-monoid)
-        module 𝒟₂-ordered-monoid = is-ordered-monoid (𝒟₂-ordered-monoid)
+  --------------------------------------------------------------------------------
+  -- Ordered Monoid
 
-        ⊗×-right-invariant : ∀ x y z → x ⊗×≤ y → (x ⊗× z) ⊗×≤ (y ⊗× z)
-        ⊗×-right-invariant x y z (both≤ x1≤y1 x2≤y2) = both≤ (𝒟₁-ordered-monoid.right-invariant x1≤y1) (𝒟₂-ordered-monoid.right-invariant x2≤y2)
-
-  ⊗×-has-bottom : has-bottom 𝒟₁ → has-bottom 𝒟₂ → has-bottom (𝒟₁ ⊗ᵈ 𝒟₂)
-  ⊗×-has-bottom 𝒟₁-bottom 𝒟₂-bottom = bottom
+  ⊗×-has-ordered-monoid : has-ordered-monoid 𝒟₁ → has-ordered-monoid 𝒟₂ → has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂)
+  ⊗×-has-ordered-monoid 𝒟₁-ordered-monoid 𝒟₂-ordered-monoid =
+    right-invariant→has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂) λ x≤y → from-⊗×≤ (⊗×-right-invariant _ _ _ (to-⊗×≤ x≤y))
     where
-      module 𝒟₁-bottom = has-bottom (𝒟₁-bottom)
-      module 𝒟₂-bottom = has-bottom (𝒟₂-bottom)
+      module 𝒟₁-ordered-monoid = is-ordered-monoid (𝒟₁-ordered-monoid)
+      module 𝒟₂-ordered-monoid = is-ordered-monoid (𝒟₂-ordered-monoid)
 
-      bottom : has-bottom (𝒟₁ ⊗ᵈ 𝒟₂)
-      bottom .has-bottom.bot = 𝒟₁-bottom.bot , 𝒟₂-bottom.bot
-      bottom .has-bottom.is-bottom (x1 , x2) = from-⊗×≤ (both≤ (𝒟₁-bottom.is-bottom x1) (𝒟₂-bottom.is-bottom x2))
+      ⊗×-right-invariant : ∀ x y z → x ⊗×≤ y → (x ⊗× z) ⊗×≤ (y ⊗× z)
+      ⊗×-right-invariant x y z (both≤ x1≤y1 x2≤y2) = both≤ (𝒟₁-ordered-monoid.right-invariant x1≤y1) (𝒟₂-ordered-monoid.right-invariant x2≤y2)
+        
+  --------------------------------------------------------------------------------
+  -- Joins
 
   ⊗×-has-joins : has-joins 𝒟₁ → has-joins 𝒟₂ → has-joins (𝒟₁ ⊗ᵈ 𝒟₂)
   ⊗×-has-joins 𝒟₁-joins 𝒟₂-joins = joins
@@ -168,3 +174,15 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r}
         from-⊗×≤ $ both≤ (𝒟₁-joins.universal (fst≤ (to-⊗×≤ x≤z)) (fst≤ (to-⊗×≤ y≤z)))
                          (𝒟₂-joins.universal (snd≤ (to-⊗×≤ x≤z)) (snd≤ (to-⊗×≤ y≤z)))
 
+  --------------------------------------------------------------------------------
+  -- Bottoms
+
+  ⊗×-has-bottom : has-bottom 𝒟₁ → has-bottom 𝒟₂ → has-bottom (𝒟₁ ⊗ᵈ 𝒟₂)
+  ⊗×-has-bottom 𝒟₁-bottom 𝒟₂-bottom = bottom
+    where
+      module 𝒟₁-bottom = has-bottom (𝒟₁-bottom)
+      module 𝒟₂-bottom = has-bottom (𝒟₂-bottom)
+
+      bottom : has-bottom (𝒟₁ ⊗ᵈ 𝒟₂)
+      bottom .has-bottom.bot = 𝒟₁-bottom.bot , 𝒟₂-bottom.bot
+      bottom .has-bottom.is-bottom (x1 , x2) = from-⊗×≤ (both≤ (𝒟₁-bottom.is-bottom x1) (𝒟₂-bottom.is-bottom x2))

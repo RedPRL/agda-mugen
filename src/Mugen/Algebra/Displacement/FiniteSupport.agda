@@ -21,7 +21,9 @@ open import Mugen.Data.List
 --------------------------------------------------------------------------------
 -- Finitely Supported Functions
 --
--- These are a special case of the Nearly Constant functions,
+-- Finitely supported functions over some displacement algebra '𝒟' are
+-- functions 'f : Nat → 𝒟' that differ from 'const ε' in only a finite number of positions.
+-- These are a special case of the Nearly Constant functions where the base is always ε
 -- and are implemented as such.
 
 module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
@@ -30,6 +32,11 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri 
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
     open NearlyConst 𝒟 cmp
 
+  --------------------------------------------------------------------------------
+  -- Finite Support Lists
+  --
+  -- As noted above, these are defined to be SupportLists of nearly constant functions,
+  -- with the constraint that the base is 'ε'.
 
   record FinSupportList : Type o where
     no-eta-equality
@@ -43,6 +50,7 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri 
 
   open FinSupportList
 
+  -- Paths between finitely supportd functions are purely determined by their elements.
   fin-support-list-path : ∀ {xs ys} → xs .support ≡ ys .support → xs ≡ ys
   fin-support-list-path p i .support = p i
   fin-support-list-path {xs = xs} {ys = ys} p i .is-ε =
