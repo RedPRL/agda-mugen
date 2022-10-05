@@ -7,8 +7,9 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    container: totbwf/agda-mugen-ci:latest
     steps:
       - name: Checkout ⬇️
         uses: actions/checkout@v3
       - name: Build 🛠️ 
-        container: totbwf/agda-mugen-ci:latest
+        run: ./entrypoint.sh
