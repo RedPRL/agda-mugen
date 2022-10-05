@@ -31,17 +31,19 @@ This is a formalization of the displacement algebras found in [mugen](https://gi
 
 ## Building
 
-This formalization depends on the [1Lab](https://github.com/plt-amy/1lab), which
-can be installed by cloning the repo, and then adding a single line to the `~/.agda/libraries`
-that points to the path where you cloned the repo. This formalization was checked against commit `f5465e94`.
+### Direct
 
-Furthermore, this formalization requires Agda 2.6.3, which can be obtained by installing from source.
-Simply clone the [Agda](https://github.com/agda/agda) repository, and then run `cabal install` to install.
-If you do not have a working Haskell toolchain, the best route is to use [ghcup](https://www.haskell.org/ghcup/).
-This formalization was checked against `efa6fe4cc`.
+1. Set up a working Haskell toolchain, for example using [ghcup](https://www.haskell.org/ghcup/).
+
+1. Compile and install [Agda](https://github.com/agda/agda) at the commit `efa6fe4cc`. You will have to build Agda from the source.
+
+2. Install [1Lab](https://github.com/plt-amy/1lab) and add the path to its `1lab.agda-lib` to `${AGDA_DIR}/libraries`. This formalization was checked against the commit `f5465e94` of the 1lab library.
+
+3. Type check the formalization by running `make`.
 
 ## Docker
 
-A `Dockerfile` is also provided that packages the required versions of `agda` and the `1lab`.
-To run it, first build the image with `docker build -t agda-mugen .`. Once that completes, you
-can then run `docker run agda-mugen`, which will check the formalization.
+```sh
+docker build -t agda-mugen .
+docker run agda-mugen
+```
