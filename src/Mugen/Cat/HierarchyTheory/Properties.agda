@@ -1,4 +1,3 @@
-{-# OPTIONS --experimental-lossy-unification #-}
 module Mugen.Cat.HierarchyTheory.Properties where
 
 open import Cat.Prelude
