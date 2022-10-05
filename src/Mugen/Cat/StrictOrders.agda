@@ -8,7 +8,7 @@ private variable
   X Y Z : StrictOrder o r
 
 --------------------------------------------------------------------------------
--- The Category of Strict Posets
+-- The Category of Strict Orders
 
 open Precategory
 open StrictOrder-on

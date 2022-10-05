@@ -6,6 +6,12 @@ import Cat.Reasoning as Cat
 
 open Cat 𝒞
 
+--------------------------------------------------------------------------------
+-- The category of endomorphisms on an object.
+--
+-- /Technically/ this is a monoid, but it's easier to work with
+-- in this form w/o having to introduce a delooping.
+
 Endos : Ob → Precategory lzero ℓ
 Endos X .Precategory.Ob = ⊤
 Endos X .Precategory.Hom _ _ = Hom X X

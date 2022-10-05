@@ -4,6 +4,13 @@ open import Cat.Prelude public
 open import Data.Sum public
 
 --------------------------------------------------------------------------------
+-- The Mugen Prelude
+--
+-- This exports a bunch of stuff from the 1lab that we use,
+-- along with some helpers for structures over set + their homomorphisms.
+-- There's also some misc. junk that we need everywhere.
+
+--------------------------------------------------------------------------------
 -- Set Structures
 
 is-set→is-hlevel+2
