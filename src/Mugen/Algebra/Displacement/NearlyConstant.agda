@@ -17,6 +17,36 @@ open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
 
+--------------------------------------------------------------------------------
+-- Nearly Constant Functions
+--
+-- A "nearly constant function" is some function 'f : Nat → 𝒟'
+-- that differs from some fixed 'd : 𝒟' for only a finite set of 'n : Nat'
+--
+-- We represent these via prefix lists. IE: the function
+--
+-- > λ n → if n = 1 then 2 else if n = 3 then 1 else 5
+--
+-- will be represented as a pair (5, [5,2,5,3]). We will call the
+-- first element of this pair "the base" of the function, and the
+-- prefix list "the support".
+--
+-- However, there is a slight problem here when we go to show that
+-- this is a subalgebra of 'InfProd': it's not injective! The problem
+-- occurs when you have trailing base elements, meaning 2 lists can
+-- denote the same function!
+--
+-- To resolve this, we say that a list is compact relative
+-- to some base 'b  : 𝒟' if it does not have any trailing b's.
+-- We then only work with compact lists in our displacement algebra.
+--
+-- There is a further wrinkle with the order of induction: we want
+-- a mix of left + right folds over the same list, which can get really
+-- fiddly. To resolve this, we convert our left folds into right folds
+-- over snoc-lists; this does cause some code duplication, but makes
+-- inductions much easier, and avoids issues of with-abstraction that
+-- views would bring.
+
 module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
 
   private
@@ -40,6 +70,17 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (λ y<x → no λ x≡y → 𝒟.irrefl (𝒟.≡-transl x≡y y<x))
       (cmp x y)
 
+  --------------------------------------------------------------------------------
+  -- Compactness Predicate
+  --
+  -- This is defined as a recursive family to avoid
+  -- frustrating situations with indexed types + cubical.
+  -- Furthermore, we avoid with-abstraction for things
+  -- that we actually want to compute: Agda can get
+  -- very confused if we do that!
+
+  -- A list is compact relative to a base 'b' if it has
+  -- no trailing b's.
   is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type
   is-compact base [] = ⊤
   is-compact base (xs #r x) =
@@ -48,6 +89,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (λ _ → ⊤)
       (x ≡? base)
 
+  -- Helper type for motives.
   is-compact-case : ∀ {x base : ⌞ 𝒟 ⌟} → Dec (x ≡ base) → Type
   is-compact-case p = 
     case _
@@ -65,6 +107,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   base-isnt-compact xs {x = x} {base = base} base! is-compact with x ≡? base
   ... | no ¬base = ¬base base!
 
+  -- A singleton list consisting of only 'b' is not compact.
   base-isnt-compact-∷ : ∀ {xs x base} → xs ≡ [] → x ≡ base → is-compact base (bwd (x ∷ xs)) → ⊥
   base-isnt-compact-∷ {xs = []} p base! is-compact = base-isnt-compact [] base! is-compact
   base-isnt-compact-∷ {xs = x ∷ xs} p base! is-compact = ∷≠[] p
@@ -83,6 +126,13 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   is-compact-is-prop base (xs #r x) with x ≡? base
   ... | yes _ = hlevel 1
   ... | no _ = hlevel 1
+
+  --------------------------------------------------------------------------------
+  -- Compacting Lists
+  --
+  -- Now that we've defined a notion of normal form via
+  -- 'is-compact', we need to define a normalization function that
+  -- strips off all the trailing 'b' elements.
 
   -- Remove all trailing 'base' elements
   compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟
@@ -276,6 +326,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-list = merge-with _⊗_
 
   module _ where
+    -- We scope these private variables using a module.
     private variable
       b1 b2 b3 : ⌞ 𝒟 ⌟
       xs ys zs : List ⌞ 𝒟 ⌟
@@ -309,29 +360,32 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
         go b1 b2 b3 (x ∷ xs) (y ∷ ys) (z ∷ zs) =
           ap₂ _∷_ 𝒟.associative (go b1 b2 b3 xs ys zs)
 
-    merge-list-∷rl : ∀ b1 xs b2 ys → compact (b1 ⊗ b2) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ≡ compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 ys))
-    merge-list-∷rl b1 [] b2 [] =
-      compact-step [] refl
-    merge-list-∷rl b1 [] b2 (y ∷ ys) =
-      refl
-    merge-list-∷rl b1 (x ∷ xs) b2 [] =
-      compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 (xs ∷r b1) b2 []))
-        ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 (xs ∷r b1) b2 [])) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 []))
-        ≡⟨ compact-++r (bwd ((x ⊗ b2) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 [])) (bwd (merge-list b1 xs b2 [])) (merge-list-∷rl b1 xs b2 []) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 xs b2 []))
-        ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 xs b2 [])) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 xs b2 []))
-        ∎
-    merge-list-∷rl b1 (x ∷ xs) b2 (y ∷ ys) =
-      compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 (xs ∷r b1) b2 ys))
-        ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 (xs ∷r b1) b2 ys)) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 ys))
-        ≡⟨ compact-++r (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ((bwd (merge-list b1 xs b2 ys))) (merge-list-∷rl b1 xs b2 ys) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 xs b2 ys))
-        ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 xs b2 ys)) ⟩
-      compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 xs b2 ys))
-        ∎
+  --------------------------------------------------------------------------------
+  -- Misc. Merging Lemmas
+
+  merge-list-∷rl : ∀ b1 xs b2 ys → compact (b1 ⊗ b2) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ≡ compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 ys))
+  merge-list-∷rl b1 [] b2 [] =
+    compact-step [] refl
+  merge-list-∷rl b1 [] b2 (y ∷ ys) =
+    refl
+  merge-list-∷rl b1 (x ∷ xs) b2 [] =
+    compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 (xs ∷r b1) b2 []))
+      ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 (xs ∷r b1) b2 [])) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 []))
+      ≡⟨ compact-++r (bwd ((x ⊗ b2) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 [])) (bwd (merge-list b1 xs b2 [])) (merge-list-∷rl b1 xs b2 []) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 xs b2 []))
+      ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 xs b2 [])) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 xs b2 []))
+      ∎
+  merge-list-∷rl b1 (x ∷ xs) b2 (y ∷ ys) =
+    compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 (xs ∷r b1) b2 ys))
+      ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 (xs ∷r b1) b2 ys)) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 ys))
+      ≡⟨ compact-++r (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ((bwd (merge-list b1 xs b2 ys))) (merge-list-∷rl b1 xs b2 ys) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 xs b2 ys))
+      ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 xs b2 ys)) ⟩
+    compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 xs b2 ys))
+      ∎
 
   merge-list-∷rr : ∀ b1 xs b2 ys → compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 (ys ∷r b2))) ≡ compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 ys))
   merge-list-∷rr b1 [] b2 [] =
@@ -408,6 +462,10 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
  
   --------------------------------------------------------------------------------
   -- Compact Support Lists
+  --
+  -- These will be the actual elements of our displacement algebra.
+  -- A SupportList consists of a choice of base, and a compact list
+  -- relative to that base.
 
   record SupportList : Type o where
     constructor support-list
@@ -422,6 +480,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   open SupportList
 
+  -- Paths in support lists are determined by paths between the bases + paths between the elements.
   support-list-path : ∀ {xs ys : SupportList} → xs .base ≡ ys .base → xs .elts ≡ ys .elts → xs ≡ ys
   support-list-path p q i .base = p i
   support-list-path p q i .elts = q i
@@ -437,29 +496,42 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       Σ-is-hlevel 2 (Bwd-is-hlevel 0  ⌞ 𝒟 ⌟-set) λ xs →
       is-prop→is-set (is-compact-is-prop base xs)
 
-  -- Smart constructor for SupportList.
+  -- Smart constructor for SupportList that compacts the list.
   compact-support : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → SupportList
   compact-support base xs .SupportList.base = base
   compact-support base xs .SupportList.elts = compact base xs
   compact-support base xs .SupportList.compacted = compact-is-compact base xs
 
+  -- Lifting of 'merge-list' to SupportLists.
   merge : SupportList → SupportList → SupportList
   merge xs ys .SupportList.base = xs .base ⊗ ys .base
   merge xs ys .SupportList.elts = compact (xs .base ⊗ ys .base) (bwd (merge-list (xs .base) (list xs) (ys .base) (list ys)))
   merge xs ys .SupportList.compacted = compact-is-compact (xs .base ⊗ ys .base) (bwd (merge-list (xs .base) (list xs) (ys .base) (list ys)))
 
+  -- The empty SupportList.
   empty : SupportList
   empty .base = ε
   empty .elts = []
   empty .compacted = tt
 
+  -- Compacting a support lists elements does nothing
   elts-compact : ∀ xs → compact (xs .base) (xs .elts) ≡ xs .elts
   elts-compact xs = compact-compacted (xs .base) (xs .elts) (xs .compacted)
 
+  -- This is a common goal, so we define some shorthand.
   merge-support : SupportList → SupportList → List ⌞ 𝒟 ⌟
   merge-support xs ys = merge-list (xs .base) (list xs) (ys .base) (list ys)
   {-# INLINE merge-support #-}
 
+  --------------------------------------------------------------------------------
+  -- Properties of Merge + SupportLists
+  --
+  -- Identity and associativity of 'merge-list' lifts to
+  -- 'merge'. However, we need to do some shuffling about
+  -- of the various 'compact' calls. Thankfully we already
+  -- proved all the compaction lemmas!
+
+  -- Lifting of 'merge-list-idl' to support lists.
   merge-idl : ∀ xs → merge empty xs ≡ xs
   merge-idl xs = support-list-path 𝒟.idl $
     compact (ε ⊗ xs .base) (bwd (merge-list ε [] (xs .base) (list xs)))
@@ -470,6 +542,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ≡⟨ elts-compact xs ⟩
     xs .elts ∎
 
+  -- Lifting of 'merge-list-idr' to support lists.
   merge-idr : ∀ xs → merge xs empty ≡ xs
   merge-idr xs = support-list-path 𝒟.idr $
     compact (xs .base ⊗ ε) (bwd (merge-list (xs .base) (list xs) ε []))
@@ -480,6 +553,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ≡⟨ elts-compact xs ⟩
     xs .elts ∎
   
+  -- Lifting of 'merge-assoc' to support lists.
   merge-assoc : ∀ xs ys zs → merge xs (merge ys zs) ≡ merge (merge xs ys) zs
   merge-assoc xs ys zs = support-list-path 𝒟.associative $
     compact (xs .base ⊗ (ys .base ⊗ zs .base)) (bwd (merge-list _ (list xs) _ (fwd (compact _ (bwd (merge-support ys zs))))))
@@ -514,7 +588,10 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   -- Order
   -- We choose to have our orders compute like this, as we get to avoid
   -- a propositional truncation compared to the All _≤_ + Some _<_ represenation.
+  -- This does mean our proofs are pretty gnarly later on, but it's the least
+  -- worst option.
 
+  -- ≤ for lists relative to a base.
   merge-list≤ : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
   merge-list≤ b1 [] b2 [] =
     b1 ≤ b2
@@ -537,6 +614,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (Lift _ ⊥)
       (cmp x y)
 
+  -- < for lists relative to a base.
   merge-list< : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
   merge-list< b1 [] b2 [] =
     Lift o (b1 < b2)
@@ -558,6 +636,27 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (merge-list< b1 xs b2 ys)
       (Lift _ ⊥)
       (cmp x y)
+
+  -- We can transform a proof of < into a proof of ≤.
+  weaken-< : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → merge-list≤ b1 xs b2 ys
+  weaken-< b1 [] b2 [] (lift b1<b2) = inr b1<b2
+  weaken-< b1 [] b2 (y ∷ ys) xs<ys with cmp b1 y
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 [] b2 ys xs<ys
+  ... | gt _ = xs<ys
+  weaken-< b1 (x ∷ xs) b2 [] xs<ys with cmp x b2
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 xs b2 [] xs<ys
+  weaken-< b1 (x ∷ xs) b2 (y ∷ ys) xs<ys with cmp x y
+  ... | lt _ = xs<ys
+  ... | eq _ = weaken-< b1 xs b2 ys xs<ys
+
+  --------------------------------------------------------------------------------
+  -- Misc. Lemmas about ≤ and <
+  --
+  -- Most of these are used to allow us to more easily
+  -- construct proofs of 'merge-list≤' and 'merge-list<' without
+  -- having to perform too many pattern matches.
 
   merge-list-base< : ∀ b1 xs b2 ys → xs ≡ ys → b1 < b2 → merge-list< b1 xs b2 ys
   merge-list-base< b1 [] b2 [] p b1<b2 = lift b1<b2
@@ -633,6 +732,9 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   ... | eq _ = pf
   ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
 
+  --------------------------------------------------------------------------------
+  -- Lemmas for ≤, <, and Compaction.
+
   merge-list≤-vanish : ∀ b xs → vanishes b xs → merge-list≤ b xs b []
   merge-list≤-vanish b [] vanish = inl refl
   merge-list≤-vanish b (x ∷ xs) vanish =
@@ -673,18 +775,11 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (sym $ ⊗▷-fwd xs ys)
       (merge-list≥-++-vanish b (fwd xs) ys ys-vanish)
 
-  weaken-< : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → merge-list≤ b1 xs b2 ys
-  weaken-< b1 [] b2 [] (lift b1<b2) = inr b1<b2
-  weaken-< b1 [] b2 (y ∷ ys) xs<ys with cmp b1 y
-  ... | lt _ = xs<ys
-  ... | eq _ = weaken-< b1 [] b2 ys xs<ys
-  ... | gt _ = xs<ys
-  weaken-< b1 (x ∷ xs) b2 [] xs<ys with cmp x b2
-  ... | lt _ = xs<ys
-  ... | eq _ = weaken-< b1 xs b2 [] xs<ys
-  weaken-< b1 (x ∷ xs) b2 (y ∷ ys) xs<ys with cmp x y
-  ... | lt _ = xs<ys
-  ... | eq _ = weaken-< b1 xs b2 ys xs<ys
+  --------------------------------------------------------------------------------
+  -- Order Structure for ≤ and <
+  --
+  -- Lots of big case bashes here! This is all super mechanical,
+  -- and just involves getting things to compute.
 
   merge-list≤-refl : ∀ b xs → merge-list≤ b xs b xs
   merge-list≤-refl b [] = inl refl
@@ -1176,6 +1271,8 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   --------------------------------------------------------------------------------
   -- Indexing
+  --
+  -- This is how we embed a support list into a map 'Nat → ⌞ 𝒟 ⌟'.
 
   index : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
   index b [] n = b
@@ -1189,6 +1286,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   index-vanishes b (x ∷ xs) (suc n) vanishes with x ≡? b
   ... | yes _ = index-vanishes b xs n vanishes
 
+  -- Indexing a compacted list is the same as indexing the uncompacted list.
   index-compact : ∀ b xs n → index b (fwd (compact b (bwd xs))) n ≡ index b xs n
   index-compact b [] n = refl
   index-compact b (x ∷ xs) zero with x ≡? b
@@ -1310,12 +1408,14 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
       go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
 
+  -- If 2 lists denote the same function, then they must have the same base.
   index≡→base≡ : ∀ b1 xs b2 ys → (∀ n → index b1 xs n ≡ index b2 ys n) → b1 ≡ b2
   index≡→base≡ b1 [] b2 [] p = p 0
   index≡→base≡ b1 [] b2 (y ∷ ys) p = index≡→base≡ b1 [] b2 ys λ n → p (suc n)
   index≡→base≡ b1 (x ∷ xs) b2 [] p = index≡→base≡ b1 xs b2 [] λ n → p (suc n)
   index≡→base≡ b1 (x ∷ xs) b2 (y ∷ ys) p = index≡→base≡ b1 xs b2 ys λ n → p (suc n)
 
+  -- If a non-empty list denotes the function 'λ _ → b', then the list is not compact.
   all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
   all-base→¬compact b x [] p xs-compact with x ≡? b
   ... | no x≠base = x≠base (p 0)

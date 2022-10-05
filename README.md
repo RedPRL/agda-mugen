@@ -35,15 +35,26 @@ This is a formalization of the displacement algebras found in [mugen](https://gi
 
 1. Set up a working Haskell toolchain, for example using [ghcup](https://www.haskell.org/ghcup/).
 
-1. Compile and install [Agda](https://github.com/agda/agda) at the commit `efa6fe4cc`. You will have to build Agda from the source.
+2. Compile and install [Agda](https://github.com/agda/agda) at the commit `efa6fe4cc`. You will have to build Agda from the source.
 
-2. Install [1Lab](https://github.com/plt-amy/1lab) and add the path to its `1lab.agda-lib` to `${AGDA_DIR}/libraries`. This formalization was checked against the commit `f5465e94` of the 1lab library.
+3. Install [1Lab](https://github.com/plt-amy/1lab) and add the path to its `1lab.agda-lib` to `${AGDA_DIR}/libraries`. This formalization was checked against the commit `f5465e94` of the 1lab library.
 
-3. Type check the formalization by running `make`.
+4. Type check the formalization by running `make`.
 
-## Docker
+### Docker Option 1
 
-```sh
+Run the following command to check formalization.
+
+```
+sh
 docker build -t agda-mugen .
 docker run agda-mugen
+```
+
+### Docker Option 2
+
+Run the following command to check formalization.
+```sh
+docker pull totbwf/agda-mugen
+docker run totbwf/agda-mugen
 ```

@@ -1,0 +1,15 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    container: totbwf/agda-mugen-ci:latest
+    steps:
+      - name: Checkout ⬇️
+        uses: actions/checkout@v3
+      - name: Build 🛠️ 
+        run: make Everything.agda && agda -i=. --library-file=/dist/libraries ./src/Mugen/Everything.agda

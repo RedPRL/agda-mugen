@@ -18,10 +18,9 @@ FROM alpine:edge
 # GMP.
 RUN apk add --no-cache make gmp ncurses
 
-COPY --from=build /dist /dist
-COPY . ./build/agda-mugen
+COPY --from=build /dist/data /dist/data
+COPY --from=build /dist/1lab /dist/1lab
+COPY --from=build /dist/agda /bin/agda
+RUN echo "/dist/1lab/1lab.agda-lib" > /dist/libraries
 
-WORKDIR /build/agda-mugen
-RUN make Everything.agda
-RUN echo "/dist/1lab/1lab.agda-lib" > libraries
-CMD ["/dist/agda", "-i=.", "--library-file=libraries", "src/Mugen/Everything.agda"]
+ENTRYPOINT ["/bin/sh"]

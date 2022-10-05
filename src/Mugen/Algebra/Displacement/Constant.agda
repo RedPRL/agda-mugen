@@ -11,6 +11,13 @@ open import Mugen.Order.Coproduct
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.OrderedMonoid
 
+--------------------------------------------------------------------------------
+-- Constant Displacements
+--
+-- Given a strict order 'A', a displacement algebra 'B', and a right displacement
+-- action 'α : A → B → A', we can construct a displacement algebra whose carrier
+-- is 'A ⊎ B'. Multiplication of an 'inl a' and 'inr b' uses the 'α' to have
+-- 'b' act upon 'a'.
 
 module Constant {o r} {A : StrictOrder o r} {B : DisplacementAlgebra o r} (α : RightDisplacementAction A B) where
   private
@@ -20,8 +27,6 @@ module Constant {o r} {A : StrictOrder o r} {B : DisplacementAlgebra o r} (α : 
 
     open B using (ε; _⊗_)
 
-  _<α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type r
-  x <α y = A ⊕ DA→SO B [ x < y ]
 
   _≤α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type (o ⊔ r)
   x ≤α y = A ⊕ DA→SO B [ x ≤ y ]
@@ -53,11 +58,8 @@ module Constant {o r} {A : StrictOrder o r} {B : DisplacementAlgebra o r} (α : 
   ⊗α-idr (inl x) = ap inl (α.identity x)
   ⊗α-idr (inr x) = ap inr B.idr
 
-  ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y <α z → (x ⊗α y) <α (x ⊗α z)
-  ⊗α-left-invariant (inl x) (inl y) (inl z) y<z = y<z
-  ⊗α-left-invariant (inl x) (inr y) (inr z) y<z = α.invariant x y z y<z
-  ⊗α-left-invariant (inr x) (inl y) (inl z) y<z = y<z
-  ⊗α-left-invariant (inr x) (inr y) (inr z) y<z = B.left-invariant y<z
+  --------------------------------------------------------------------------------
+  -- Algebra
 
   ⊗α-is-magma : is-magma _⊗α_
   ⊗α-is-magma .has-is-set = ⊎-is-hlevel 0 ⌞ A ⌟-set ⌞ B ⌟-set
@@ -70,6 +72,23 @@ module Constant {o r} {A : StrictOrder o r} {B : DisplacementAlgebra o r} (α : 
   ⊗α-is-monoid .has-is-semigroup = ⊗α-is-semigroup
   ⊗α-is-monoid .idl {x} = ⊗α-idl x
   ⊗α-is-monoid .idr {x} = ⊗α-idr x
+
+  --------------------------------------------------------------------------------
+  -- Ordering
+  --
+  -- This uses the coproduct of strict orders, so we can re-use proofs from there.
+
+  _<α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type r
+  x <α y = A ⊕ DA→SO B [ x < y ]
+
+  --------------------------------------------------------------------------------
+  -- Left Invariance
+
+  ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y <α z → (x ⊗α y) <α (x ⊗α z)
+  ⊗α-left-invariant (inl x) (inl y) (inl z) y<z = y<z
+  ⊗α-left-invariant (inl x) (inr y) (inr z) y<z = α.invariant x y z y<z
+  ⊗α-left-invariant (inr x) (inl y) (inl z) y<z = y<z
+  ⊗α-left-invariant (inr x) (inr y) (inr z) y<z = B.left-invariant y<z
 
   ⊗α-is-displacement-algebra : is-displacement-algebra _<α_ εα _⊗α_
   ⊗α-is-displacement-algebra .is-displacement-algebra.has-monoid = ⊗α-is-monoid
@@ -94,6 +113,9 @@ module ConstantProperties {o r} {A : StrictOrder o r} {B : DisplacementAlgebra o
     module A = StrictOrder A
     module B = DisplacementAlgebra B
     open B using (ε; _⊗_)
+
+  --------------------------------------------------------------------------------
+  -- Ordered Monoid
 
   ⊗α-is-ordered-monoid : has-ordered-monoid B → (∀ {x y z} → A [ x ≤ y ] → A [ ⟦ α ⟧ʳ x z ≤ ⟦ α ⟧ʳ y z ]) → has-ordered-monoid (Const α)
   ⊗α-is-ordered-monoid B-ordered-monoid α-right-invariant =

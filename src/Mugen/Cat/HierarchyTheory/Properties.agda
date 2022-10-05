@@ -23,12 +23,25 @@ open import Mugen.Order.StrictOrder
 open import Mugen.Order.Singleton
 open import Mugen.Order.Discrete
 
+--------------------------------------------------------------------------------
+-- The Universal Embedding Theorem
+--
+-- Given a heirarchy theory 'H', a strict order Δ, and a set Ψ, we can
+-- construct a faithful functor 'T : Endos (Fᴴ Δ) → Endos Fᴹᴰ Ψ', where
+-- 'Fᴴ' denotes the free H-algebra on Δ, and 'Fᴹᴰ Ψ' denotes the free McBride
+-- Heirarchy theory over the endomorphism displacement algebra on 'H (◆ ⊕ Δ ⊕ Δ)'.
+--
+-- This is Lemma 3.8 in the paper.
 
 module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
   open Algebra-hom
 
-  private
+  --------------------------------------------------------------------------------
+  -- Notation
+  --
+  -- We begin by defining some useful notation.
 
+  private
     Δ⁺ : StrictOrder o r
     Δ⁺ = ◆ ⊕ (Δ ⊕ Δ)
 
@@ -73,6 +86,8 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
     ι₁-monic g h p = strict-order-path λ α →
       inl-inj (inr-inj (strict-order-happly p α ))
 
+  --------------------------------------------------------------------------------
+  -- Construction of the functor
 
   module _ (σ : Algebra-hom _ H Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) where
     open Cat (StrictOrders o r)
@@ -172,6 +187,9 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
   Uᴹᴰ .Functor.F-id = refl
   Uᴹᴰ .Functor.F-∘ _ _ = refl
 
+  --------------------------------------------------------------------------------
+  -- Constructing the natural transformation
+
   ν : (pt : ∣ Ψ ∣) → Uᴴ => Uᴹᴰ F∘ T
   ν pt = nt
     where
@@ -249,6 +267,8 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
           H.mult.η _ ∘ H.mult.η _ ∘ H.M₁ (H.M₁ (σ̅ σ)) ∘ H.M₁ (ℓ̅ (ℓ .Lift.lower)) ⟨$⟩ α        ≡⟨ strict-order-happly (refl⟩∘⟨ pulll (H.mult.is-natural _ _ (σ̅ σ))) α ⟩
           H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ H.mult.η _ ∘ H.M₁ (ℓ̅ (ℓ .Lift.lower)) ⟨$⟩ α ∎
 
+  --------------------------------------------------------------------------------
+  -- Faithfulness of T
 
   T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
   T-faithful pt H-preserves-monos {x} {y} {σ} {δ} p =

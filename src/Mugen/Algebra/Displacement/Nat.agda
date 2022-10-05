@@ -7,6 +7,13 @@ open import Mugen.Algebra.Displacement.Int
 import Mugen.Data.Nat as Nat
 import Mugen.Data.Int as Int
 
+--------------------------------------------------------------------------------
+-- Natural Numbers
+--
+-- This is the evident displacement algebra on natural numbers.
+-- All of the interesting algebraic/order theoretic properties are proven in
+-- 'Mugen.Data.Nat'; this module is just bundling together those proofs.
+
 +-is-displacement-algebra : is-displacement-algebra Nat._<_ 0 _+_
 +-is-displacement-algebra .is-displacement-algebra.has-monoid = Nat.+-0-is-monoid
 +-is-displacement-algebra .is-displacement-algebra.has-strict-order = Nat.<-is-strict-order
@@ -20,13 +27,15 @@ Nat+ .structure .DisplacementAlgebra-on._⊗_ = _+_
 Nat+ .structure .DisplacementAlgebra-on.has-displacement-algebra = +-is-displacement-algebra
 ⌞ Nat+ ⌟-set = Nat.Nat-is-set
 
+--------------------------------------------------------------------------------
+-- Ordered Monoid
+
 nat-+-has-ordered-monoid : has-ordered-monoid Nat+
 nat-+-has-ordered-monoid = right-invariant→has-ordered-monoid Nat+ λ {x} {y} {z} →
   Nat.+-≤-right-invariant x y z
 
-nat-+-has-bottom : has-bottom Nat+
-nat-+-has-bottom .has-bottom.bot = 0
-nat-+-has-bottom .has-bottom.is-bottom x = Nat.≤-strengthen 0 x (Nat.0≤x x)
+--------------------------------------------------------------------------------
+-- Joins
 
 nat-+-has-joins : has-joins Nat+
 nat-+-has-joins .has-joins.join = Nat.max
@@ -34,6 +43,16 @@ nat-+-has-joins .has-joins.joinl {x} {y} = Nat.≤-strengthen x (Nat.max x y) (N
 nat-+-has-joins .has-joins.joinr {x} {y} = Nat.≤-strengthen y (Nat.max x y) (Nat.max-≤r x y)
 nat-+-has-joins .has-joins.universal {x} {y} {z} x≤z y≤z =
   Nat.≤-strengthen (Nat.max x y) z (Nat.max-is-lub x y z (Nat.to-≤ x z x≤z) (Nat.to-≤ y z y≤z))
+
+--------------------------------------------------------------------------------
+-- Bottoms
+
+nat-+-has-bottom : has-bottom Nat+
+nat-+-has-bottom .has-bottom.bot = 0
+nat-+-has-bottom .has-bottom.is-bottom x = Nat.≤-strengthen 0 x (Nat.0≤x x)
+
+--------------------------------------------------------------------------------
+-- Subalgebra
 
 Nat+⊆Int+ : is-displacement-subalgebra Nat+ Int+
 Nat+⊆Int+ .is-displacement-subalgebra.into ⟨$⟩ x = Int.pos x

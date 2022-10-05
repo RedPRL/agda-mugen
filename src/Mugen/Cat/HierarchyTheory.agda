@@ -12,6 +12,12 @@ open import Mugen.Cat.StrictOrders
 
 open import Mugen.Order.LeftInvariantRightCentered
 
+--------------------------------------------------------------------------------
+-- Heirarchy Theories
+--
+-- A heirarchy theory is defined to be a monad on the category of strict orders.
+-- We also define the McBride Heirarchy Theory.
+
 HierarchyTheory : ∀ o r → Type (lsuc o ⊔ lsuc r)
 HierarchyTheory o r = Monad (StrictOrders o r)
 

@@ -8,8 +8,17 @@ open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.Opposite
 open import Mugen.Order.StrictOrder
 
+--------------------------------------------------------------------------------
+-- The Opposite Displacement Algebra
+--
+-- Given a displacement algebra '𝒟', we can define another displacement
+-- algebra with the same monoid structure, but with a reverse order.
+
 module Op {o r} (𝒟 : DisplacementAlgebra o r) where
   open DisplacementAlgebra-on (structure 𝒟)
+
+  --------------------------------------------------------------------------------
+  -- Order
 
   _op<_ : ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type r
   x op< y = 𝒟 [ y < x ]ᵈ
@@ -47,6 +56,9 @@ Op {o = o} {r = r} 𝒟 = displacement
 module OpProperties {o r} {𝒟 : DisplacementAlgebra o r} where
   open DisplacementAlgebra 𝒟
   open Op 𝒟
+
+  --------------------------------------------------------------------------------
+  -- Ordered Monoid
 
   op-has-ordered-monoid : has-ordered-monoid 𝒟 → has-ordered-monoid (Op 𝒟)
   op-has-ordered-monoid 𝒟-ordered-monoid = right-invariant→has-ordered-monoid (Op 𝒟) λ y≤x →
