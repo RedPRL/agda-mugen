@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: totbwf/agda-mugen-ci:latest
-      options: "--entrypoint /bin/bash"
     steps:
       - name: Checkout ⬇️
         uses: actions/checkout@v3

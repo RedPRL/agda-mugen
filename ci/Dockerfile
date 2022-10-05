@@ -18,7 +18,7 @@ FROM alpine:edge
 # GMP.
 RUN apk add --no-cache make gmp ncurses
 
-COPY --from=build /dist /dist
-COPY . *.sh
+COPY --from=build /dist/data /dist/data
+COPY --from=build /dist/agda /bin/agda
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/bin/sh"]
