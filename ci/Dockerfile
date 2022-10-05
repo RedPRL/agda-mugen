@@ -19,6 +19,7 @@ FROM alpine:edge
 RUN apk add --no-cache make gmp ncurses
 
 COPY --from=build /dist/data /dist/data
+COPY --from=build /dist/1lab /dist/1lab
 COPY --from=build /dist/agda /bin/agda
 RUN echo "/dist/1lab/1lab.agda-lib" > /dist/libraries
 
