@@ -10,7 +10,7 @@ We also show that displacement algebras induce monads on the category of strict 
 Furthermore, we define the endomorphism displacement algebra (See [`Mugen.Algebra.Displacement.Endo`](https://github.com/RedPRL/agda-mugen/blob/main/src/Mugen/Algebra/Displacement/Endo.agda)),
 and have formalized the first step towards showing that this is generates the "universal hierarchy theory" (See [`Mugen.Cat.HierarchyTheory.Properties`](https://github.com/RedPRL/agda-mugen/blob/main/src/Mugen/Cat/HierarchyTheory/Properties.agda))
 
-## Mapping Table for Dispalcements
+## Mapping Table for Displacements
 
 | Displacements | POPL Paper Section | Agda module | OCaml module(s) |
 | :- | :- | :- | :- |
