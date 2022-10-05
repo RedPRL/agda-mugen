@@ -1,7 +1,9 @@
 FROM fossa/haskell-static-alpine:ghc-8.10.7 as build
 
 RUN mkdir /build && mkdir /dist
-RUN git clone https://github.com/agda/agda.git /build/agda && cd /build/agda && git checkout efa6fe4cc
+# Commit required for bugfix with HTML generation and --no-load-primitives
+# See https://github.com/agda/agda/pull/6161
+RUN git clone https://github.com/agda/agda.git /build/agda && cd /build/agda && git checkout b065bf8 
 # Agda uses the data files feature of cabal, so we need to ensure that we copy those along with
 # the binary. To do this, we just store everything in /dist, and copy over the whole directory.
 #
