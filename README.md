@@ -45,8 +45,7 @@ This is a formalization of the displacement algebras found in [mugen](https://gi
 
 Run the following command to check formalization.
 
-```
-sh
+```sh
 docker build -t agda-mugen .
 docker run agda-mugen
 ```
