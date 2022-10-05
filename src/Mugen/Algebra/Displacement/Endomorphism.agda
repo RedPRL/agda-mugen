@@ -17,6 +17,13 @@ open import Mugen.Order.Poset
 
 open import Relation.Order
 
+--------------------------------------------------------------------------------
+-- Endomorphism Displacements
+--
+-- Given a Monad 'H' on the category of strict orders, we can construct a displacement
+-- algebra whose carrier set is the set of endomorphisms 'Free H Δ → Free H Δ' between
+-- free H-algebras in the Eilenberg-Moore category.
+
 module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
 
   open Monad H renaming (M₀ to H₀; M₁ to H₁)
@@ -33,24 +40,11 @@ module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
     Endomorphism = Hom Fᴴ⟨Δ⟩ Fᴴ⟨Δ⟩
     {-# INLINE Endomorphism #-}
 
-  -- HACK: We could make this live in a lower universe level, but then we can't construct a hierarchy theory from it without an annoying lift.
-  record endo[_<_] (σ δ : Endomorphism) : Type (lsuc o ⊔ lsuc r) where
-    constructor mk-endo-<
-    field
-      endo-≤ : ∀ (α : ⌞ Δ ⌟) → H₀ Δ [ σ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α ≤ δ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α  ]
-      endo-< : ∃[ α ∈ ⌞ Δ ⌟ ] (H₀ Δ [ σ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α < δ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α  ])
-
-  open endo[_<_]
-
   --------------------------------------------------------------------------------
   -- Algebra
 
   _⊗_ : Endomorphism → Endomorphism → Endomorphism
   _⊗_ = _∘_
-
-  ∘-left-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ < τ ] → endo[ σ ∘ δ < σ ∘ τ ]
-  ∘-left-invariant σ δ τ δ<τ .endo[_<_].endo-≤ α = strictly-mono→mono (σ .morphism) (δ<τ .endo-≤ α)
-  ∘-left-invariant σ δ τ δ<τ .endo[_<_].endo-< = ∥-∥-map (λ { (α , δ⟨α⟩<τ⟨α⟩) → α , σ .morphism .homo δ⟨α⟩<τ⟨α⟩ }) (δ<τ .endo-<)
 
   endo-is-magma : is-magma _⊗_
   endo-is-magma .has-is-set = Hom-set Fᴴ⟨Δ⟩ Fᴴ⟨Δ⟩
@@ -66,6 +60,15 @@ module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
 
   --------------------------------------------------------------------------------
   -- Order
+
+  -- HACK: We could make this live in a lower universe level, but then we can't construct a hierarchy theory from it without an annoying lift.
+  record endo[_<_] (σ δ : Endomorphism) : Type (lsuc o ⊔ lsuc r) where
+    constructor mk-endo-<
+    field
+      endo-≤ : ∀ (α : ⌞ Δ ⌟) → H₀ Δ [ σ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α ≤ δ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α  ]
+      endo-< : ∃[ α ∈ ⌞ Δ ⌟ ] (H₀ Δ [ σ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α < δ .morphism ⟨$⟩ unit.η Δ ⟨$⟩ α  ])
+
+  open endo[_<_]
 
   endo-<-irrefl : ∀ {σ} → endo[ σ < σ ] → ⊥
   endo-<-irrefl σ<σ = ∥-∥-elim (λ _ → hlevel 1) (λ lt → H⟨Δ⟩.irrefl (snd lt)) (σ<σ .endo-<)
@@ -88,6 +91,13 @@ module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
   endo-<-is-strict-order .is-strict-order.irrefl = endo-<-irrefl
   endo-<-is-strict-order .is-strict-order.trans = endo-<-trans
   endo-<-is-strict-order .is-strict-order.has-prop = hlevel 1
+
+  --------------------------------------------------------------------------------
+  -- Left Invariance
+
+  ∘-left-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ < τ ] → endo[ σ ∘ δ < σ ∘ τ ]
+  ∘-left-invariant σ δ τ δ<τ .endo[_<_].endo-≤ α = strictly-mono→mono (σ .morphism) (δ<τ .endo-≤ α)
+  ∘-left-invariant σ δ τ δ<τ .endo[_<_].endo-< = ∥-∥-map (λ { (α , δ⟨α⟩<τ⟨α⟩) → α , σ .morphism .homo δ⟨α⟩<τ⟨α⟩ }) (δ<τ .endo-<)
 
   endo-is-displacement-algebra : is-displacement-algebra endo[_<_] id _∘_
   endo-is-displacement-algebra .is-displacement-algebra.has-monoid = endo-is-monoid

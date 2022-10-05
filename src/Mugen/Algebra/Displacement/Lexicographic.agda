@@ -12,11 +12,23 @@ open import Mugen.Algebra.OrderedMonoid
 
 open import Mugen.Order.StrictOrder
 
+--------------------------------------------------------------------------------
+-- Lexicographic Products
+--
+-- The lexicographic product of 2 displacement algebras consists of their product
+-- as monoids, as well as their lexicographic product as orders.
+--
+-- As noted earlier, algebraic structure is given by the product of monoids, so we don't need
+-- to prove that here.
+
 module Lex {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   private
     module 𝒟₁ = DisplacementAlgebra-on (structure 𝒟₁)
     module 𝒟₂ = DisplacementAlgebra-on (structure 𝒟₂)
     open Product 𝒟₁ 𝒟₂
+
+  --------------------------------------------------------------------------------
+  -- Ordering
 
   data lex< (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) : Type (o ⊔ r) where
     fst< : 𝒟₁ [ fst x < fst y ]ᵈ → lex< x y
@@ -65,6 +77,9 @@ module Lex {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   lex-is-strict-order .is-strict-order.trans {x} {y} {z} = lex<-trans x y z
   lex-is-strict-order .is-strict-order.has-prop {x} {y} = lex<-is-prop x y
 
+  --------------------------------------------------------------------------------
+  -- Left Invariance
+
   lex-left-invariant : ∀ x y z → lex< y z → lex< (x ⊗× y) (x ⊗× z)
   lex-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst< y1<z1) = fst< (𝒟₁.left-invariant y1<z1)
   lex-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst≡ y1≡z1 y2<z2) = fst≡ (ap (x1 𝒟₁.⊗_) y1≡z1) (𝒟₂.left-invariant y2<z2)
@@ -107,6 +122,9 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
     (fst< x1<x2) → ¬x1≤x2 (inr x1<x2)
     (fst≡ x1≡x2 _) → ¬x1≤x2 (inl (x1≡x2))
 
+  --------------------------------------------------------------------------------
+  -- Ordered Monoids
+
   -- When 𝒟₁ is /strictly/ right invariant and 𝒟₂ is an ordered monoid, then 'Lex 𝒟₁ 𝒟₂' is also an ordered monoid.
   lex-has-ordered-monoid : (∀ {x y z} → 𝒟₁ [ x < y ]ᵈ → 𝒟₁ [ (x 𝒟₁.⊗ z) < (y 𝒟₁.⊗ z) ]ᵈ) → has-ordered-monoid 𝒟₂ → has-ordered-monoid (Lex 𝒟₁ 𝒟₂)
   lex-has-ordered-monoid 𝒟₁-strictly-right-invariant 𝒟₂-ordered-monoid =
@@ -118,17 +136,8 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
       lex-right-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst< x1<y1) = fst< (𝒟₁-strictly-right-invariant x1<y1)
       lex-right-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst≡ x1≡y1 x2≤y2) = fst≡ (ap (𝒟₁._⊗ z1) x1≡y1) (𝒟₂-ordered-monoid.right-invariant x2≤y2)
 
-  lex-has-bottom : has-bottom 𝒟₁ → has-bottom 𝒟₂ → has-bottom (Lex 𝒟₁ 𝒟₂)
-  lex-has-bottom 𝒟₁-bottom 𝒟₂-bottom = bottom
-    where
-      module 𝒟₁-bottom = has-bottom (𝒟₁-bottom)
-      module 𝒟₂-bottom = has-bottom (𝒟₂-bottom)
-
-      bottom : has-bottom (Lex 𝒟₁ 𝒟₂)
-      bottom .has-bottom.bot = 𝒟₁-bottom.bot , 𝒟₂-bottom.bot
-      bottom .has-bottom.is-bottom (x1 , x2) with 𝒟₁-bottom.is-bottom x1
-      ... | inl bot1≡x1 = from-lex≤ (fst≡ bot1≡x1 (𝒟₂-bottom.is-bottom x2))
-      ... | inr bot1<x1 = from-lex≤ (fst< bot1<x1)
+  --------------------------------------------------------------------------------
+  -- Joins
 
   lex-has-joins : (∀ x1 y1 → Dec (𝒟₁ [ x1 ≤ y1 ]ᵈ)) → (∀ x2 y2 → Dec (𝒟₂ [ x2 ≤ y2 ]ᵈ))
                 → has-joins 𝒟₁ → has-joins 𝒟₂ → has-bottom 𝒟₂ → has-joins (Lex 𝒟₁ 𝒟₂)
@@ -175,3 +184,18 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
       ... | yes (inl _)        | no ¬y1≤x1∨y1       | x≤z              | y≤z = absurd (¬y1≤x1∨y1 𝒟₁-joins.joinr)
       ... | yes (inr _)        | no ¬y1≤x1∨y1       | x≤z              | y≤z = absurd (¬y1≤x1∨y1 𝒟₁-joins.joinr)
       ... | no ¬x1≤x1∨y1       | _                  | x≤z              | y≤z = absurd (¬x1≤x1∨y1 𝒟₁-joins.joinl)
+
+  --------------------------------------------------------------------------------
+  -- Bottoms
+
+  lex-has-bottom : has-bottom 𝒟₁ → has-bottom 𝒟₂ → has-bottom (Lex 𝒟₁ 𝒟₂)
+  lex-has-bottom 𝒟₁-bottom 𝒟₂-bottom = bottom
+    where
+      module 𝒟₁-bottom = has-bottom (𝒟₁-bottom)
+      module 𝒟₂-bottom = has-bottom (𝒟₂-bottom)
+
+      bottom : has-bottom (Lex 𝒟₁ 𝒟₂)
+      bottom .has-bottom.bot = 𝒟₁-bottom.bot , 𝒟₂-bottom.bot
+      bottom .has-bottom.is-bottom (x1 , x2) with 𝒟₁-bottom.is-bottom x1
+      ... | inl bot1≡x1 = from-lex≤ (fst≡ bot1≡x1 (𝒟₂-bottom.is-bottom x2))
+      ... | inr bot1<x1 = from-lex≤ (fst< bot1<x1)

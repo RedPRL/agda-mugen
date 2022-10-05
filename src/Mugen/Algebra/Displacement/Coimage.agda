@@ -13,6 +13,16 @@ open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.Coimage
 
+--------------------------------------------------------------------------------
+-- Coimages of Displacement Algebra Homomorphisms
+--
+-- Given a displacement algebra homomorphism 'f : X → Y', we can construct
+-- a new displacement algebra whose carrier set is 'X', quotiented by the equivalence
+-- relation 'x ~ y iff f x = f y'.
+--
+-- This can be useful for constructing subalgebras, as Coim f is /always/ a subalgebra
+-- of 'Y'.
+
 module Coimage {o r} {X Y : DisplacementAlgebra o r} (f : DisplacementAlgebra-hom X Y) where
   private
     module X = DisplacementAlgebra X
@@ -159,6 +169,11 @@ Coimage {o} {r} f = displacement
     displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = ⊗coim-is-displacement-algebra
     ⌞ displacement ⌟-set = squash
 
+--------------------------------------------------------------------------------
+-- Subalgebra Structure
+--
+-- As noted before, for 'f : X → Y', 'Coim f' is always a subalgebra of 'Y'.
+
 module _ {o r} {X Y : DisplacementAlgebra o r} {f : DisplacementAlgebra-hom X Y} where
   private
     open Coimage f
@@ -180,6 +195,9 @@ module _ {o r} {X Y : DisplacementAlgebra o r} {f : DisplacementAlgebra-hom X Y}
         Coim-elim-prop₂ {C = λ x y → x coim< y → into x Y.< into y} (λ _ _ → Π-is-hlevel 1 (λ _ → Y.<-is-prop)) (λ x y p → p) x y
       subalgebra .is-displacement-subalgebra.inj {x} {y} =
         Coim-elim-prop₂ {C = λ x y → into x ≡ into y → x ≡ y} (λ _ _ → Π-is-hlevel 1 λ _ → squash _ _) glue x y
+
+--------------------------------------------------------------------------------
+-- Joins
 
   Coimage-has-joins : (X-joins : has-joins X) → (Y-joins : has-joins Y) → preserves-joins X-joins Y-joins f → has-joins (Coimage f)
   Coimage-has-joins X-joins Y-joins f-preserves-joins = joins

@@ -43,6 +43,7 @@ record DisplacementAlgebra-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔
 DisplacementAlgebra : ∀ o r → Type (lsuc o ⊔ lsuc r)
 DisplacementAlgebra o r = SetStructure (DisplacementAlgebra-on {o} r)
 
+-- Get the underlying (bundled) strict order of a displacement algebra.
 DA→SO : DisplacementAlgebra o r → StrictOrder o r
 ⌞ DA→SO 𝒟 ⌟ =  ⌞ 𝒟 ⌟ 
 DA→SO 𝒟 .structure .StrictOrder-on._<_ = DisplacementAlgebra-on._<_ (structure 𝒟)
@@ -52,6 +53,9 @@ DA→SO 𝒟 .structure .StrictOrder-on.has-is-strict-order = DisplacementAlgebr
 module DisplacementAlgebra {o r} (𝒟 : DisplacementAlgebra o r) where
   open DisplacementAlgebra-on (structure 𝒟) public
   open StrictOrder (DA→SO 𝒟) using (≤-is-prop) public
+
+--------------------------------------------------------------------------------
+-- Some handy notation
 
 _[_<_]ᵈ : (𝒟 : DisplacementAlgebra o r) → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type r
 𝒟 [ x < y ]ᵈ = DisplacementAlgebra-on._<_ (structure 𝒟) x y
@@ -177,6 +181,9 @@ module _ {o r} (𝒟 : DisplacementAlgebra o r) where
     field
       bot : ⌞ 𝒟 ⌟
       is-bottom : ∀ x → bot ≤ x
+
+--------------------------------------------------------------------------------
+-- Subalgebras of Augmented Displacement Algebras
 
 preserves-joins : {X Y : DisplacementAlgebra o r} (X-joins : has-joins X) (Y-joins : has-joins Y) → (f : DisplacementAlgebra-hom X Y) → Type o
 preserves-joins X Y f = ∀ x y → f ⟨$⟩ X .join x y ≡ Y .join (f ⟨$⟩ x) (f ⟨$⟩ y)

@@ -11,7 +11,18 @@ open import Mugen.Algebra.Displacement
 open import Mugen.Order.Prefix
 open import Mugen.Order.StrictOrder
 
+--------------------------------------------------------------------------------
+-- Prefix Displacements
+--
+-- Given a set 'A', we can define a displacement algebra on 'List A',
+-- where 'xs ≤ ys' if 'xs' is a prefix of 'ys'.
+--
+-- Most of the order theoretic properties come from 'Mugen.Order.Prefix'.
+
 module Pre {ℓ} {A : Type ℓ} (aset : is-set A) where
+
+  --------------------------------------------------------------------------------
+  -- Left Invariance
 
   ++-left-invariant : ∀ (xs ys zs : List A) → Prefix A ys zs → Prefix A (xs ++ ys) (xs ++ zs)
   ++-left-invariant [] ys zs ys<zs = ys<zs
@@ -31,6 +42,9 @@ Pre A .structure .DisplacementAlgebra-on.has-displacement-algebra = Pre.prefix-i
 ⌞ Pre A ⌟-set = ListPath.List-is-hlevel 0 (is-tr A)
 
 module PreProperties {ℓ} {A : Set ℓ} where
+
+  --------------------------------------------------------------------------------
+  -- Bottoms
 
   prefix-has-bottom : has-bottom (Pre A)
   prefix-has-bottom .has-bottom.bot = []

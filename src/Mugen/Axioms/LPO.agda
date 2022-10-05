@@ -11,13 +11,30 @@ private variable
 -- Markov's Principle:
 --
 -- If a predicate on Nat is decidable, and we have a proof that it's not true
--- everywhere on a sequence, then it must be not true /somewhere/ on a sequence
+-- everywhere on a sequence, then it must be not true /somewhere/ on a sequence.
 
 Markov : ∀ {p} (P : Nat → Type p) → Type p
 Markov P = (∀ n → Dec (P n)) → ((∀ n → P n) → ⊥) → ∃[ n ∈ Nat ] (P n → ⊥)
 
+--------------------------------------------------------------------------------
+-- The Law of Excluded Middle
+
 LEM : ∀ {ℓ} (A : Type ℓ) → Type ℓ
 LEM A = ∥ Dec A ∥
+
+--------------------------------------------------------------------------------
+-- The Limited Principle of Omniscience
+--
+-- When dealing with infinite sequences of ordered values,
+-- it's reasonable to ask for 2 sequences 'f g : Nat → A',
+-- if '∀ n. f n ≤ g n', then '∃ n. f n < g n' or 'f ≡ g'.
+--
+-- This is constructively problematic, as doing so would require
+-- looking at an infinite amount of information to determine the
+-- two sequences are equal.
+--
+-- This can be shown to arise from the markov principle for pointwise equality
+-- of 'f' and 'g', along with LEM for the statement '∀ n → f n ≡ g n'.
 
 module _ {o r} (A : StrictOrder o r) (_≡?_ : Discrete ⌞ A ⌟) where
   open StrictOrder A
