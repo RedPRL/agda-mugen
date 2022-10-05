@@ -20,14 +20,14 @@ This is a formalization of the displacement algebras found in [mugen](https://gi
 | Prefix order | 3.3.6 | [Prefix](src/Mugen/Algebra/Displacement/Prefix.agda) | [Prefix](https://redprl.org/mugen/mugen/Mugen/Shift/Prefix) and [Prefix](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Prefix)
 | Fractal displacements | 3.3.7 | [Fractal](src/Mugen/Algebra/Displacement/Fractal.agda) | [Fractal](https://redprl.org/mugen/mugen/Mugen/Shift/Fractal) and [Fractal](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Fractal)
 | Opposite displacements | 3.3.8 | [Opposite](src/Mugen/Algebra/Displacement/Opposite.agda) | [Opposite](https://redprl.org/mugen/mugen/Mugen/Shift/Opposite) and [Opposite](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Opposite)
-| Endomorphisms | 3.6 | [Endomorphism](src/Mugen/Algebra/Displacement/Endomorphism.agda) | _(not implementable)_
+| Endomorphisms | 3.4 | [Endomorphism](src/Mugen/Algebra/Displacement/Endomorphism.agda) | _(not implementable)_
 
 ### Other Theorems
 
 | Theorems | Paper Section | Agda Module |
 | :- | :- | :- |
 | Validity of McBride monads | 3.1 | [Mugen.Cat.HierarchyTheory](./src/Mugen/Cat/HierarchyTheory.agda)
-| Embedding of endomorphisms | 3.6 | [Mugen.Cat.HierarchyTheory.Properties](./src/Mugen/Cat/HierarchyTheory/Properties.agda)
+| Embedding of endomorphisms | 3.4 | [Mugen.Cat.HierarchyTheory.Properties](./src/Mugen/Cat/HierarchyTheory/Properties.agda)
 
 ## Building
 
