@@ -8,5 +8,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/agda
+      - name: Checkout ⬇️
+        uses: actions/checkout@v3
+      - name: Build 🛠️ 
+        uses: ./.github/actions/agda
