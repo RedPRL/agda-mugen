@@ -9,7 +9,7 @@ RUN cd /build/agda && cabal update && cabal install
 RUN git clone https://github.com/plt-amy/1lab /build/1lab && cd /build/1lab && git checkout f5465e94
 COPY . ./agda-mugen
 
-RUN echo "/build/1lab/1lab.agda-lib" > libraries
+RUN echo "/build/1lab/1lab.agda-lib" > /build/libraries
 
 ADD *.sh /
 

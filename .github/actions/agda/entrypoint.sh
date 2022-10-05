@@ -1,3 +1,4 @@
 #! /bin/sh
 
-make build
+make Everything.agda
+agda -i=. --library-file=/build/libraries src/Mugen/Everything.agda
