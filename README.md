@@ -44,3 +44,5 @@ This formalization was checked against `efa6fe4cc`.
 A `Dockerfile` is also provided that packages the required versions of `agda` and the `1lab`.
 To run it, first build the image with `docker build -t agda-mugen .`. Once that completes, you
 can then run `docker run agda-mugen`, which will check the formalization.
+Alternatively, you can pull a pre-built image via `docker pull totbwf/agda-mugen`, and run it
+with `docker run totbwf/agda-mugen`.
