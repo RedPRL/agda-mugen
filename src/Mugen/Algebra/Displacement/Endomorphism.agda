@@ -1,4 +1,4 @@
-module Mugen.Algebra.Displacement.Endo where
+module Mugen.Algebra.Displacement.Endomorphism where
 
 open import Algebra.Magma
 open import Algebra.Monoid renaming (idl to ⊗-idl; idr to ⊗-idr)

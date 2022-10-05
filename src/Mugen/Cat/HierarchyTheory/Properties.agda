@@ -11,7 +11,7 @@ import Cat.Functor.Reasoning as FR
 open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.Endo
+open import Mugen.Algebra.Displacement.Endomorphism
 
 open import Mugen.Cat.Endomorphisms
 open import Mugen.Cat.HierarchyTheory
