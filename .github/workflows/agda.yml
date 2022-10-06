@@ -17,7 +17,7 @@ jobs:
       - name: Checkout ⬇️
         uses: actions/checkout@v3
       - name: Build 🛠️ 
-        run: make Everything.agda && agda -i=. --library-file=/dist/libraries --html --html-dir=site ./src/Mugen/Everything.agda
+        run: make Everything.agda && agda -i=. --no-load-primitives --library-file=/dist/libraries --html --html-dir=site ./src/Mugen/Everything.agda
       - name: Deploy To Pages 📕
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}
