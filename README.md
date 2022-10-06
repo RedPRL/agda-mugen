@@ -14,9 +14,9 @@ This is a formalization of the displacement algebras found in [mugen](https://gi
 | Constant displacements | 3.3.2 | [Constant](src/Mugen/Algebra/Displacement/Constant.agda) | [Constant](https://redprl.org/mugen/mugen/Mugen/Shift/Constant)
 | Binary products | 3.3.3 | [Product](src/Mugen/Algebra/Displacement/Product.agda) | [Product](https://redprl.org/mugen/mugen/Mugen/Shift/Product) and [Product](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Product)
 | Lexicographic binary products | 3.3.4 | [Lexicographic](src/Mugen/Algebra/Displacement/Lexicographic.agda) | [Lexicographic](https://redprl.org/mugen/mugen/Mugen/Shift/Lexicographic) and [Lexicographic](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Lexicographic)
-| Infinity products | 3.3.5 | [InfinityProduct](src/Mugen/Algebra/Displacement/InfinityProduct.agda) | _(not implementable)_
-| Nearly constant infinity products | 3.3.5 | [NearlyConstant](src/Mugen/Algebra/Displacement/NearlyConstant.agda) | [NearlyConstant](https://redprl.org/mugen/mugen/Mugen/Shift/NearlyConstant) and [NearlyConstant](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/NearlyConstant)
-| Infinity products with finite support | 3.3.5 | [FiniteSupport](src/Mugen/Algebra/Displacement/FiniteSupport.agda) | [FiniteSupport](https://redprl.org/mugen/mugen/Mugen/Shift/FiniteSupport) and [FiniteSupport](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/FiniteSupport)
+| Infinite products | 3.3.5 | [InfiniteProduct](src/Mugen/Algebra/Displacement/InfiniteProduct.agda) | _(not implementable)_
+| Nearly constant infinite products | 3.3.5 | [NearlyConstant](src/Mugen/Algebra/Displacement/NearlyConstant.agda) | [NearlyConstant](https://redprl.org/mugen/mugen/Mugen/Shift/NearlyConstant) and [NearlyConstant](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/NearlyConstant)
+| Infinite products with finite support | 3.3.5 | [FiniteSupport](src/Mugen/Algebra/Displacement/FiniteSupport.agda) | [FiniteSupport](https://redprl.org/mugen/mugen/Mugen/Shift/FiniteSupport) and [FiniteSupport](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/FiniteSupport)
 | Prefix order | 3.3.6 | [Prefix](src/Mugen/Algebra/Displacement/Prefix.agda) | [Prefix](https://redprl.org/mugen/mugen/Mugen/Shift/Prefix)
 | Fractal displacements | 3.3.7 | [Fractal](src/Mugen/Algebra/Displacement/Fractal.agda) | [Fractal](https://redprl.org/mugen/mugen/Mugen/Shift/Fractal)
 | Opposite displacements | 3.3.8 | [Opposite](src/Mugen/Algebra/Displacement/Opposite.agda) | [Opposite](https://redprl.org/mugen/mugen/Mugen/Shift/Opposite)
