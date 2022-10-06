@@ -14,6 +14,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Lexicographic Products
+-- Section 3.3.4
 --
 -- The lexicographic product of 2 displacement algebras consists of their product
 -- as monoids, as well as their lexicographic product as orders.
