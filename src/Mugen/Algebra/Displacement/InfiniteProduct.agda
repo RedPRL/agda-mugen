@@ -59,8 +59,6 @@ module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
 
   -- NOTE: This is classically equivalent to the definition presented in the paper,
   -- but less annoying to work with constructively.
-  -- However, we still are required to assume one (potentially) non-constructive
-  -- principle for showing later properties.
   record _inf<_ (f g : Nat → ⌞ 𝒟 ⌟) : Type (o ⊔ r) where
     constructor inf-<
     field
@@ -114,8 +112,8 @@ InfProd {o = o} {r = r} 𝒟 = displacement
     displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = ⊗∞-is-displacement-algebra
     ⌞ displacement ⌟-set = Π-is-hlevel 2 (λ _ → ⌞ 𝒟 ⌟-set)
 
--- All of these results requires a single non-constructive principle.
--- Namely, we require that if '∀ n. f n ≤ g n', then 'f ≡ g', or there is some 'k' where 'f k < g k'.
+-- All of the following results require a form of the Limited Principle of Omniscience,
+-- which states that if '∀ n. f n ≤ g n', then 'f ≡ g', or there is some 'k' where 'f k < g k'.
 -- See Mugen.Axioms.LPO for a distillation of LPO into Markov's Principle + LEM
 module InfProperties {o r} {𝒟 : DisplacementAlgebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
   open Inf 𝒟
