@@ -12,6 +12,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Products
+-- Section 3.3.3
 --
 -- We can take the product of 2 displacement algebras. Algebraic structure
 -- is given by the product of monoids, and ordering is given by the product of the
