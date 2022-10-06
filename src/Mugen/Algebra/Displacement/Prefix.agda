@@ -13,6 +13,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Prefix Displacements
+-- Section 3.3.6
 --
 -- Given a set 'A', we can define a displacement algebra on 'List A',
 -- where 'xs ≤ ys' if 'xs' is a prefix of 'ys'.
