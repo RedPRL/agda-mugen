@@ -7,6 +7,7 @@ open import Mugen.Data.Int
 
 --------------------------------------------------------------------------------
 -- Integers
+-- Section 3.3.1
 --
 -- This is the evident displacement algebra on the integers.
 -- All of the interesting properties are proved in 'Mugen.Data.Int';
