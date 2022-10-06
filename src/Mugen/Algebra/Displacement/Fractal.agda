@@ -12,6 +12,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Fractal Displacements
+-- Section 3.3.7
 
 module _ {o r} (𝒟 : DisplacementAlgebra o r) where
   private
