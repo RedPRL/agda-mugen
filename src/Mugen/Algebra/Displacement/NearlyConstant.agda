@@ -19,6 +19,7 @@ open import Mugen.Data.List
 
 --------------------------------------------------------------------------------
 -- Nearly Constant Functions
+-- Section 3.3.5
 --
 -- A "nearly constant function" is some function 'f : Nat → 𝒟'
 -- that differs from some fixed 'd : 𝒟' for only a finite set of 'n : Nat'

@@ -10,6 +10,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- The Opposite Displacement Algebra
+-- Section 3.3.8
 --
 -- Given a displacement algebra '𝒟', we can define another displacement
 -- algebra with the same monoid structure, but with a reverse order.

@@ -9,6 +9,7 @@ import Mugen.Data.Int as Int
 
 --------------------------------------------------------------------------------
 -- Natural Numbers
+-- Section 3.3.1
 --
 -- This is the evident displacement algebra on natural numbers.
 -- All of the interesting algebraic/order theoretic properties are proven in

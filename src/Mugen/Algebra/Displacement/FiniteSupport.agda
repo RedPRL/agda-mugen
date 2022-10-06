@@ -20,6 +20,7 @@ open import Mugen.Data.List
 
 --------------------------------------------------------------------------------
 -- Finitely Supported Functions
+-- Section 3.3.5
 --
 -- Finitely supported functions over some displacement algebra '𝒟' are
 -- functions 'f : Nat → 𝒟' that differ from 'const ε' in only a finite number of positions.

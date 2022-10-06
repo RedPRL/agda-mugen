@@ -19,6 +19,7 @@ open import Relation.Order
 
 --------------------------------------------------------------------------------
 -- Endomorphism Displacements
+-- Section 3.4
 --
 -- Given a Monad 'H' on the category of strict orders, we can construct a displacement
 -- algebra whose carrier set is the set of endomorphisms 'Free H Δ → Free H Δ' between

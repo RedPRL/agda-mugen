@@ -11,6 +11,7 @@ open import Mugen.Data.Nat
 
 --------------------------------------------------------------------------------
 -- The Non-Positive Integers
+-- Section 3.3.1
 --
 -- These have a terse definition as the opposite order of Nat+,
 -- so we just use that.
