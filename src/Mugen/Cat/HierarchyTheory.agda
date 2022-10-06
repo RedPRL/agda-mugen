@@ -23,6 +23,9 @@ HierarchyTheory o r = Monad (StrictOrders o r)
 
 --------------------------------------------------------------------------------
 -- The McBride Hierarchy Theory
+-- Section 3.1
+--
+-- A construction of the McBride Monad for any displacement algebra '𝒟'
 
 ℳ : ∀ {o} → DisplacementAlgebra o o → HierarchyTheory o o
 ℳ {o = o} 𝒟 = ht where
