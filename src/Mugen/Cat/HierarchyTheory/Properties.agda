@@ -25,13 +25,12 @@ open import Mugen.Order.Discrete
 
 --------------------------------------------------------------------------------
 -- The Universal Embedding Theorem
+-- Section 3.4, Lemma 3.8
 --
 -- Given a heirarchy theory 'H', a strict order Δ, and a set Ψ, we can
 -- construct a faithful functor 'T : Endos (Fᴴ Δ) → Endos Fᴹᴰ Ψ', where
 -- 'Fᴴ' denotes the free H-algebra on Δ, and 'Fᴹᴰ Ψ' denotes the free McBride
 -- Heirarchy theory over the endomorphism displacement algebra on 'H (◆ ⊕ Δ ⊕ Δ)'.
---
--- This is Lemma 3.8 in the paper.
 
 module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
   open Algebra-hom
@@ -87,7 +86,8 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
       inl-inj (inr-inj (strict-order-happly p α ))
 
   --------------------------------------------------------------------------------
-  -- Construction of the functor
+  -- Construction of the functor T
+  -- Section 3.4, Lemma 3.8
 
   module _ (σ : Algebra-hom _ H Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) where
     open Cat (StrictOrders o r)
@@ -188,7 +188,8 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
   Uᴹᴰ .Functor.F-∘ _ _ = refl
 
   --------------------------------------------------------------------------------
-  -- Constructing the natural transformation
+  -- Constructing the natural transformation ν
+  -- Section 3.4, Lemma 3.8
 
   ν : (pt : ∣ Ψ ∣) → Uᴴ => Uᴹᴰ F∘ T
   ν pt = nt
@@ -269,6 +270,7 @@ module _ {o r} (H : HierarchyTheory o r) (Δ : StrictOrder o r) (Ψ : Set (lsuc 
 
   --------------------------------------------------------------------------------
   -- Faithfulness of T
+  -- Section 3.4, Lemma 3.8
 
   T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
   T-faithful pt H-preserves-monos {x} {y} {σ} {δ} p =
