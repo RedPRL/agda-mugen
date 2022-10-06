@@ -13,7 +13,7 @@ open import Mugen.Algebra.OrderedMonoid
 
 --------------------------------------------------------------------------------
 -- Constant Displacements
--- Section 3.3.3
+-- Section 3.3.2
 --
 -- Given a strict order 'A', a displacement algebra 'B', and a right displacement
 -- action 'α : A → B → A', we can construct a displacement algebra whose carrier
