@@ -13,6 +13,7 @@ open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Infinite Products
+-- Section 3.3.5
 --
 -- The infinite product of a displacement algebra '𝒟' consists
 -- of functions 'Nat → 𝒟'. Multiplication is performerd pointwise,
