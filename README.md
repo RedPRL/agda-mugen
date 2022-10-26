@@ -1,8 +1,8 @@
 # `agda-mugen`
 
-This is a formalization of the displacement algebras found in [mugen](https://github.com/RedPRL/mugen/), their properties, and part of meta-theoretic analysis.
+This is a formalization of the displacement algebras, their properties, and part of meta-theoretic analysis found in our (conditionally accepted) POPL 2023 paper [“An Order-Theoretic Analysis of Universe Polymorphism”.](https://favonia.org/files/mugen.pdf) The accompanying OCaml implementation is at <https://github.com/RedPRL/mugen/>.
 
-## Formalized Results
+## Mechanized Results
 
 ### Displacement Algebras
 
