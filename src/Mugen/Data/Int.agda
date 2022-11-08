@@ -207,78 +207,87 @@ negate-inj (suc x) (suc y) p = ap suc (negsuc-inj p)
 --------------------------------------------------------------------------------
 -- Order
 
-_<ℤ_ : Int → Int → Type
-pos x <ℤ pos y = x < y
-pos x <ℤ negsuc y = ⊥
-negsuc x <ℤ pos y = ⊤
-negsuc x <ℤ negsuc y = y < x
+data _≤ℤ_ : Int → Int → Type where
+  +≤+ : ∀ {x y} → x ≤ y → pos x ≤ℤ pos y
+  -≤- : ∀ {x y} → y ≤ x → negsuc x ≤ℤ negsuc y
+  instance
+    -≤+ : ∀ {x y} → negsuc x ≤ℤ pos y
 
-_≤ℤ_ : Int → Int → Type
-pos x ≤ℤ pos y = x ≤ y
-pos x ≤ℤ negsuc y = ⊥
-negsuc x ≤ℤ pos y = ⊤
-negsuc x ≤ℤ negsuc y = y ≤ x
+data _<ℤ_ : Int → Int → Type where
+  +<+ : ∀ {x y} → x < y → pos x <ℤ pos y
+  -<- : ∀ {x y} → y < x → negsuc x <ℤ negsuc y
+  instance
+    -<+ : ∀ {x y} → negsuc x <ℤ pos y
+
+instance
+  +≤+′ : ∀ {x y} → ⦃ x ≤ y ⦄ → pos x ≤ℤ pos y
+  +≤+′ ⦃ x≤y ⦄ = +≤+ x≤y
+
+  -≤-′ : ∀ {x y} → ⦃ y ≤ x ⦄ → negsuc x ≤ℤ negsuc y
+  -≤-′ ⦃ y≤x ⦄ = -≤- y≤x
+
+  +<+′ : ∀ {x y} → ⦃ x < y ⦄ → pos x <ℤ pos y
+  +<+′ ⦃ x≤y ⦄ = +<+ x≤y
+
+  -<-′ : ∀ {x y} → ⦃ y < x ⦄ → negsuc x <ℤ negsuc y
+  -<-′ ⦃ y≤x ⦄ = -<- y≤x
 
 
-<ℤ-irrefl : ∀ x → x <ℤ x → ⊥
-<ℤ-irrefl (pos x) = <-irrefl x
-<ℤ-irrefl (negsuc x) = <-irrefl x
+<ℤ-irrefl : ∀ {x} → x <ℤ x → ⊥
+<ℤ-irrefl (+<+ x<x) = <-irrefl x<x
+<ℤ-irrefl (-<- x<x) = <-irrefl x<x
 
-<ℤ-trans : ∀ x y z → x <ℤ y → y <ℤ z → x <ℤ z
-<ℤ-trans (pos x) (pos y) (pos z) x<y y<z = <-trans x y z x<y y<z
-<ℤ-trans (negsuc x) (pos y) (pos z) x<y y<z = tt
-<ℤ-trans (negsuc x) (negsuc y) (pos z) x<y y<z = tt
-<ℤ-trans (negsuc x) (negsuc y) (negsuc z) x<y y<z = <-trans z y x y<z x<y
+<ℤ-trans : ∀ {x y z} → x <ℤ y → y <ℤ z → x <ℤ z
+<ℤ-trans (+<+ x<y) (+<+ y<z) = +<+ (<-trans x<y y<z)
+<ℤ-trans (-<- y<x) (-<- z<y) = -<- (<-trans z<y y<x)
+<ℤ-trans (-<- x<y) -<+ = -<+
+<ℤ-trans -<+ (+<+ y<z) = -<+
 
-≤ℤ-refl : ∀ x → x ≤ℤ x
-≤ℤ-refl (pos x) = ≤-refl x
-≤ℤ-refl (negsuc x) = ≤-refl x
+≤ℤ-refl : ∀ {x} → x ≤ℤ x
+≤ℤ-refl {x = pos n} = +≤+ ≤-refl
+≤ℤ-refl {x = negsuc n} = -≤- ≤-refl
 
-≤ℤ-trans : ∀ x y z → x ≤ℤ y → y ≤ℤ z → x ≤ℤ z
-≤ℤ-trans (pos x) (pos y) (pos z) x≤y y≤z = ≤-trans x y z x≤y y≤z
-≤ℤ-trans (negsuc x) (pos y) (pos z) x≤y y≤z = tt
-≤ℤ-trans (negsuc x) (negsuc y) (pos z) x≤y y≤z = tt
-≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y≤z = ≤-trans z y x y≤z x≤y
+≤ℤ-trans : ∀ {x y z} → x ≤ℤ y → y ≤ℤ z → x ≤ℤ z
+≤ℤ-trans (+≤+ x≤y) (+≤+ y≤z) = +≤+ (≤-trans x≤y y≤z)
+≤ℤ-trans (-≤- y≤x) (-≤- z≤y) = -≤- (≤-trans z≤y y≤x)
+≤ℤ-trans (-≤- x≤y) -≤+ = -≤+
+≤ℤ-trans -≤+ (+≤+ y≤z) = -≤+
 
-<ℤ-weaken : ∀ x y → x <ℤ y → x ≤ℤ y
-<ℤ-weaken (pos x) (pos y) x<y = <-weaken x y x<y
-<ℤ-weaken (negsuc x) (pos y) x<y = tt
-<ℤ-weaken (negsuc x) (negsuc y) x<y = <-weaken y x x<y
+<ℤ-weaken : ∀ {x y} → x <ℤ y → x ≤ℤ y
+<ℤ-weaken (+<+ x<y) = +≤+ (<-weaken x<y)
+<ℤ-weaken (-<- y<x) = -≤- (<-weaken y<x)
+<ℤ-weaken -<+ = -≤+
 
-≤ℤ-strengthen : ∀ x y → x ≤ℤ y → x ≡ y ⊎ x <ℤ y
-≤ℤ-strengthen (pos x) (pos y) x≤y =
-  ⊎-map (ap pos) (λ x<y → x<y) (≤-strengthen x y x≤y)
-≤ℤ-strengthen (negsuc x) (pos y) x≤y =
-  inr tt
-≤ℤ-strengthen (negsuc x) (negsuc y) x≤y =
-  ⊎-map (λ p → ap negsuc (sym p)) (λ y<x → y<x) (≤-strengthen y x x≤y)
+≤ℤ-strengthen : ∀ {x y} → x ≤ℤ y → x ≡ y ⊎ x <ℤ y
+≤ℤ-strengthen (+≤+ x≤y) = ⊎-map (ap pos) +<+ (≤-strengthen x≤y)
+≤ℤ-strengthen (-≤- y≤x) = ⊎-map (λ y≡x → ap negsuc (sym y≡x)) -<- (≤-strengthen y≤x)
+≤ℤ-strengthen -≤+ = inr -<+
 
-to-≤ℤ : ∀ x y → x ≡ y ⊎ x <ℤ y → x ≤ℤ y
-to-≤ℤ x y (inl x≡y) = subst (x ≤ℤ_) x≡y (≤ℤ-refl x)
-to-≤ℤ x y (inr x<y) = <ℤ-weaken x y x<y
+to-≤ℤ : ∀ {x y} → x ≡ y ⊎ x <ℤ y → x ≤ℤ y
+to-≤ℤ (inl x≡y) = subst (_ ≤ℤ_) x≡y ≤ℤ-refl
+to-≤ℤ (inr x<y) = <ℤ-weaken x<y
 
-<ℤ-≤ℤ-trans : ∀ x y z → x <ℤ y → y ≤ℤ z → x <ℤ z
-<ℤ-≤ℤ-trans (pos x) (pos y) (pos z) x<y y≤z = <-≤-trans x y z x<y y≤z
-<ℤ-≤ℤ-trans (negsuc x) (pos y) (pos z) x<y y≤z = tt
-<ℤ-≤ℤ-trans (negsuc x) (negsuc y) (pos z) x<y y≤z = tt
-<ℤ-≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x<y y≤z = ≤-<-trans z y x y≤z x<y
+<ℤ-≤ℤ-trans : ∀ {x y z} → x <ℤ y → y ≤ℤ z → x <ℤ z
+<ℤ-≤ℤ-trans (+<+ x<y) (+≤+ y≤z) = +<+ (≤-trans x<y y≤z)
+<ℤ-≤ℤ-trans (-<- y<x) (-≤- z≤y) = -<- (≤-trans (s≤s z≤y) y<x)
+<ℤ-≤ℤ-trans (-<- y<x) -≤+ = -<+
+<ℤ-≤ℤ-trans -<+ (+≤+ y≤z) = -<+
 
-≤ℤ-<ℤ-trans : ∀ x y z → x ≤ℤ y → y <ℤ z → x <ℤ z
-≤ℤ-<ℤ-trans (pos x) (pos y) (pos z) x≤y y<z = ≤-<-trans x y z x≤y y<z
-≤ℤ-<ℤ-trans (negsuc x) (pos y) (pos z) x≤y y<z = tt
-≤ℤ-<ℤ-trans (negsuc x) (negsuc y) (pos z) x≤y y<z = tt
-≤ℤ-<ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y<z = <-≤-trans z y x y<z x≤y
+≤ℤ-<ℤ-trans : ∀ {x y z} → x ≤ℤ y → y <ℤ z → x <ℤ z
+≤ℤ-<ℤ-trans (+≤+ x≤y) (+<+ y<z) = +<+ (≤-trans (s≤s x≤y) y<z)
+≤ℤ-<ℤ-trans (-≤- y≤x) (-<- z<y) = -<- (≤-trans z<y y≤x)
+≤ℤ-<ℤ-trans (-≤- y≤x) -<+ = -<+
+≤ℤ-<ℤ-trans -≤+ (+<+ y<z) = -<+
 
-<ℤ-is-prop : ∀ x y → is-prop (x <ℤ y)
-<ℤ-is-prop (pos x) (pos y) = <-prop x y
-<ℤ-is-prop (pos x) (negsuc y) = hlevel 1
-<ℤ-is-prop (negsuc x) (pos y) = hlevel 1
-<ℤ-is-prop (negsuc x) (negsuc y) = <-prop y x
+<ℤ-is-prop : ∀ {x y} → is-prop (x <ℤ y)
+<ℤ-is-prop (+<+ p) (+<+ q) = ap +<+ (≤-prop p q)
+<ℤ-is-prop (-<- p) (-<- q) = ap -<- (≤-prop p q)
+<ℤ-is-prop -<+ -<+ = refl
 
 <ℤ-is-strict-order : is-strict-order _<ℤ_
-<ℤ-is-strict-order .is-strict-order.irrefl {x} = <ℤ-irrefl x
-<ℤ-is-strict-order .is-strict-order.trans {x} {y} {z} = <ℤ-trans x y z
-<ℤ-is-strict-order .is-strict-order.has-prop {x} {y} = <ℤ-is-prop x y
+<ℤ-is-strict-order .is-strict-order.irrefl = <ℤ-irrefl
+<ℤ-is-strict-order .is-strict-order.trans = <ℤ-trans
+<ℤ-is-strict-order .is-strict-order.has-prop = <ℤ-is-prop
 
 module Int-<Reasoning where
   infix  1 begin-<_
@@ -300,19 +309,19 @@ module Int-<Reasoning where
   begin-< (strong _ _ x<y) = x<y
 
   begin-≤_ : ∀ {x y} → (x≤y : x IsRelatedTo y) → x ≤ℤ y
-  begin-≤ done x = ≤ℤ-refl x
-  begin-≤ strong x y x<y = <ℤ-weaken x y x<y
+  begin-≤ done x = ≤ℤ-refl
+  begin-≤ strong x y x<y = <ℤ-weaken  x<y
   begin-≤ weak x y x≤y = x≤y
 
   step-< : ∀ x {y z} → y IsRelatedTo z → x <ℤ y → x IsRelatedTo z
   step-< x (done y) x<y = strong x y x<y
-  step-< x (strong y z y<z) x<y = strong x z (<ℤ-trans x y z x<y y<z)
-  step-< x (weak y z y≤z) x<y = strong x z (<ℤ-≤ℤ-trans x y z x<y y≤z)
+  step-< x (strong y z y<z) x<y = strong x z (<ℤ-trans x<y y<z)
+  step-< x (weak y z y≤z) x<y = strong x z (<ℤ-≤ℤ-trans x<y y≤z)
 
   step-≤ : ∀ x {y z} → y IsRelatedTo z → x ≤ℤ y → x IsRelatedTo z
   step-≤ x (done y) x≤y = weak x y x≤y
-  step-≤ x (strong y z y<z) x≤y = strong x z (≤ℤ-<ℤ-trans x y z x≤y y<z)
-  step-≤ x (weak y z y≤z) x≤y = weak x z (≤ℤ-trans x y z x≤y y≤z)
+  step-≤ x (strong y z y<z) x≤y = strong x z (≤ℤ-<ℤ-trans x≤y y<z)
+  step-≤ x (weak y z y≤z) x≤y = weak x z (≤ℤ-trans x≤y y≤z)
 
   step-≡ : ∀ x {y z} → y IsRelatedTo z → x ≡ y → x IsRelatedTo z
   step-≡ x (done y) p = subst (x IsRelatedTo_) p (done x)
@@ -328,112 +337,105 @@ module Int-<Reasoning where
 
 open Int-<Reasoning
 
-1+ℤ-< : ∀ x → x <ℤ 1+ℤ x
-1+ℤ-< (pos x) = <-suc x
-1+ℤ-< (negsuc zero) = tt
-1+ℤ-< (negsuc (suc x)) = <-suc x
+1+ℤ-< : ∀ {x} → x <ℤ 1+ℤ x
+1+ℤ-< {pos x} = +<+ <-ascend
+1+ℤ-< {negsuc zero} = -<+
+1+ℤ-< {negsuc (suc x)} = -<- <-ascend
 
--1ℤ-< : ∀ x → (x -1ℤ) <ℤ x
--1ℤ-< (pos (suc x)) = <-suc x
--1ℤ-< 0ℤ = tt
--1ℤ-< (negsuc x) = <-suc x
+-1ℤ-< : ∀ {x} → (x -1ℤ) <ℤ x
+-1ℤ-< {pos (suc x)} = +<+ <-ascend
+-1ℤ-< {0ℤ} = -<+
+-1ℤ-< {negsuc x} = -<- <-ascend
 
 diff-suc-< : ∀ x y → diff x (suc y) <ℤ pos x
-diff-suc-< zero y = tt
+diff-suc-< zero y = -<+
 diff-suc-< (suc x) zero = begin-<
   diff x 0    ≡̇⟨ diff-0ℤr x ⟩
-  pos x       <⟨ <-suc x ⟩
+  pos x       <⟨ +<+ <-ascend ⟩
   pos (suc x) <∎
 diff-suc-< (suc x) (suc y) = begin-<
   diff x (suc y) <⟨ diff-suc-< x y ⟩
-  pos x          <⟨ <-suc x ⟩
+  pos x          <⟨ +<+ <-ascend ⟩
   pos (suc x)    <∎
 
 diff-negsuc-< : ∀ x y → negsuc y <ℤ diff x y
-diff-negsuc-< zero zero = tt
-diff-negsuc-< zero (suc y) = <-suc y
-diff-negsuc-< (suc x) zero = tt
+diff-negsuc-< zero zero = -<+
+diff-negsuc-< zero (suc y) = -<- <-ascend
+diff-negsuc-< (suc x) zero = -<+
 diff-negsuc-< (suc x) (suc y) = begin-<
-  negsuc (suc y) <⟨ -1ℤ-< (negsuc y) ⟩ 
+  negsuc (suc y) <⟨ -1ℤ-< ⟩ 
   negsuc y       <⟨ diff-negsuc-< x y ⟩ 
   diff x y       <∎
 
-diff-left-invariant : ∀ x y z → z < y → diff x y <ℤ diff x z
-diff-left-invariant zero (suc y) zero z<y = tt
-diff-left-invariant zero (suc y) (suc z) z<y = z<y
-diff-left-invariant (suc x) (suc y) zero z<y = diff-suc-< (suc x) y
-diff-left-invariant (suc x) (suc y) (suc z) z<y = diff-left-invariant x y z z<y
+diff-left-invariant : ∀ {y z} x → z < y → diff x y <ℤ diff x z
+diff-left-invariant zero (s≤s 0≤x) = -<+
+diff-left-invariant zero (s≤s (s≤s z<y)) = -<- (s≤s z<y)
+diff-left-invariant (suc x) (s≤s 0≤x) = diff-suc-< _ _
+diff-left-invariant (suc x) (s≤s (s≤s z<y)) = diff-left-invariant x (s≤s z<y)
 
-diff-right-invariant : ∀ x y z → x < y → diff x z <ℤ diff y z
-diff-right-invariant zero (suc y) zero x<y = 0≤x y
-diff-right-invariant zero (suc y) (suc z) x<y = diff-negsuc-< y z
-diff-right-invariant (suc x) (suc y) zero x<y = x<y
-diff-right-invariant (suc x) (suc y) (suc z) x<y = diff-right-invariant x y z x<y
+diff-right-invariant : ∀ {x y} z → x < y → diff x z <ℤ diff y z
+diff-right-invariant zero (s≤s 0≤x) = +<+′
+diff-right-invariant zero (s≤s (s≤s x<y)) = +<+ (s≤s (s≤s x<y))
+diff-right-invariant {y = suc y} (suc z) (s≤s 0≤x) = diff-negsuc-< y z
+diff-right-invariant (suc z) (s≤s (s≤s x<y)) = diff-right-invariant z (s≤s x<y)
 
-diff-weak-left-invariant : ∀ x y z → z ≤ y → diff x y ≤ℤ diff x z
-diff-weak-left-invariant x y z z≤y with ≤-strengthen z y z≤y
-... | inl z≡y = subst (_≤ℤ diff x z) (ap (diff x) z≡y) (≤ℤ-refl (diff x z))
-... | inr z<y = <ℤ-weaken (diff x y) (diff x z) $ diff-left-invariant x y z z<y
+diff-weak-left-invariant : ∀ {y z} x → z ≤ y → diff x y ≤ℤ diff x z
+diff-weak-left-invariant x z≤y with ≤-strengthen z≤y
+... | inl z≡y = subst (_≤ℤ diff x _) (ap (diff x) z≡y) (≤ℤ-refl)
+... | inr z<y = <ℤ-weaken $ diff-left-invariant x z<y
 
-+ℤ-left-invariant : ∀ x y z → y <ℤ z → (x +ℤ y) <ℤ (x +ℤ z)
-+ℤ-left-invariant (pos x) (pos y) (pos z) y<z = +-<-left-invariant x y z y<z
-+ℤ-left-invariant (pos x) (negsuc y) (pos z) y<z = begin-<
++ℤ-left-invariant : ∀ {y z} x → y <ℤ z → (x +ℤ y) <ℤ (x +ℤ z)
++ℤ-left-invariant (pos x) (+<+ y<z) = +<+ (+-<-left-invariant x y<z)
++ℤ-left-invariant (negsuc x) (+<+ y<z) = diff-right-invariant (suc x) y<z
++ℤ-left-invariant (pos x) (-<- z<y) = diff-left-invariant x (s≤s z<y)
++ℤ-left-invariant (negsuc x) (-<- z<y) = -<- (+-<-left-invariant (suc x) z<y)
++ℤ-left-invariant {y = negsuc y} {z = pos z} (pos x) -<+ = begin-<
   diff x (suc y) <⟨ diff-suc-< x y ⟩
-  pos x          ≤⟨ ≤-plusr x z ⟩
+  pos x          ≤⟨ +≤+ (+-≤l x z) ⟩
   pos (x + z)    <∎
-+ℤ-left-invariant (pos x) (negsuc y) (negsuc z) y<z =
-  diff-left-invariant x (suc y) (suc z) y<z
-+ℤ-left-invariant (negsuc x) (pos y) (pos z) y<z =
-  diff-right-invariant y z (suc x) y<z
-+ℤ-left-invariant (negsuc x) (negsuc y) (pos z) y<z = begin-<
-  negsuc (suc (x + y)) <⟨ diff-negsuc-< z (suc (x + y))  ⟩
-  diff z (suc (x + y)) ≤⟨ diff-weak-left-invariant z (suc (x + y)) (suc x) (≤-plusr x y) ⟩
++ℤ-left-invariant {y = negsuc y} {z = pos z} (negsuc x) -<+ = begin-<
+  negsuc (suc (x + y)) <⟨ diff-negsuc-< z (suc (x + y)) ⟩
+  diff z (suc (x + y)) ≤⟨ diff-weak-left-invariant z (+-≤l (suc x) y) ⟩
   diff z (suc x) <∎
-+ℤ-left-invariant (negsuc x) (negsuc y) (negsuc z) y<z =
-  +-<-left-invariant x z y y<z
 
-+ℤ-right-invariant : ∀ x y z → x <ℤ y → (x +ℤ z) <ℤ (y +ℤ z)
-+ℤ-right-invariant (pos x) (pos y) (pos z) x<y =
-  +-<-right-invariant x y z x<y
-+ℤ-right-invariant (pos x) (pos y) (negsuc z) x<y =
-  diff-right-invariant x y (suc z) x<y
-+ℤ-right-invariant (negsuc x) (pos y) (pos z) x<y = begin-<
++ℤ-right-invariant : ∀ {x y} z → x <ℤ y → (x +ℤ z) <ℤ (y +ℤ z)
++ℤ-right-invariant (pos z) (+<+ x<y) = +<+ (+-<-right-invariant z x<y)
++ℤ-right-invariant (negsuc z) (+<+ x<y) = diff-right-invariant (suc z) x<y
++ℤ-right-invariant (pos z) (-<- x<y) = diff-left-invariant z (s≤s x<y)
++ℤ-right-invariant (negsuc z) (-<- x<y) = -<- (+-<-right-invariant z (s≤s x<y))
++ℤ-right-invariant {x = negsuc x} {y = pos y} (pos z) -<+ = begin-<
   diff z (suc x) <⟨ diff-suc-< z x ⟩
-  pos z          ≤⟨ ≤-plusl z y ⟩
+  pos z          ≤⟨ +≤+ (+-≤r y z) ⟩
   pos (y + z)    <∎
-+ℤ-right-invariant (negsuc x) (pos y) (negsuc z) x<y = begin-<
++ℤ-right-invariant {x = negsuc x} {y = pos y} (negsuc z) -<+ = begin-<
   negsuc (suc (x + z)) ≡̇⟨ ap negsuc (sym (+-sucr x z)) ⟩
-  negsuc (x + suc z)   ≤⟨ ≤-plusl (suc z) x ⟩
+  negsuc (x + suc z)   ≤⟨ -≤- (+-≤r x (suc z)) ⟩
   negsuc (suc z)       <⟨ diff-negsuc-< y (suc z) ⟩
   diff y (suc z)       <∎
-+ℤ-right-invariant (negsuc x) (negsuc y) (pos z) x<y =
-  diff-left-invariant z (suc x) (suc y) x<y
-+ℤ-right-invariant (negsuc x) (negsuc y) (negsuc z) x<y =
-  +-<-right-invariant y x z x<y
 
-+ℤ-weak-right-invariant : ∀ x y z → non-strict _<ℤ_ x y → non-strict _<ℤ_ (x +ℤ z) (y +ℤ z)
-+ℤ-weak-right-invariant x y z (inl x≡y) = inl (ap (_+ℤ z) x≡y)
-+ℤ-weak-right-invariant x y z (inr x<y) = inr (+ℤ-right-invariant x y z x<y)
++ℤ-weak-right-invariant : ∀ {x y} z → non-strict _<ℤ_ x y → non-strict _<ℤ_ (x +ℤ z) (y +ℤ z)
++ℤ-weak-right-invariant z (inl x≡y) = inl (ap (_+ℤ z) x≡y)
++ℤ-weak-right-invariant z (inr x<y) = inr (+ℤ-right-invariant z x<y)
 
 maxℤ-≤l : ∀ x y → x ≤ℤ maxℤ x y
-maxℤ-≤l (pos x) (pos y) = max-≤l x y
-maxℤ-≤l (pos x) (negsuc y) = ≤-refl x
-maxℤ-≤l (negsuc x) (pos y) = tt
-maxℤ-≤l (negsuc x) (negsuc y) = min-≤l x y
+maxℤ-≤l (pos x) (pos y) = +≤+ (max-≤l x y)
+maxℤ-≤l (pos x) (negsuc y) = ≤ℤ-refl
+maxℤ-≤l (negsuc x) (pos y) = -≤+
+maxℤ-≤l (negsuc x) (negsuc y) = -≤- (min-≤l x y)
 
 maxℤ-≤r : ∀ x y → y ≤ℤ maxℤ x y
-maxℤ-≤r (pos x) (pos y) = max-≤r x y
-maxℤ-≤r (pos x) (negsuc y) = tt
-maxℤ-≤r (negsuc x) (pos y) = ≤-refl y
-maxℤ-≤r (negsuc x) (negsuc y) = min-≤r x y
+maxℤ-≤r (pos x) (pos y) = +≤+ (max-≤r x y)
+maxℤ-≤r (pos x) (negsuc y) = -≤+
+maxℤ-≤r (negsuc x) (pos y) = ≤ℤ-refl
+maxℤ-≤r (negsuc x) (negsuc y) = -≤- (min-≤r x y)
 
-maxℤ-is-lub : ∀ x y z → x ≤ℤ z → y ≤ℤ z → maxℤ x y ≤ℤ z
-maxℤ-is-lub (pos x) (pos y) (pos z) x≤z y≤z = max-is-lub x y z x≤z y≤z
-maxℤ-is-lub (pos x) (negsuc y) (pos z) x≤z y≤z = x≤z
-maxℤ-is-lub (negsuc x) (pos y) (pos z) x≤z y≤z = y≤z
-maxℤ-is-lub (negsuc x) (negsuc y) (pos z) x≤z y≤z = tt
-maxℤ-is-lub (negsuc x) (negsuc y) (negsuc z) x≤z y≤z = min-is-glb x y z x≤z y≤z
+maxℤ-is-lub : ∀ {x y z} → x ≤ℤ z → y ≤ℤ z → maxℤ x y ≤ℤ z
+maxℤ-is-lub (+≤+ x≤z) (+≤+ y≤z) = +≤+ (max-is-lub x≤z y≤z)
+maxℤ-is-lub (+≤+ x≤z) -≤+ = +≤+ x≤z
+maxℤ-is-lub (-≤- z≤x) (-≤- z≤y) = -≤- (min-is-glb z≤x z≤y)
+maxℤ-is-lub -≤+ (+≤+ y≤z) = +≤+ y≤z
+maxℤ-is-lub -≤+ -≤+ = -≤+
 
-negate-anti-mono : ∀ x y → x < y → (- y) <ℤ (- x)
-negate-anti-mono zero (suc y) x<y = tt
-negate-anti-mono (suc x) (suc y) x<y = x<y
+negate-anti-mono : ∀ {x y} → x < y → (- y) <ℤ (- x)
+negate-anti-mono (s≤s 0≤x) = -<+
+negate-anti-mono (s≤s (s≤s x<y)) = -<- (s≤s x<y)

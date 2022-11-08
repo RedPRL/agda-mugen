@@ -60,7 +60,7 @@ homomorphism-hlevel : ∀ {n} {o s h} {S : Type o → Type s} {X Y : SetStructur
                       → H-Level (Homomorphism H X Y) (2 + n)
 homomorphism-hlevel {X = X} {Y = Y} homo-prop = set-instance $
     let open SetStructure
-    in is-hlevel≃ 2 (Iso→Equiv homo-eqv e⁻¹) (Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → ⌞ Y ⌟-set) λ f → is-prop→is-set (homo-prop X Y f))
+    in is-hlevel≃ 2 (Iso→Equiv homo-eqv) (Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → ⌞ Y ⌟-set) λ f → is-prop→is-set (homo-prop X Y f))
 
 open Homomorphism public
 

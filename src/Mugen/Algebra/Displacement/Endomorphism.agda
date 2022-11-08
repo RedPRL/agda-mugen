@@ -86,7 +86,7 @@ module _ {o r} (H : Monad (StrictOrders o r)) (Δ : StrictOrder o r) where
       let instance
         H⟨Δ⟩-≤-hlevel : ∀ {x y} {n} → H-Level (H₀ Δ [ x ≤ y ]) (suc n)
         H⟨Δ⟩-≤-hlevel = prop-instance H⟨Δ⟩.≤-is-prop
-      in is-hlevel≃ 1 (Iso→Equiv eqv e⁻¹) (hlevel 1) f
+      in is-hlevel≃ 1 (Iso→Equiv eqv) (hlevel 1) f
 
   endo-<-is-strict-order : is-strict-order endo[_<_]
   endo-<-is-strict-order .is-strict-order.irrefl = endo-<-irrefl

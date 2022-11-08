@@ -61,7 +61,7 @@ module FinSupport {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri 
 
   FinSupportList-is-set : is-set FinSupportList
   FinSupportList-is-set =
-    is-hlevel≃ 2 (Iso→Equiv eqv e⁻¹) $
+    is-hlevel≃ 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 SupportList-is-set λ support →
         is-hlevel-suc 2 ⌞ 𝒟 ⌟-set (SupportList.base support) ε
 

@@ -177,7 +177,7 @@ List≃Bwd : List A ≃ Bwd A
 List≃Bwd = Iso→Equiv (bwd , iso fwd bwd-fwd fwd-bwd)
 
 Bwd-is-hlevel : (n : Nat) → is-hlevel A (2 + n) → is-hlevel (Bwd A) (2 + n)
-Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) List≃Bwd (List-is-hlevel n ahl)
+Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) (List≃Bwd e⁻¹) (List-is-hlevel n ahl)
   where open ListPath
 
 instance

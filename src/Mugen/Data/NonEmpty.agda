@@ -61,8 +61,8 @@ module List⁺-Path {ℓ} {A : Type ℓ} where
     de-refl {xs = [ x ]} = refl
     de-refl {xs = x ∷ xs} i j = x ∷ (de-refl {xs = xs} i j)
 
-  Code≃Path : ∀ {xs ys : List⁺ A} → Code xs ys ≃ (xs ≡ ys)
-  Code≃Path = Iso→Equiv (decode , iso encode decode-encode encode-decode)
+  Code≃Path : ∀ {xs ys : List⁺ A} →  (xs ≡ ys) ≃ Code xs ys
+  Code≃Path = Iso→Equiv (encode , iso decode encode-decode decode-encode)
 
 open List⁺-Path
 

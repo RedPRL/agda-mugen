@@ -492,7 +492,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   SupportList-is-set : is-set SupportList
   SupportList-is-set =
-    is-hlevel≃ 2 (Iso→Equiv eqv e⁻¹) $
+    is-hlevel≃ 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 (hlevel 2) λ base →
       Σ-is-hlevel 2 (Bwd-is-hlevel 0  ⌞ 𝒟 ⌟-set) λ xs →
       is-prop→is-set (is-compact-is-prop base xs)

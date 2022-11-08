@@ -35,9 +35,9 @@ This is a formalization of the displacement algebras, their properties, and part
 
 1. Set up a working Haskell toolchain, for example using [ghcup](https://www.haskell.org/ghcup/).
 
-2. Compile and install [Agda](https://github.com/agda/agda) at the commit `efa6fe4cc`. You will have to build Agda from the source.
+2. Compile and install [Agda](https://github.com/agda/agda) at the commit `84e2eb39`. You will have to build Agda from the source.
 
-3. Install [1Lab](https://github.com/plt-amy/1lab) and add the path to its `1lab.agda-lib` to `${AGDA_DIR}/libraries`. This formalization was checked against the commit `f5465e94` of the 1lab library.
+3. Install [1Lab](https://github.com/plt-amy/1lab) and add the path to its `1lab.agda-lib` to `${AGDA_DIR}/libraries`. This formalization was checked against the commit `e8f54687` of the 1lab library.
 
 4. Type check the formalization by running `make`.
 

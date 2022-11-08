@@ -59,7 +59,7 @@ instance
                            → H-Level (is-strict-order _<_) (suc n)
   is-strict-order-hlevel = prop-instance λ x →
      let open is-strict-order x in
-     is-hlevel≃ 1 (Iso→Equiv eqv e⁻¹) (hlevel 1) x
+     is-hlevel≃ 1 (Iso→Equiv eqv) (hlevel 1) x
 
 record StrictOrder-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
   no-eta-equality
