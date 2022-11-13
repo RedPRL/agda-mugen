@@ -1,0 +1,27 @@
+name: Make
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  everything:
+    name: Everything.agda
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository ⬇️
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Run `make Everything.agda` 🏃
+        run: make Everything.agda
+      - name: Check if any files are changed 🔍
+        run: |
+          if ! git diff --quiet; then
+            echo "Please run 'make Everything.agda' to regenerate files"
+            exit 1
+          fi
