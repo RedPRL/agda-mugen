@@ -2,7 +2,7 @@
 # Stage 1: building everything except agda-mugen
 ####################################################################################################
 
-FROM fossa/haskell-static-alpine:ghc-8.10.7 AS agda
+FROM fossa/haskell-static-alpine:ghc-9.0.2 AS agda
 
 WORKDIR /build/agda
 RUN \
