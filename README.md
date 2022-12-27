@@ -1,6 +1,6 @@
 # ♾ mugen 無限 in Agda
 
-This is a formalization of the displacement algebras, their properties, and part of meta-theoretic analysis found in our (conditionally accepted) POPL 2023 paper [“An Order-Theoretic Analysis of Universe Polymorphism”.](https://favonia.org/files/mugen.pdf) The accompanying OCaml implementation is at <https://github.com/RedPRL/mugen/>.
+This is a formalization of the displacement algebras, their properties, and part of meta-theoretic analysis found in our POPL 2023 paper [“An Order-Theoretic Analysis of Universe Polymorphism”.](https://favonia.org/files/mugen.pdf) The accompanying OCaml implementation is at <https://github.com/RedPRL/mugen/>.
 
 ## Mechanized Results
 
