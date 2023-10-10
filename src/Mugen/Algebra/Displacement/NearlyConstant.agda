@@ -574,21 +574,6 @@ module NearlyConst
       ∎
 
   --------------------------------------------------------------------------------
-  -- Algebraic Structure
-
-  merge-is-magma : is-magma merge
-  merge-is-magma .has-is-set = SupportList-is-set
-
-  merge-is-semigroup : is-semigroup merge
-  merge-is-semigroup .has-is-magma = merge-is-magma
-  merge-is-semigroup .associative {xs} {ys} {zs} = merge-assoc xs ys zs
-
-  merge-is-monoid : is-monoid empty merge
-  merge-is-monoid .has-is-semigroup = merge-is-semigroup
-  merge-is-monoid .idl {xs} = merge-idl xs
-  merge-is-monoid .idr {ys} = merge-idr ys
-
-  --------------------------------------------------------------------------------
   -- Order
   -- We choose to have our orders compute like this, as we get to avoid
   -- a propositional truncation compared to the All _≤_ + Some _<_ represenation.

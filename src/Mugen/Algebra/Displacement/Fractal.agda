@@ -14,9 +14,11 @@ open import Mugen.Order.StrictOrder
 -- Fractal Displacements
 -- Section 3.3.7
 
-module _ {o r} (𝒟 : DisplacementAlgebra o r) where
+module _
+  {o r} (𝒟 : Displacement-algebra o r)
+  where
   private
-    module 𝒟 = DisplacementAlgebra-on (structure 𝒟)
+    module 𝒟 = Displacement-algebra 𝒟
     open 𝒟 using (ε; _⊗_)
 
   --------------------------------------------------------------------------------
@@ -50,52 +52,32 @@ module _ {o r} (𝒟 : DisplacementAlgebra o r) where
   ⊗ᶠ-idr (x ∷ xs) = ap (_∷ xs) 𝒟.idr
 
   --------------------------------------------------------------------------------
-  -- Algebra
-
-  ⊗ᶠ-is-magma : is-magma _⊗ᶠ_
-  ⊗ᶠ-is-magma .has-is-set = List⁺-is-hlevel 0 ⌞ 𝒟 ⌟-set
-
-  ⊗ᶠ-is-semigroup : is-semigroup _⊗ᶠ_
-  ⊗ᶠ-is-semigroup .has-is-magma = ⊗ᶠ-is-magma
-  ⊗ᶠ-is-semigroup .associative {x} {y} {z} = ⊗ᶠ-associative x y z
-
-  ⊗ᶠ-is-monoid : is-monoid εᶠ _⊗ᶠ_
-  ⊗ᶠ-is-monoid .has-is-semigroup = ⊗ᶠ-is-semigroup
-  ⊗ᶠ-is-monoid .idl {x} = ⊗ᶠ-idl x
-  ⊗ᶠ-is-monoid .idr {x} = ⊗ᶠ-idr x
-
-  --------------------------------------------------------------------------------
   -- Order
 
   data fractal[_<_] : List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟ → Type (o ⊔ r) where
-    single< : ∀ {x y} → 𝒟 [ x < y ]ᵈ → fractal[ [ x ] < [ y ] ]
-    head<   : ∀ {x xs y ys} → 𝒟 [ x < y ]ᵈ → fractal[ x ∷ xs < y ∷ ys ]
+    single< : ∀ {x y} → x 𝒟.< y → fractal[ [ x ] < [ y ] ]
+    head<   : ∀ {x xs y ys} → x 𝒟.< y → fractal[ x ∷ xs < y ∷ ys ]
     -- Annoying hack to work around --without-K
     tail<   : ∀ {x xs y ys} → x ≡ y → fractal[ xs < ys ] → fractal[ x ∷ xs < y ∷ ys ]
 
   <ᶠ-irrefl : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs < xs ] → ⊥
-  <ᶠ-irrefl [ x ] (single< x<x) = 𝒟.irrefl x<x
-  <ᶠ-irrefl (x ∷ xs) (head< x<x) = 𝒟.irrefl x<x
+  <ᶠ-irrefl [ x ] (single< x<x) = 𝒟.<-irrefl x<x
+  <ᶠ-irrefl (x ∷ xs) (head< x<x) = 𝒟.<-irrefl x<x
   <ᶠ-irrefl (x ∷ xs) (tail< p xs<xs) = <ᶠ-irrefl xs xs<xs
 
   <ᶠ-trans : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs < ys ] → fractal[ ys < zs ] → fractal[ xs < zs ]
-  <ᶠ-trans [ x ] [ y ] [ z ] (single< x<y) (single< y<z) = single< (𝒟.trans x<y y<z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (head< y<z) = head< (𝒟.trans x<y y<z)
+  <ᶠ-trans [ x ] [ y ] [ z ] (single< x<y) (single< y<z) = single< (𝒟.<-trans x<y y<z)
+  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (head< y<z) = head< (𝒟.<-trans x<y y<z)
   <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (tail< y≡z ys<zs) = head< (𝒟.≡-transr x<y y≡z)
   <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (head< y<z) = head< (𝒟.≡-transl x≡y y<z)
   <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (tail< y≡z ys<zs) = tail< (x≡y ∙ y≡z) (<ᶠ-trans xs ys zs xs<ys ys<zs)
 
   <ᶠ-is-prop : ∀ (xs ys : List⁺ ⌞ 𝒟 ⌟) → is-prop (fractal[ xs < ys ])
-  <ᶠ-is-prop [ x ] [ y ] (single< x<y) (single< x<y') = ap single< (𝒟.<-is-prop x<y x<y')
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (head< x<y') = ap head< (𝒟.<-is-prop x<y x<y')
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (tail< x≡y xs<ys) = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (head< x<y) = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (tail< x≡y' xs<ys') = ap₂ tail< (⌞ 𝒟 ⌟-set x y x≡y x≡y') (<ᶠ-is-prop xs ys xs<ys xs<ys')
-
-  <ᶠ-is-strict-order : is-strict-order fractal[_<_]
-  <ᶠ-is-strict-order .is-strict-order.irrefl {x} = <ᶠ-irrefl x
-  <ᶠ-is-strict-order .is-strict-order.trans {x} {y} {z} = <ᶠ-trans x y z
-  <ᶠ-is-strict-order .is-strict-order.has-prop {x} {y} = <ᶠ-is-prop x y
+  <ᶠ-is-prop [ x ] [ y ] (single< x<y) (single< x<y') = ap single< (𝒟.<-thin x<y x<y')
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (head< x<y') = ap head< (𝒟.<-thin x<y x<y')
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (tail< x≡y xs<ys) = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (head< x<y) = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (tail< x≡y' xs<ys') = ap₂ tail< (𝒟.has-is-set x y x≡y x≡y') (<ᶠ-is-prop xs ys xs<ys xs<ys')
 
   --------------------------------------------------------------------------------
   -- Left Invariance
@@ -111,7 +93,19 @@ module _ {o r} (𝒟 : DisplacementAlgebra o r) where
   --------------------------------------------------------------------------------
   -- Displacement Algebra
 
-  ⊗ᶠ-is-displacement-algebra : is-displacement-algebra (fractal[_<_]) εᶠ _⊗ᶠ_
-  ⊗ᶠ-is-displacement-algebra .is-displacement-algebra.has-monoid = ⊗ᶠ-is-monoid
-  ⊗ᶠ-is-displacement-algebra .is-displacement-algebra.has-strict-order = <ᶠ-is-strict-order
-  ⊗ᶠ-is-displacement-algebra .is-displacement-algebra.left-invariant {x} {y} {z} = ⊗ᶠ-left-invariant x y z
+  Fractal : Displacement-algebra o (o ⊔ r)
+  Fractal = to-displacement-algebra mk where
+    mk-strict : make-strict-order (o ⊔ r) (List⁺ ⌞ 𝒟 ⌟)
+    mk-strict .make-strict-order._<_ = fractal[_<_]
+    mk-strict .make-strict-order.<-irrefl = <ᶠ-irrefl _
+    mk-strict .make-strict-order.<-trans = <ᶠ-trans _ _ _
+    mk-strict .make-strict-order.<-thin = <ᶠ-is-prop _ _
+    mk-strict .make-strict-order.has-is-set = List⁺-is-hlevel 0 𝒟.has-is-set
+
+    mk : make-displacement-algebra (to-strict-order mk-strict)
+    mk .make-displacement-algebra.ε = εᶠ
+    mk .make-displacement-algebra._⊗_ = _⊗ᶠ_
+    mk .make-displacement-algebra.idl = ⊗ᶠ-idl _
+    mk .make-displacement-algebra.idr = ⊗ᶠ-idr  _
+    mk .make-displacement-algebra.associative = ⊗ᶠ-associative _ _ _
+    mk .make-displacement-algebra.left-invariant = ⊗ᶠ-left-invariant _ _ _
