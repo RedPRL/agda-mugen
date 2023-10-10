@@ -273,20 +273,33 @@ record is-bounded-displacement-subalgebra
 --------------------------------------------------------------------------------
 -- Displacement Actions
 
-record is-right-displacement-action
+module _
   {o r o′ r′}
   (A : Strict-order o r) (B : Displacement-algebra o′ r′)
-  (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
-  : Type (o ⊔ r ⊔ o′ ⊔ r′)
   where
-  no-eta-equality
   private
     module A = Strict-order A
     module B = Displacement-algebra B
-  field
-    identity  : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
-    compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
-    invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.< y → α a x A.< α a y
+
+  record is-right-displacement-action
+    (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
+    : Type (o ⊔ r ⊔ o′ ⊔ r′)
+    where
+    no-eta-equality
+    field
+      identity  : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
+      compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
+      invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.< y → α a x A.< α a y
+  
+  is-right-displacement-action-is-prop
+    : (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
+    → is-prop (is-right-displacement-action α)
+  is-right-displacement-action-is-prop α =
+    Iso→is-hlevel 1 eqv $
+    Σ-is-hlevel 1 (Π-is-hlevel 1 λ _ → A.has-is-set _ _) λ _ →
+    Σ-is-hlevel 1 (Π-is-hlevel³ 1 λ _ _ _ → A.has-is-set _ _) λ _ →
+    Π-is-hlevel³ 1 λ _ _ _ → Π-is-hlevel 1 λ _ → A.<-thin
+    where unquoteDecl eqv = declare-record-iso eqv (quote is-right-displacement-action) 
 
 record Right-displacement-action
   {o r o′ r′}
@@ -296,6 +309,32 @@ record Right-displacement-action
   field
     hom : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
     has-is-action : is-right-displacement-action A B hom
+
+  open is-right-displacement-action has-is-action public
+
+module _ where
+  open Right-displacement-action
+  
+  Right-displacement-action-path
+    : ∀ {o r o′ r′}
+    → {A : Strict-order o r} {B : Displacement-algebra o′ r′}
+    → (α β : Right-displacement-action A B)
+    → (∀ a b → α .hom a b ≡ β .hom a b)
+    → α ≡ β
+  Right-displacement-action-path α β p i .hom a b = p a b i
+  Right-displacement-action-path α β p i .has-is-action =
+    is-prop→pathp (λ i → is-right-displacement-action-is-prop _ _ (λ a b → p a b i))
+      (α .has-is-action)
+      (β .has-is-action) i
+
+instance
+  Right-actionlike-displacement-action
+    : ∀ {o r o' r'}
+    → Right-actionlike (Right-displacement-action {o} {r} {o'} {r'})
+  Right-actionlike.⟦ Right-actionlike-displacement-action ⟧ʳ =
+    Right-displacement-action.hom
+  Right-actionlike-displacement-action .Right-actionlike.extʳ =
+    Right-displacement-action-path _ _
 
 --------------------------------------------------------------------------------
 -- Builders

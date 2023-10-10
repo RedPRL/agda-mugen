@@ -41,6 +41,16 @@ record
 
 open Funlike ⦃...⦄ public
 
+record
+  Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'} 
+    ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄ 
+    (F : A → B → Type ℓ'') : Typeω where
+  field
+    ⟦_⟧ʳ : ∀ {A B} → F A B → ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
+    extʳ : ∀ {A B} {f g : F A B} → (∀ x y → ⟦ f ⟧ʳ x y ≡ ⟦ g ⟧ʳ x y) → f ≡ g
+
+open Right-actionlike ⦃...⦄ public
+
 --------------------------------------------------------------------------------
 -- Misc.
 
