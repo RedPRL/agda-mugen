@@ -1,5 +1,5 @@
 name: agda-mugen
-depend: cubical-1lab
+depend: 1lab
 include:
   src
   wip
@@ -9,4 +9,4 @@ flags:
   --postfix-projections
   --rewriting
   --guardedness
-  -W noNoEquivWhenSplitting
+  -WnoUnsupportedIndexedMatch
