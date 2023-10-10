@@ -296,3 +296,39 @@ record Right-displacement-action
   field
     hom : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
     has-is-action : is-right-displacement-action A B hom
+
+--------------------------------------------------------------------------------
+-- Builders
+
+record make-displacement-algebra
+  {o r} (A : Strict-order o r)
+  : Type (o ⊔ r)
+  where
+  no-eta-equality
+  open Strict-order A
+  field
+    ε : ⌞ A ⌟
+    _⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟
+    idl : ∀ {x} → ε ⊗ x ≡ x
+    idr : ∀ {x} → x ⊗ ε ≡ x
+    associative : ∀ {x y z} → x ⊗ (y ⊗ z) ≡ (x ⊗ y) ⊗ z
+    left-invariant : ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
+
+module _ where
+  open Displacement-algebra
+  open Displacement-algebra-on
+  open make-displacement-algebra
+  open is-displacement-algebra
+
+  to-displacement-algebra
+    : ∀ {o r} {A : Strict-order o r}
+    → make-displacement-algebra A
+    → Displacement-algebra o r
+  to-displacement-algebra {A = A} mk .strict-order = A
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .ε = mk .ε
+  to-displacement-algebra {A = A} mk .displacement-algebra-on ._⊗_ = mk ._⊗_
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .has-is-semigroup .has-is-magma .has-is-set = Strict-order.has-is-set A
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .has-is-semigroup .associative = mk .associative
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idl = mk .idl
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idr = mk .idr
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .left-invariant = mk .left-invariant

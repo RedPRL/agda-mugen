@@ -187,3 +187,30 @@ strictly-monotone-∘
 strictly-monotone-∘ f g .hom x = f # (g # x)
 strictly-monotone-∘ f g .strict-mono p =
   f .strict-mono (g .strict-mono p)
+
+--------------------------------------------------------------------------------
+-- Builders
+
+record make-strict-order {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+  no-eta-equality
+  field
+    _<_ : A → A → Type r
+    <-irrefl : ∀ {x} → x < x → ⊥
+    <-trans : ∀ {x y z} → x < y → y < z → x < z
+    <-thin : ∀ {x y} → is-prop (x < y)
+    has-is-set : is-set A
+    
+to-strict-order
+  : ∀ {o r} {A : Type o}
+  → make-strict-order r A → Strict-order o r
+to-strict-order {A = A} mk .Strict-order.Ob = A
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on._<_ = 
+  make-strict-order._<_ mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl =
+  make-strict-order.<-irrefl mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-trans =
+  make-strict-order.<-trans mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-thin =
+  make-strict-order.<-thin mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.has-is-set =
+  make-strict-order.has-is-set mk
