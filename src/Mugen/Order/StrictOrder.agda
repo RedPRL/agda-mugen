@@ -1,4 +1,5 @@
 open import Mugen.Prelude
+open import Mugen.Order.Poset
 
 module Mugen.Order.StrictOrder where
 
@@ -62,6 +63,12 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
     disjoint-⊎-is-prop (has-is-set _ _) <-thin
       (λ (p , q) → <-irrefl (≡-transl (sym p) q))
 
+  has-is-partial-order : is-partial-order _≤_
+  has-is-partial-order .is-partial-order.≤-thin = ≤-thin
+  has-is-partial-order .is-partial-order.≤-refl = ≤-refl
+  has-is-partial-order .is-partial-order.≤-trans = ≤-trans
+  has-is-partial-order .is-partial-order.≤-antisym = ≤-antisym
+
 
 instance
   is-strict-order-hlevel : ∀ {o r} {A : Type o} {_<_ : A → A → Type r} {n}
@@ -79,6 +86,10 @@ record Strict-order-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r
 
   open is-strict-order has-is-strict-order public
 
+  poset-on : Poset-on (o ⊔ r) A
+  poset-on .Poset-on._≤_ = _≤_
+  poset-on .Poset-on.has-is-poset = has-is-partial-order
+
 record Strict-order (o r : Level) : Type (lsuc (o ⊔ r)) where
   no-eta-equality
   field
@@ -86,6 +97,10 @@ record Strict-order (o r : Level) : Type (lsuc (o ⊔ r)) where
     strict-order-on : Strict-order-on r Ob
 
   open Strict-order-on strict-order-on public
+
+  poset : Poset o (o ⊔ r)
+  poset .Poset.Ob = Ob
+  poset .Poset.poset-on = poset-on
 
 instance
   Underlying-Strict-order : ∀ {o r} → Underlying (Strict-order o r)

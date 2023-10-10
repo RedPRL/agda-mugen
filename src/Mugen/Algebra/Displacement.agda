@@ -12,7 +12,7 @@ import Mugen.Data.Nat as Nat
 
 
 private variable
-  o r : Level
+  o r o' r' : Level
   A : Type o
 
 --------------------------------------------------------------------------------
@@ -175,100 +175,124 @@ module _ where
   is-displacement-subalgebra-trans f g .into = displacement-hom-∘ (g .into) (f .into)
   is-displacement-subalgebra-trans f g .is-displacement-subalgebra.inj p = f .inj (g .inj p)
 
--- --------------------------------------------------------------------------------
--- -- Some Properties of Displacement Algebras
+--------------------------------------------------------------------------------
+-- Some Properties of Displacement Algebras
 
--- module _ {o r} {A : Type o} {_<_ : A → A → Type r} {ε : A} {_⊗_ : A → A → A}
---          (A-set : is-set A)
---          (𝒟 : is-displacement-algebra _<_ ε _⊗_) where
+module _
+  {o r} (A : Strict-order o r)
+  {ε : ⌞ A ⌟} {_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟}
+  (D : is-displacement-algebra A ε _⊗_)
+  where
+  private
+    open Strict-order A using (_≤_)
+    module A = Strict-order A
+    module D = is-displacement-algebra D
 
---   private
---     module 𝒟 = is-displacement-algebra 𝒟
---     open 𝒟 using (_≤_)
+  is-right-invariant-displacement-algebra→is-ordered-monoid
+    : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z))
+    → is-ordered-monoid A.poset ε _⊗_
+  is-right-invariant-displacement-algebra→is-ordered-monoid ≤-invariantr = om where
+    om : is-ordered-monoid A.poset ε _⊗_
+    om .is-ordered-monoid.has-is-monoid = D.has-is-monoid
+    om .is-ordered-monoid.invariant w≤y x≤z =
+      A.≤-trans (≤-invariantr w≤y) (D.left-invariant-≤ x≤z)
 
---   is-right-invariant-displacement-algebra→is-ordered-monoid : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z))
---                                                             → is-ordered-monoid _≤_ ε _⊗_
---   is-right-invariant-displacement-algebra→is-ordered-monoid ≤-invariantr .is-ordered-monoid.has-monoid =
---     𝒟.has-monoid
---   is-right-invariant-displacement-algebra→is-ordered-monoid ≤-invariantr .is-ordered-monoid.has-partial-order =
---     is-strict-order→is-partial-order A-set 𝒟.has-strict-order
---   is-right-invariant-displacement-algebra→is-ordered-monoid ≤-invariantr .is-ordered-monoid.invariant w≤y x≤z =
---     𝒟.≤-trans (≤-invariantr w≤y) (𝒟.left-invariant-≤ x≤z)
+--------------------------------------------------------------------------------
+-- Augmentations of Displacement Algebras
 
---   is-displacement-algebra×is-ordered-monoid→is-right-invariant : is-ordered-monoid _≤_ ε _⊗_
---                                                                → (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z))
---   is-displacement-algebra×is-ordered-monoid→is-right-invariant ordered-monoid x≤y =
---     is-ordered-monoid.invariant ordered-monoid x≤y (inl refl)
+module _ {o r} (𝒟 : Displacement-algebra o r) where
 
--- --------------------------------------------------------------------------------
--- -- Augmentations of Displacement Algebras
+  open Displacement-algebra 𝒟
 
--- module _ {o r} (𝒟 : DisplacementAlgebra o r) where
+  -- Ordered Monoids
+  has-ordered-monoid : Type (o ⊔ r)
+  has-ordered-monoid = is-ordered-monoid poset ε _⊗_
 
---   open DisplacementAlgebra 𝒟
+  right-invariant→has-ordered-monoid : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z)) → has-ordered-monoid
+  right-invariant→has-ordered-monoid =
+    is-right-invariant-displacement-algebra→is-ordered-monoid
+      strict-order
+      has-is-displacement-algebra
 
---   -- Ordered Monoids
---   has-ordered-monoid : Type (o ⊔ r)
---   has-ordered-monoid = is-ordered-monoid _≤_ ε _⊗_
+  -- Joins
+  record has-joins : Type (o ⊔ r) where
+    field
+      join : ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟
+      joinl : ∀ {x y} → x ≤ join x y
+      joinr : ∀ {x y} → y ≤ join x y
+      universal : ∀ {x y z} → x ≤ z → y ≤ z → join x y ≤ z
 
---   right-invariant→has-ordered-monoid : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z)) → has-ordered-monoid
---   right-invariant→has-ordered-monoid =
---     is-right-invariant-displacement-algebra→is-ordered-monoid ⌞ 𝒟 ⌟-set has-displacement-algebra
+  -- Bottoms
+  record has-bottom : Type (o ⊔ r) where
+    field
+      bot : ⌞ 𝒟 ⌟
+      is-bottom : ∀ x → bot ≤ x
 
---   -- Joins
---   record has-joins : Type (o ⊔ r) where
---     field
---       join : ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟
---       joinl : ∀ {x y} → x ≤ join x y
---       joinr : ∀ {x y} → y ≤ join x y
---       universal : ∀ {x y z} → x ≤ z → y ≤ z → join x y ≤ z
+--------------------------------------------------------------------------------
+-- Subalgebras of Augmented Displacement Algebras
 
---   -- Bottoms
---   record has-bottom : Type (o ⊔ r) where
---     field
---       bot : ⌞ 𝒟 ⌟
---       is-bottom : ∀ x → bot ≤ x
+preserves-joins
+  : (X-joins : has-joins X) (Y-joins : has-joins Y)
+  → (f : Displacement-algebra-hom X Y)
+  → Type _
+preserves-joins {X = X} ⋁X ⋁Y f =
+  ∀ (x y : ⌞ X ⌟) → f # (⋁X .join x y) ≡ ⋁Y .join (f # x) (f # y)
+  where
+    open has-joins
 
--- --------------------------------------------------------------------------------
--- -- Subalgebras of Augmented Displacement Algebras
+preserves-bottom
+  : (X-bot : has-bottom X) (Y-bot : has-bottom Y)
+  → (f : Displacement-algebra-hom X Y)
+  → Type _
+preserves-bottom X⊥ Y⊥ f = f # X⊥ .bot ≡ Y⊥ .bot
+  where
+    open has-bottom
 
--- preserves-joins : {X Y : DisplacementAlgebra o r} (X-joins : has-joins X) (Y-joins : has-joins Y) → (f : DisplacementAlgebra-hom X Y) → Type o
--- preserves-joins X Y f = ∀ x y → f ⟨$⟩ X .join x y ≡ Y .join (f ⟨$⟩ x) (f ⟨$⟩ y)
---   where
---     open has-joins
+record is-displacement-subsemilattice
+  {X : Displacement-algebra o r} {Y : Displacement-algebra o' r'}
+  (X-joins : has-joins X) (Y-joins : has-joins Y)
+  : Type (o ⊔ o' ⊔ r' ⊔ r)
+  where
+  field
+    has-displacement-subalgebra : is-displacement-subalgebra X Y
 
--- preserves-bottom : {X Y : DisplacementAlgebra o r} (X-joins : has-bottom X) (Y-joins : has-bottom Y) → (f : DisplacementAlgebra-hom X Y) → Type o
--- preserves-bottom X Y f = f ⟨$⟩ X .bot ≡ Y .bot
---   where
---     open has-bottom
+  open is-displacement-subalgebra has-displacement-subalgebra public
+  field
+    pres-joins : preserves-joins X-joins Y-joins into
 
--- record is-displacement-subsemilattice {X Y : DisplacementAlgebra o r} (X-joins : has-joins X) (Y-joins : has-joins Y) : Type (o ⊔ r) where
---   field
---     has-displacement-subalgebra : is-displacement-subalgebra X Y
+record is-bounded-displacement-subalgebra
+  {X : Displacement-algebra o r} {Y : Displacement-algebra o' r'}
+  (X-bottom : has-bottom X) (Y-bottom : has-bottom Y)
+  : Type (o ⊔ o' ⊔ r ⊔ r') where
+  field
+    has-displacement-subalgebra : is-displacement-subalgebra X Y
+  open is-displacement-subalgebra has-displacement-subalgebra public
+  field
+    pres-bottom : preserves-bottom X-bottom Y-bottom into
 
---   open is-displacement-subalgebra has-displacement-subalgebra public
---   field
---     pres-joins : preserves-joins X-joins Y-joins into
+--------------------------------------------------------------------------------
+-- Displacement Actions
 
--- record is-bounded-displacement-subalgebra {X Y : DisplacementAlgebra o r} (X-bottom : has-bottom X) (Y-bottom : has-bottom Y) : Type (o ⊔ r) where
---   field
---     has-displacement-subalgebra : is-displacement-subalgebra X Y
---   open is-displacement-subalgebra has-displacement-subalgebra public
---   field
---     pres-bottom : preserves-bottom X-bottom Y-bottom into
+record is-right-displacement-action
+  {o r o′ r′}
+  (A : Strict-order o r) (B : Displacement-algebra o′ r′)
+  (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
+  : Type (o ⊔ r ⊔ o′ ⊔ r′)
+  where
+  no-eta-equality
+  private
+    module A = Strict-order A
+    module B = Displacement-algebra B
+  field
+    identity  : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
+    compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
+    invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.< y → α a x A.< α a y
 
--- --------------------------------------------------------------------------------
--- -- Displacement Actions
-
--- record is-right-displacement-action {o r o′ r′} (A : StrictOrder o r) (B : DisplacementAlgebra o′ r′) (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟) : Type (o ⊔ r ⊔ o′ ⊔ r′) where
---   open DisplacementAlgebra-on (structure B) using (ε; _⊗_)
---   field
---     identity  : ∀ (a : ⌞ A ⌟) → α a ε ≡ a
---     compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x ⊗ y)
---     invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → B [ x < y ]ᵈ → A [ α a x < α a y ]
-
--- RightDisplacementAction : ∀ {o r o′ r′} (A : StrictOrder o r) (B : DisplacementAlgebra o′ r′) → Type (o ⊔ r ⊔ o′ ⊔ r′)
--- RightDisplacementAction = RightAction is-right-displacement-action
-
--- module RightDisplacementAction {o r o′ r′} {A : StrictOrder o r} {B : DisplacementAlgebra o′ r′} (α : RightDisplacementAction A B) where
---   open is-right-displacement-action (is-action α) public
+record Right-displacement-action
+  {o r o′ r′}
+  (A : Strict-order o r) (B : Displacement-algebra o′ r′)
+  : Type (o ⊔ r ⊔ o′ ⊔ r′)
+  where
+  field
+    hom : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
+    has-is-action : is-right-displacement-action A B hom

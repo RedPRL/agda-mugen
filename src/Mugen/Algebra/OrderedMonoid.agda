@@ -68,6 +68,7 @@ record is-right-ordered-monoid-action
   (B : Ordered-monoid o′ r′) (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
   : Type (o ⊔ r ⊔ o′ ⊔ r′)
   where
+  no-eta-equality
   private
     module A = Strict-order A
     module B = Ordered-monoid B
