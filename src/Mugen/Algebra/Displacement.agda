@@ -317,8 +317,8 @@ record make-displacement-algebra
 module _ where
   open Displacement-algebra
   open Displacement-algebra-on
-  open make-displacement-algebra
   open is-displacement-algebra
+  open make-displacement-algebra
 
   to-displacement-algebra
     : ∀ {o r} {A : Strict-order o r}
@@ -332,3 +332,38 @@ module _ where
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idl = mk .idl
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idr = mk .idr
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .left-invariant = mk .left-invariant
+
+record make-displacement-subalgebra
+  {o r o' r'}
+  (X : Displacement-algebra o r)
+  (Y : Displacement-algebra o' r')
+  : Type (o ⊔ o' ⊔ r ⊔ r')
+  where
+  no-eta-equality
+  private
+    module X = Displacement-algebra X
+    module Y = Displacement-algebra Y
+  field
+    into : ⌞ X ⌟ → ⌞ Y ⌟
+    pres-ε : into X.ε ≡ Y.ε
+    pres-⊗ : ∀ x y → into (x X.⊗ y) ≡ into x Y.⊗ into y
+    strictly-mono : ∀ x y → x X.< y → into x Y.< into y
+    inj : ∀ {x y} → into x ≡ into y → x ≡ y
+
+module _ where
+  open Strictly-monotone
+  open is-displacement-algebra-hom
+  open is-displacement-subalgebra
+  open make-displacement-subalgebra
+
+  to-displacement-subalgebra
+    : ∀ {o r o' r'}
+    → {X : Displacement-algebra o r}
+    → {Y : Displacement-algebra o' r'}
+    → make-displacement-subalgebra X Y
+    → is-displacement-subalgebra X Y
+  to-displacement-subalgebra mk .into .strict-hom .hom = mk .into
+  to-displacement-subalgebra mk .into .strict-hom .strict-mono = mk .strictly-mono _ _
+  to-displacement-subalgebra mk .into .has-is-displacement-hom .pres-ε = mk .pres-ε
+  to-displacement-subalgebra mk .into .has-is-displacement-hom .pres-⊗ = mk .pres-⊗
+  to-displacement-subalgebra mk .inj = mk .inj
