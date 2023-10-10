@@ -1,7 +1,6 @@
-module Mugen.Order.StrictOrder where
-
-open import Order.Base
 open import Mugen.Prelude
+
+module Mugen.Order.StrictOrder where
 
 --------------------------------------------------------------------------------
 -- Strict Orders
@@ -15,7 +14,7 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
     <-irrefl : ∀ {x} → x < x → ⊥
     <-trans : ∀ {x y z} → x < y → y < z → x < z
     <-thin : ∀ {x y} → is-prop (x < y)
-    has-set : is-set A
+    has-is-set : is-set A
 
   <-asym : ∀ {x y} → x < y → y < x → ⊥
   <-asym x<y y<x = <-irrefl (<-trans x<y y<x)
@@ -60,7 +59,7 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
 
   ≤-thin : ∀ {x y} → is-prop (x ≤ y)
   ≤-thin =
-    disjoint-⊎-is-prop (has-set _ _) <-thin
+    disjoint-⊎-is-prop (has-is-set _ _) <-thin
       (λ (p , q) → <-irrefl (≡-transl (sym p) q))
 
 
@@ -84,9 +83,9 @@ record Strict-order (o r : Level) : Type (lsuc (o ⊔ r)) where
   no-eta-equality
   field
     Ob : Type o
-    strict-order : Strict-order-on r Ob
+    strict-order-on : Strict-order-on r Ob
 
-  open Strict-order-on strict-order public
+  open Strict-order-on strict-order-on public
 
 instance
   Underlying-Strict-order : ∀ {o r} → Underlying (Strict-order o r)
@@ -100,16 +99,16 @@ private variable
 --------------------------------------------------------------------------------
 -- Strictly Monotonic Maps
 
-module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
+module _ {o r o' r'} (X : Strict-order o r) (Y : Strict-order o' r') where
   private
     module X = Strict-order X
     module Y = Strict-order Y
 
-  strictly-monotonic : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ r') 
-  strictly-monotonic f = ∀ {x y} →  x X.< y → f x Y.< f y
+  is-strictly-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ r') 
+  is-strictly-monotone f = ∀ {x y} →  x X.< y → f x Y.< f y
 
-  strictly-monotonic-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (strictly-monotonic f)
-  strictly-monotonic-is-prop f = hlevel!
+  is-strictly-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-strictly-monotone f)
+  is-strictly-monotone-is-prop f = hlevel!
 
 record Strictly-monotone
   {o o' r r'}
@@ -122,11 +121,32 @@ record Strictly-monotone
     module Y = Strict-order Y
   field
     hom : ⌞ X ⌟ → ⌞ Y ⌟
-    strict-mono : ∀ {x y} → x X.< y → hom x Y.< hom y
+    strict-mono : is-strictly-monotone X Y hom
 
   mono : ∀ {x y} → x X.≤ y → hom x Y.≤ hom y
   mono (inl p) = inl (ap hom p)
   mono (inr p) = inr (strict-mono p)
+
+open Strictly-monotone
+
+Strictly-monotone-path
+  : ∀ {o r o' r'}
+  → {X : Strict-order o r} {Y : Strict-order o' r'}
+  → (f g : Strictly-monotone X Y)
+  → (∀ x → f .hom x ≡ g .hom x)
+  → f ≡ g
+Strictly-monotone-path f g p i .hom x = p x i
+Strictly-monotone-path {Y = Y} f g p i .strict-mono {x = x} {y = y} q =
+  is-prop→pathp (λ i → Strict-order.<-thin Y {x = p x i} {y = p y i})
+    (f .strict-mono q)
+    (g .strict-mono q) i
+
+instance
+  Funlike-strictly-monotone
+    : ∀ {o r o' r'}
+    → Funlike (Strictly-monotone {o} {r} {o'} {r'})
+  Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
+  Funlike-strictly-monotone .Funlike.ext p = Strictly-monotone-path _ _ p
 
 module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
   private
@@ -134,9 +154,21 @@ module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
     module Y = Strict-order Y
 
   instance
-    strict-order-hlevel : ∀ {n} → H-Level (Strictly-monotone X Y) (2 + n)
-    strict-order-hlevel = basic-instance 2 $
+    strict-monotone-hlevel : ∀ {n} → H-Level (Strictly-monotone X Y) (2 + n)
+    strict-monotone-hlevel = basic-instance 2 $
       Iso→is-hlevel 2 eqv $
-      Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → Y.has-set) λ f →
-      is-hlevel-suc 1 (strictly-monotonic-is-prop {X = X} {Y = Y} f)
-      where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone) 
+      Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → Y.has-is-set) λ f →
+      is-hlevel-suc 1 (is-strictly-monotone-is-prop X Y f)
+      where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone)
+
+strictly-monotone-id : Strictly-monotone X X
+strictly-monotone-id .hom x = x
+strictly-monotone-id .strict-mono p = p
+
+strictly-monotone-∘
+  : Strictly-monotone Y Z
+  → Strictly-monotone X Y
+  → Strictly-monotone X Z
+strictly-monotone-∘ f g .hom x = f # (g # x)
+strictly-monotone-∘ f g .strict-mono p =
+  f .strict-mono (g .strict-mono p)

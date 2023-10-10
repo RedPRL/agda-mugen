@@ -4,9 +4,8 @@ open import Algebra.Magma
 open import Algebra.Monoid
 open import Algebra.Semigroup
 
-open import Relation.Order
-
 open import Mugen.Prelude
+open import Mugen.Order.Poset
 open import Mugen.Order.StrictOrder
 
 import Mugen.Data.Nat as Nat
@@ -18,52 +17,71 @@ private variable
 
 --------------------------------------------------------------------------------
 -- Ordered Monoids
+-- We define these as structures on posets.
 
-record is-ordered-monoid {A : Type o} (_≤_ : A → A → Type r) (ε : A) (_⊗_ : A → A → A) : Type (o ⊔ r) where
+record is-ordered-monoid
+  {o r} (A : Poset o r)
+  (ε : ⌞ A ⌟) (_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟)
+  : Type (o ⊔ r)
+  where
+  no-eta-equality
+  open Poset A
   field
-    has-monoid         : is-monoid ε _⊗_
-    has-partial-order  : is-partial-order _≤_
-    invariant          : ∀ {w x y z} → w ≤ y → x ≤ z → (w ⊗ x) ≤ (y ⊗ z)
-
-  open is-monoid has-monoid public
-  open is-partial-order has-partial-order public
+    has-is-monoid : is-monoid ε _⊗_
+    invariant     : ∀ {w x y z} → w ≤ y → x ≤ z → (w ⊗ x) ≤ (y ⊗ z)
+    
+  open is-monoid has-is-monoid public
 
   left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
-  left-invariant y≤z = invariant reflexive y≤z
+  left-invariant y≤z = invariant ≤-refl y≤z
 
   right-invariant : ∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z)
-  right-invariant x≤y = invariant x≤y reflexive 
+  right-invariant x≤y = invariant x≤y ≤-refl 
 
-record OrderedMonoid-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+record Ordered-monoid-on {o r : Level} (A : Poset o r) : Type (o ⊔ lsuc r) where
   field
-    _≤_ : A → A → Type r
-    ε : A
-    _⊗_ : A → A → A
-    has-ordered-monoid : is-ordered-monoid _≤_ ε _⊗_
+    ε : ⌞ A ⌟
+    _⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟
+    has-ordered-monoid : is-ordered-monoid A ε _⊗_
 
   open is-ordered-monoid has-ordered-monoid public
 
-OrderedMonoid : ∀ o r → Type (lsuc o ⊔ lsuc r)
-OrderedMonoid o r = SetStructure (OrderedMonoid-on {o} r)
+record Ordered-monoid (o r : Level) : Type (lsuc (o ⊔ r)) where
+  field
+    poset : Poset o r
+    ordered-monoid : Ordered-monoid-on poset
 
-module OrderedMonoid {o r} (𝒟 : OrderedMonoid o r) where
-  open OrderedMonoid-on (structure 𝒟) public
+  open Poset poset public
+  open Ordered-monoid-on ordered-monoid hiding (has-is-set) public
 
-_[_≤_]ᵐ : (𝒟 : OrderedMonoid o r) → ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → Type r
-𝒟 [ x ≤ y ]ᵐ = OrderedMonoid._≤_ 𝒟 x y
+instance
+  Underlying-ordered-monoid : ∀ {o r} → Underlying (Ordered-monoid o r)
+  Underlying-ordered-monoid .Underlying.ℓ-underlying = _
+  Underlying.⌞ Underlying-ordered-monoid ⌟ M = ⌞ Ordered-monoid.poset M ⌟
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid Actions
 
-record is-right-ordered-monoid-action {o r o′ r′} (A : StrictOrder o r) (B : OrderedMonoid o′ r′) (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟) : Type (o ⊔ r ⊔ o′ ⊔ r′) where
-  open OrderedMonoid B
+record is-right-ordered-monoid-action
+  {o r o′ r′}
+  (A : Strict-order o r)
+  (B : Ordered-monoid o′ r′) (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
+  : Type (o ⊔ r ⊔ o′ ⊔ r′)
+  where
+  private
+    module A = Strict-order A
+    module B = Ordered-monoid B
   field
-    identity : ∀ (a : ⌞ A ⌟) → α a ε ≡ a
-    compat : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x ⊗ y)
-    invariant : ∀ (a b : ⌞ A ⌟) (x : ⌞ B ⌟) → A [ a ≤ b ] → A [ α a x ≤ α b x ]
+    identity : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
+    compat : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
+    invariant : ∀ (a b : ⌞ A ⌟) (x : ⌞ B ⌟) → a A.≤ b → α a x A.≤ α b x
 
-RightOrderedMonoidAction : ∀ {o r o′ r′} (A : StrictOrder o r) (B : OrderedMonoid o′ r′) → Type (o ⊔ r ⊔ o′ ⊔ r′) 
-RightOrderedMonoidAction = RightAction is-right-ordered-monoid-action
-
-module RightOrderedMonoidAction {o r o′ r′} {A : StrictOrder o r} {B : OrderedMonoid o′ r′} (α : RightOrderedMonoidAction A B) where
-  open is-right-ordered-monoid-action (is-action α) public
+record Right-ordered-monoid-action
+  {o o' r r'}
+  (A : Strict-order o r) (B : Ordered-monoid o' r')
+  : Type (o ⊔ o' ⊔ r ⊔ r')
+  where
+  no-eta-equality
+  field
+    hom : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
+    has-is-action : is-right-ordered-monoid-action A B hom
