@@ -48,27 +48,30 @@ open import Mugen.Data.List
 -- inductions much easier, and avoids issues of with-abstraction that
 -- views would bring.
 
-module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+module NearlyConst
+  {o r}
+  (𝒟 : Displacement-algebra o r)
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  (cmp : ∀ x y → Tri 𝒟._<_ x y) where
 
   private
-    module 𝒟 = DisplacementAlgebra 𝒟
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
     open Inf 𝒟
 
     instance
       HLevel-< : ∀ {x y} {n} → H-Level (x < y) (suc n)
-      HLevel-< = prop-instance 𝒟.<-is-prop
+      HLevel-< = prop-instance 𝒟.<-thin
 
       HLevel-≤ : ∀ {x y} {n} → H-Level (x ≤ y) (suc n)
-      HLevel-≤ = prop-instance 𝒟.≤-is-prop
+      HLevel-≤ = prop-instance 𝒟.≤-thin
 
   _≡?_ : Discrete ⌞ 𝒟 ⌟
   x ≡? y =
     tri-elim
       (λ _ → Dec (x ≡ y))
-      (λ x<y → no λ x≡y → 𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
+      (λ x<y → no λ x≡y → 𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
       yes
-      (λ y<x → no λ x≡y → 𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+      (λ y<x → no λ x≡y → 𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
       (cmp x y)
 
   --------------------------------------------------------------------------------
@@ -85,7 +88,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type
   is-compact base [] = ⊤
   is-compact base (xs #r x) =
-    case _
+    Dec-elim _
       (λ _ → ⊥)
       (λ _ → ⊤)
       (x ≡? base)
@@ -93,7 +96,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   -- Helper type for motives.
   is-compact-case : ∀ {x base : ⌞ 𝒟 ⌟} → Dec (x ≡ base) → Type
   is-compact-case p = 
-    case _
+    Dec-elim _
       (λ _ → ⊥)
       (λ _ → ⊤)
       p
@@ -139,14 +142,14 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟
   compact base [] = []
   compact base (xs #r x) =
-    case _
+    Dec-elim _
       (λ _ → compact base xs)
       (λ _ → xs #r x)
       (x ≡? base)
 
   compact-case : ∀ xs {x base} → Dec (x ≡ base) → Bwd ⌞ 𝒟 ⌟
   compact-case xs {x = x} {base = base} p =
-    case _
+    Dec-elim _
       (λ _ → compact base xs)
       (λ _ → xs #r x)
       p
@@ -194,7 +197,7 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   vanishes : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type
   vanishes b [] = ⊤
   vanishes b (x ∷ xs) =
-    case _
+    Dec-elim _
       (λ _ → vanishes b xs)
       (λ _ → ⊥)
       (x ≡? b)
@@ -270,14 +273,14 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
     -- Cannot be done using with-abstraction /or/ a helper function because the termination
     -- checker gets confused.
     -- Ouch.
-    case (λ p → compact-case ys p ≡ compact base (zs #r z) → compact-case (xs ++r ys) p ≡ compact base (xs ++r (zs #r z)))
+    Dec-elim (λ p → compact-case ys p ≡ compact base (zs #r z) → compact-case (xs ++r ys) p ≡ compact base (xs ++r (zs #r z)))
       (λ y-base! →
-        case (λ p → compact base ys ≡ compact-case zs p → compact base (xs ++r ys) ≡ compact-case (xs ++r zs) p)
+        Dec-elim (λ p → compact base ys ≡ compact-case zs p → compact base (xs ++r ys) ≡ compact-case (xs ++r zs) p)
           (λ z-base! p → compact-++r xs ys zs p)
           (λ ¬z-base p → compact-++r xs ys (zs #r z) (p ∙ sym (compact-done zs ¬z-base)) ∙ compact-done (xs ++r zs) ¬z-base)
           (z ≡? base))
       (λ ¬y-base →
-        case (λ p → ys #r y ≡ compact-case zs p → (xs ++r ys) #r y ≡ compact-case (xs ++r zs) p)
+        Dec-elim (λ p → ys #r y ≡ compact-case zs p → (xs ++r ys) #r y ≡ compact-case (xs ++r zs) p)
           (λ z-base! p → sym (compact-done ((xs ++r ys)) ¬y-base) ∙ compact-++r xs (ys #r y) zs (compact-done ys ¬y-base ∙ p))
           (λ ¬z-base p → ap (xs ++r_) p)
           (z ≡? base))
@@ -492,9 +495,9 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   SupportList-is-set : is-set SupportList
   SupportList-is-set =
-    is-hlevel≃ 2 (Iso→Equiv eqv e⁻¹) $
+    is-hlevel≃ 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 (hlevel 2) λ base →
-      Σ-is-hlevel 2 (Bwd-is-hlevel 0  ⌞ 𝒟 ⌟-set) λ xs →
+      Σ-is-hlevel 2 (Bwd-is-hlevel 0  𝒟.has-is-set) λ xs →
       is-prop→is-set (is-compact-is-prop base xs)
 
   -- Smart constructor for SupportList that compacts the list.
@@ -664,9 +667,9 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-list-base< b1 [] b2 (y ∷ ys) p b1<b2 = absurd $ ∷≠[] (sym p)
   merge-list-base< b1 (x ∷ xs) b2 [] p b1<b2 = absurd $ ∷≠[] p
   merge-list-base< b1 (x ∷ xs) b2 (y ∷ ys) p b1<b2 with cmp x y
-  ... | lt x<y = absurd $ 𝒟.irrefl (𝒟.≡-transl (sym $ ∷-head-inj p) x<y)
+  ... | lt x<y = absurd $ 𝒟.<-irrefl (𝒟.≡-transl (sym $ ∷-head-inj p) x<y)
   ... | eq _ = merge-list-base< b1 xs b2 ys (∷-tail-inj p) b1<b2
-  ... | gt y<x = lift $ 𝒟.irrefl (𝒟.≡-transl (∷-head-inj p) y<x)
+  ... | gt y<x = lift $ 𝒟.<-irrefl (𝒟.≡-transl (∷-head-inj p) y<x)
 
   merge-list≤→base≤ : ∀ b1 xs b2 ys → merge-list≤ b1 xs b2 ys → b1 ≤ b2
   merge-list≤→base≤ b1 [] b2 [] xs≤ys = xs≤ys
@@ -715,23 +718,23 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inl x≡y) pf with cmp x y
   ... | lt _ = pf
   ... | eq _ = pf
-  ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+  ... | gt y<x = lift (𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
   merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inr x<y) pf with cmp x y 
   ... | lt _ = pf
   ... | eq _ = pf
-  ... | gt y<x = lift (𝒟.asym x<y y<x)
+  ... | gt y<x = lift (𝒟.<-asym x<y y<x)
 
   merge-list<-step< : ∀ b1 xs b2 ys {x y} → x < y → merge-list≤ b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
   merge-list<-step< _ _ _ _ {x = x} {y = y} x<y pf with cmp x y 
   ... | lt _ = pf
-  ... | eq x≡y = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
-  ... | gt y<x = lift (𝒟.asym x<y y<x)
+  ... | eq x≡y = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  ... | gt y<x = lift (𝒟.<-asym x<y y<x)
 
   merge-list<-step≡ : ∀ b1 xs b2 ys {x y} → x ≡ y → merge-list< b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
   merge-list<-step≡ _ _ _ _ {x = x} {y = y} x≡y pf with cmp x y 
-  ... | lt x<y = absurd (𝒟.irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  ... | lt x<y = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
   ... | eq _ = pf
-  ... | gt y<x = lift (𝒟.irrefl (𝒟.≡-transl x≡y y<x))
+  ... | gt y<x = lift (𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
 
   --------------------------------------------------------------------------------
   -- Lemmas for ≤, <, and Compaction.
@@ -753,16 +756,16 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-list≤-++-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b (xs ++ ys) b xs
   merge-list≤-++-vanish b [] ys ys-vanish = merge-list≤-vanish b ys ys-vanish
   merge-list≤-++-vanish b (x ∷ xs) ys ys-vanish with cmp x x
-  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | lt x<x = absurd $ 𝒟.<-irrefl x<x
   ... | eq x≡x = merge-list≤-++-vanish b xs ys ys-vanish
-  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+  ... | gt x<x = absurd $ 𝒟.<-irrefl x<x
 
   merge-list≥-++-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b xs b (xs ++ ys)
   merge-list≥-++-vanish b [] ys ys-vanish = merge-list≥-vanish b ys ys-vanish
   merge-list≥-++-vanish b (x ∷ xs) ys ys-vanish with cmp x x
-  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | lt x<x = absurd $ 𝒟.<-irrefl x<x
   ... | eq x≡x = merge-list≥-++-vanish b xs ys ys-vanish
-  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+  ... | gt x<x = absurd $ 𝒟.<-irrefl x<x
 
   merge-list≤-⊗▷-vanish : ∀ b xs ys → vanishes b ys → merge-list≤ b (xs ⊗▷ ys) b (fwd xs)
   merge-list≤-⊗▷-vanish b xs ys ys-vanish =
@@ -785,14 +788,14 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
   merge-list≤-refl : ∀ b xs → merge-list≤ b xs b xs
   merge-list≤-refl b [] = inl refl
   merge-list≤-refl b (x ∷ xs) with cmp x x
-  ... | lt x<x = absurd $ 𝒟.irrefl x<x
+  ... | lt x<x = absurd $ 𝒟.<-irrefl x<x
   ... | eq x≡x = merge-list≤-refl b xs
-  ... | gt x<x = absurd $ 𝒟.irrefl x<x
+  ... | gt x<x = absurd $ 𝒟.<-irrefl x<x
 
   merge-list<-irrefl : ∀ b xs → merge-list< b xs b xs → ⊥
-  merge-list<-irrefl b [] (lift b<b) = 𝒟.irrefl b<b
+  merge-list<-irrefl b [] (lift b<b) = 𝒟.<-irrefl b<b
   merge-list<-irrefl b (x ∷ xs) xs<xs with cmp x x
-  ... | lt x<x = 𝒟.irrefl x<x
+  ... | lt x<x = 𝒟.<-irrefl x<x
   ... | eq x≡x = merge-list<-irrefl b xs xs<xs
 
   merge-list≤-trans : ∀ b1 xs b2 ys b3 zs → merge-list≤ b1 xs b2 ys → merge-list≤ b2 ys b3 zs → merge-list≤ b1 xs b3 zs
@@ -805,12 +808,12 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ... | lt b2<z = merge-list≤-step≤ b1 [] b3 zs (𝒟.≤-trans b1≤b2 (inr b2<z)) (go [] [] zs b1≤b2 ys≤zs)
       ... | eq b2≡z = merge-list≤-step≤ b1 [] b3 zs (𝒟.≤-trans b1≤b2 (inl b2≡z)) (go [] [] zs b1≤b2 ys≤zs)
       go [] (y ∷ ys) [] xs≤ys ys≤zs with cmp b1 y | cmp y b3
-      ... | lt b1<y | lt y<b3 = inr (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | lt y<b3 = inr (𝒟.<-trans b1<y y<b3)
       ... | lt b1<y | eq y≡b3 = inr (𝒟.≡-transr b1<y y≡b3)
       ... | eq b1≡y | lt y<b3 = inr (𝒟.≡-transl b1≡y y<b3)
       ... | eq b1≡y | eq y≡b3 = inl (b1≡y ∙ y≡b3)
       go [] (y ∷ ys) (z ∷ zs) xs≤ys ys≤zs with cmp b1 y | cmp y z
-      ... | lt b1<y | lt y<z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.trans b1<y y<z)) (go [] ys zs xs≤ys ys≤zs)
+      ... | lt b1<y | lt y<z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.<-trans b1<y y<z)) (go [] ys zs xs≤ys ys≤zs)
       ... | lt b1<y | eq y≡z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.≡-transr b1<y y≡z)) (go [] ys zs xs≤ys ys≤zs)
       ... | eq b1≡y | lt y<z = merge-list≤-step≤ b1 [] b3 zs (inr (𝒟.≡-transl b1≡y y<z)) (go [] ys zs xs≤ys ys≤zs)
       ... | eq b1≡y | eq y≡z = merge-list≤-step≤ b1 [] b3 zs (inl (b1≡y ∙ y≡z)) (go [] ys zs xs≤ys ys≤zs)
@@ -818,17 +821,17 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ... | lt x<b2 = merge-list≤-step≤ b1 xs b3 [] (𝒟.≤-trans (inr x<b2) b2≤b3) (go xs [] [] xs≤ys b2≤b3)
       ... | eq x≡b2 = merge-list≤-step≤ b1 xs b3 [] (𝒟.≤-trans (inl x≡b2) b2≤b3) (go xs [] [] xs≤ys b2≤b3)
       go (x ∷ xs) [] (z ∷ zs) xs≤ys ys≤zs with cmp x b2 | cmp b2 z
-      ... | lt x<b2 | lt b2<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.trans x<b2 b2<z)) (go xs [] zs xs≤ys ys≤zs)
+      ... | lt x<b2 | lt b2<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.<-trans x<b2 b2<z)) (go xs [] zs xs≤ys ys≤zs)
       ... | lt x<b2 | eq b2≡z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transr x<b2 b2≡z)) (go xs [] zs xs≤ys ys≤zs)
       ... | eq x≡b2 | lt b2<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transl x≡b2 b2<z)) (go xs [] zs xs≤ys ys≤zs)
       ... | eq x≡b2 | eq b2≡z = merge-list≤-step≤ b1 xs b3 zs (inl (x≡b2 ∙ b2≡z)) (go xs [] zs xs≤ys ys≤zs)
       go (x ∷ xs) (y ∷ ys) [] xs≤ys ys≤zs with cmp x y | cmp y b3
-      ... | lt x<y | lt y<b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.trans x<y y<b3)) (go xs ys [] xs≤ys ys≤zs)
+      ... | lt x<y | lt y<b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.<-trans x<y y<b3)) (go xs ys [] xs≤ys ys≤zs)
       ... | lt x<y | eq y≡b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.≡-transr x<y y≡b3)) (go xs ys [] xs≤ys ys≤zs)
       ... | eq x≡y | lt y<b3 = merge-list≤-step≤ b1 xs b3 [] (inr (𝒟.≡-transl x≡y y<b3)) (go xs ys [] xs≤ys ys≤zs)
       ... | eq x≡y | eq y≡b3 = merge-list≤-step≤ b1 xs b3 [] (inl (x≡y ∙ y≡b3)) (go xs ys [] xs≤ys ys≤zs)
       go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys≤zs with cmp x y | cmp y z
-      ... | lt x<y | lt y<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.trans x<y y<z)) (go xs ys zs xs≤ys ys≤zs)
+      ... | lt x<y | lt y<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.<-trans x<y y<z)) (go xs ys zs xs≤ys ys≤zs)
       ... | lt x<y | eq y≡z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transr x<y y≡z)) (go xs ys zs xs≤ys ys≤zs)
       ... | eq x≡y | lt y<z = merge-list≤-step≤ b1 xs b3 zs (inr (𝒟.≡-transl x≡y y<z)) (go xs ys zs xs≤ys ys≤zs)
       ... | eq x≡y | eq y≡z = merge-list≤-step≤ b1 xs b3 zs (inl (x≡y ∙ y≡z)) (go xs ys zs xs≤ys ys≤zs)
@@ -841,35 +844,35 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
       go : ∀ xs ys zs → merge-list< b1 xs b2 ys → merge-list< b2 ys b3 zs → merge-list< b1 xs b3 zs
       go [] [] [] (lift b1<b2) (lift b2<b3) =
-        lift (𝒟.trans b1<b2 b2<b3)
+        lift (𝒟.<-trans b1<b2 b2<b3)
       go [] [] (z ∷ zs) (lift b1<b2) ys<zs with cmp b2 z
-      ... | lt b2<z = merge-list<-step< b1 [] b3 zs (𝒟.trans b1<b2 b2<z) (go≤ [] [] zs (inr b1<b2) ys<zs)
+      ... | lt b2<z = merge-list<-step< b1 [] b3 zs (𝒟.<-trans b1<b2 b2<z) (go≤ [] [] zs (inr b1<b2) ys<zs)
       ... | eq b2≡z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transr b1<b2 b2≡z) (go≤ [] [] zs (inr b1<b2) (weaken-< b2 [] b3 zs ys<zs))
       go [] (y ∷ ys) [] xs<ys ys<zs with cmp b1 y | cmp y b3
-      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | lt y<b3 = lift (𝒟.<-trans b1<y y<b3)
       ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
       ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
       ... | eq b1≡y | eq y≡b3 = merge-list<-trans b1 [] b2 ys b3 [] xs<ys ys<zs
       go [] (y ∷ ys) (z ∷ zs) xs<ys ys<zs with cmp b1 y | cmp y z
-      ... | lt b1<y | lt y<z = merge-list<-step< b1 [] b3 zs (𝒟.trans b1<y y<z) (go≤ [] ys zs xs<ys ys<zs)
+      ... | lt b1<y | lt y<z = merge-list<-step< b1 [] b3 zs (𝒟.<-trans b1<y y<z) (go≤ [] ys zs xs<ys ys<zs)
       ... | lt b1<y | eq y≡z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transr b1<y y≡z) (go≤ [] ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs))
       ... | eq b1≡y | lt y<z = merge-list<-step< b1 [] b3 zs (𝒟.≡-transl b1≡y y<z) (go≤ [] ys zs (weaken-< b1 [] b2 ys xs<ys) ys<zs)
       ... | eq b1≡y | eq y≡z = merge-list<-step≡ b1 [] b3 zs (b1≡y ∙ y≡z) (go [] ys zs xs<ys ys<zs)
       go (x ∷ xs) [] [] xs<ys (lift b2<b3) with cmp x b2
-      ... | lt x<b2 = merge-list<-step< b1 xs b3 [] (𝒟.trans x<b2 b2<b3) (go≤ xs [] [] xs<ys (inr b2<b3))
+      ... | lt x<b2 = merge-list<-step< b1 xs b3 [] (𝒟.<-trans x<b2 b2<b3) (go≤ xs [] [] xs<ys (inr b2<b3))
       ... | eq x≡b2 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡b2 b2<b3) (go≤ xs [] [] (weaken-< b1 xs b2 [] xs<ys) (inr b2<b3))
       go (x ∷ xs) [] (z ∷ zs) xs<ys ys<zs with cmp x b2 | cmp b2 z
-      ... | lt x<b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.trans x<b2 b2<z) (go≤ xs [] zs xs<ys ys<zs) 
+      ... | lt x<b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<b2 b2<z) (go≤ xs [] zs xs<ys ys<zs) 
       ... | lt x<b2 | eq b2≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<b2 b2≡z) (go≤ xs [] zs xs<ys (weaken-< b2 [] b3 zs ys<zs))  
       ... | eq x≡b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡b2 b2<z) (go≤ xs [] zs (weaken-< b1 xs b2 [] xs<ys) ys<zs)  
       ... | eq x≡b2 | eq b2≡z = merge-list<-step≡ b1 xs b3 zs (x≡b2 ∙ b2≡z) (go xs [] zs xs<ys ys<zs)  
       go (x ∷ xs) (y ∷ ys) [] xs<ys ys<zs with cmp x y | cmp y b3
-      ... | lt x<y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.trans x<y y<b3) (go≤ xs ys [] xs<ys ys<zs) 
+      ... | lt x<y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.<-trans x<y y<b3) (go≤ xs ys [] xs<ys ys<zs) 
       ... | lt x<y | eq y≡b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transr x<y y≡b3) (go≤ xs ys [] xs<ys (weaken-< b2 ys b3 [] ys<zs)) 
       ... | eq x≡y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡y y<b3) (go≤ xs ys [] (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
       ... | eq x≡y | eq y≡b3 = merge-list<-step≡ b1 xs b3 [] (x≡y ∙ y≡b3) (go xs ys [] xs<ys ys<zs) 
       go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs<ys ys<zs with cmp x y | cmp y z
-      ... | lt x<y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.trans x<y y<z) (go≤ xs ys zs xs<ys ys<zs) 
+      ... | lt x<y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<y y<z) (go≤ xs ys zs xs<ys ys<zs) 
       ... | lt x<y | eq y≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<y y≡z) (go≤ xs ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs)) 
       ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
       ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs) 
@@ -917,30 +920,30 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ... | lt b2<z = step< [] [] zs (𝒟.≤-transl b1≤b2 b2<z) b1≤b2 ys<zs
       ... | eq b2≡z = step≤ [] [] zs (𝒟.≤-trans b1≤b2 (inl b2≡z)) b1≤b2 ys<zs
       go [] (y ∷ ys) [] xs≤ys ys<zs with cmp b1 y | cmp y b3
-      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | lt y<b3 = lift (𝒟.<-trans b1<y y<b3)
       ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
       ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
       ... | eq b1≡y | eq y≡b3 = go [] ys [] xs≤ys ys<zs
       go [] (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp b1 y | cmp y z
-      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.trans b1<y y<z) xs≤ys ys<zs
+      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.<-trans b1<y y<z) xs≤ys ys<zs
       ... | lt b1<y | eq y≡z = step< [] ys zs (𝒟.≡-transr b1<y y≡z) xs≤ys (weaken-< b2 ys b3 zs ys<zs)
       ... | eq b1≡y | lt y<z = step< [] ys zs (𝒟.≡-transl b1≡y y<z) xs≤ys ys<zs
       ... | eq b1≡y | eq y≡z = step≤ [] ys zs (inl (b1≡y ∙ y≡z)) xs≤ys ys<zs
       go (x ∷ xs) [] [] xs≤ys (lift b2<b3) with cmp x b2
-      ... | lt x<b2 = step< xs [] [] (𝒟.trans x<b2 b2<b3) xs≤ys (inr b2<b3)
+      ... | lt x<b2 = step< xs [] [] (𝒟.<-trans x<b2 b2<b3) xs≤ys (inr b2<b3)
       ... | eq x≡b2 = step< xs [] [] (𝒟.≡-transl x≡b2 b2<b3) xs≤ys (inr b2<b3)
       go (x ∷ xs) [] (z ∷ zs) xs≤ys ys<zs with cmp x b2 | cmp b2 z
-      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.trans x<b2 b2<z) xs≤ys ys<zs
+      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.<-trans x<b2 b2<z) xs≤ys ys<zs
       ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys (weaken-< b2 [] b3 zs ys<zs) 
       ... | eq x≡b2 | lt b2<z = step< xs [] zs (𝒟.≡-transl x≡b2 b2<z) xs≤ys ys<zs
       ... | eq x≡b2 | eq b2≡z = step≤ xs [] zs (inl (x≡b2 ∙ b2≡z)) xs≤ys ys<zs
       go (x ∷ xs) (y ∷ ys) [] xs≤ys ys<zs with cmp x y | cmp y b3
-      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.trans x<y y<b3) xs≤ys ys<zs
+      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.<-trans x<y y<b3) xs≤ys ys<zs
       ... | lt x<y | eq y≡b3 = step< xs ys [] (𝒟.≡-transr x<y y≡b3) xs≤ys (weaken-< b2 ys b3 [] ys<zs)
       ... | eq x≡y | lt y<b3 = step< xs ys [] (𝒟.≡-transl x≡y y<b3) xs≤ys ys<zs
       ... | eq x≡y | eq y≡b3 = step≤ xs ys [] (inl (x≡y ∙ y≡b3)) xs≤ys ys<zs
       go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp x y | cmp y z
-      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.trans x<y y<z) xs≤ys ys<zs
+      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.<-trans x<y y<z) xs≤ys ys<zs
       ... | lt x<y | eq y≡z = step< xs ys zs (𝒟.≡-transr x<y y≡z) xs≤ys (weaken-< b2 ys b3 zs ys<zs)
       ... | eq x≡y | lt y<z = step< xs ys zs (𝒟.≡-transl x≡y y<z) xs≤ys ys<zs
       ... | eq x≡y | eq y≡z = step≤ xs ys zs (inl (x≡y ∙ y≡z)) xs≤ys ys<zs
@@ -978,15 +981,15 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       go [] [] [] (lift b1<b2) b2≤b3 =
         lift (𝒟.≤-transr b1<b2 b2≤b3)
       go [] [] (z ∷ zs) (lift b1<b2) ys<zs with cmp b2 z
-      ... | lt b2<z = step< [] [] zs (𝒟.trans b1<b2 b2<z) (inr b1<b2) ys<zs
+      ... | lt b2<z = step< [] [] zs (𝒟.<-trans b1<b2 b2<z) (inr b1<b2) ys<zs
       ... | eq b2≡z = step≤ [] [] zs (inr (𝒟.≡-transr b1<b2 b2≡z)) (lift b1<b2) ys<zs
       go [] (y ∷ ys) [] xs≤ys ys<zs with cmp b1 y | cmp y b3
-      ... | lt b1<y | lt y<b3 = lift (𝒟.trans b1<y y<b3)
+      ... | lt b1<y | lt y<b3 = lift (𝒟.<-trans b1<y y<b3)
       ... | lt b1<y | eq y≡b3 = lift (𝒟.≡-transr b1<y y≡b3)
       ... | eq b1≡y | lt y<b3 = lift (𝒟.≡-transl b1≡y y<b3)
       ... | eq b1≡y | eq y≡b3 = go [] ys [] xs≤ys ys<zs
       go [] (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp b1 y | cmp y z
-      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.trans b1<y y<z) xs≤ys ys<zs
+      ... | lt b1<y | lt y<z = step< [] ys zs (𝒟.<-trans b1<y y<z) xs≤ys ys<zs
       ... | lt b1<y | eq y≡z = step< [] ys zs (𝒟.≡-transr b1<y y≡z) xs≤ys ys<zs
       ... | eq b1≡y | lt y<z = step< [] ys zs (𝒟.≡-transl b1≡y y<z) (weaken-< b1 [] b2 ys xs≤ys) ys<zs
       ... | eq b1≡y | eq y≡z = step≤ [] ys zs (inl (b1≡y ∙ y≡z)) xs≤ys ys<zs
@@ -994,17 +997,17 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       ... | lt x<b2 = step< xs [] [] (𝒟.≤-transr x<b2 b2≤b3) xs<ys b2≤b3
       ... | eq x≡b2 = step≤ xs [] [] (𝒟.≤-trans (inl x≡b2) b2≤b3) xs<ys b2≤b3
       go (x ∷ xs) [] (z ∷ zs) xs≤ys ys<zs with cmp x b2 | cmp b2 z
-      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.trans x<b2 b2<z) xs≤ys ys<zs
+      ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.<-trans x<b2 b2<z) xs≤ys ys<zs
       ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys ys<zs
       ... | eq x≡b2 | lt b2<z = step< xs [] zs (𝒟.≡-transl x≡b2 b2<z) (weaken-< b1 xs b2 [] xs≤ys) ys<zs
       ... | eq x≡b2 | eq b2≡z = step≤ xs [] zs (inl (x≡b2 ∙ b2≡z)) xs≤ys ys<zs
       go (x ∷ xs) (y ∷ ys) [] xs≤ys ys<zs with cmp x y | cmp y b3
-      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.trans x<y y<b3) xs≤ys ys<zs
+      ... | lt x<y | lt y<b3 = step< xs ys [] (𝒟.<-trans x<y y<b3) xs≤ys ys<zs
       ... | lt x<y | eq y≡b3 = step< xs ys [] (𝒟.≡-transr x<y y≡b3) xs≤ys ys<zs
       ... | eq x≡y | lt y<b3 = step< xs ys [] (𝒟.≡-transl x≡y y<b3) (weaken-< b1 xs b2 ys xs≤ys) ys<zs
       ... | eq x≡y | eq y≡b3 = step≤ xs ys [] (inl (x≡y ∙ y≡b3)) xs≤ys ys<zs
       go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs≤ys ys<zs with cmp x y | cmp y z
-      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.trans x<y y<z) xs≤ys ys<zs
+      ... | lt x<y | lt y<z = step< xs ys zs (𝒟.<-trans x<y y<z) xs≤ys ys<zs
       ... | lt x<y | eq y≡z = step< xs ys zs (𝒟.≡-transr x<y y≡z) xs≤ys ys<zs
       ... | eq x≡y | lt y<z = step< xs ys zs (𝒟.≡-transl x≡y y<z) (weaken-< b1 xs b2 ys xs≤ys) ys<zs
       ... | eq x≡y | eq y≡z = step≤ xs ys zs (inl (x≡y ∙ y≡z)) xs≤ys ys<zs
@@ -1014,14 +1017,6 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 
   _merge≤_ : SupportList → SupportList → Type (o ⊔ r)
   xs merge≤ ys = merge-list≤ (xs .base) (list xs) (ys .base) (list ys)
-
-  merge-is-strict-order : is-strict-order _merge<_
-  merge-is-strict-order .is-strict-order.irrefl {xs} =
-    merge-list<-irrefl (xs .base) (list xs)
-  merge-is-strict-order .is-strict-order.trans {xs} {ys} {zs} =
-    merge-list<-trans (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
-  merge-is-strict-order .is-strict-order.has-prop {xs} {ys} =
-    merge-list<-is-prop (xs .base) (list xs) (ys .base) (list ys)
 
   --------------------------------------------------------------------------------
   -- Converting between non-strict and the nice ≤
@@ -1265,11 +1260,6 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
       (xs .base ⊗ zs .base) (merge-list (xs .base) (list xs) (zs .base) (list zs))
       (merge-list<-left-invariant (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs) ys<zs)
 
-  merge-is-displacement-algebra : is-displacement-algebra _merge<_ empty merge
-  merge-is-displacement-algebra .is-displacement-algebra.has-monoid = merge-is-monoid
-  merge-is-displacement-algebra .is-displacement-algebra.has-strict-order = merge-is-strict-order
-  merge-is-displacement-algebra .is-displacement-algebra.left-invariant {xs} {ys} {zs} = merge-left-invariant xs ys zs
-
   --------------------------------------------------------------------------------
   -- Indexing
   --
@@ -1455,24 +1445,38 @@ module NearlyConst {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri
 --------------------------------------------------------------------------------
 -- Bundled Instances
 
-module _ {o r} (𝒟 : DisplacementAlgebra o r) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
   open NearlyConst 𝒟 cmp
+  open SupportList
 
-  NearlyConstant : DisplacementAlgebra o (o ⊔ r)
-  ⌞ NearlyConstant ⌟ = SupportList
-  NearlyConstant .structure .DisplacementAlgebra-on._<_ = _merge<_
-  NearlyConstant .structure .DisplacementAlgebra-on.ε = empty
-  NearlyConstant .structure .DisplacementAlgebra-on._⊗_ = merge
-  NearlyConstant .structure .DisplacementAlgebra-on.has-displacement-algebra = merge-is-displacement-algebra
-  ⌞ NearlyConstant ⌟-set = SupportList-is-set
+  NearlyConstant : Displacement-algebra o (o ⊔ r)
+  NearlyConstant = to-displacement-algebra mk where
+    mk-strict : make-strict-order (o ⊔ r) SupportList
+    mk-strict .make-strict-order._<_ = _merge<_
+    mk-strict .make-strict-order.<-irrefl {xs} =
+      merge-list<-irrefl (xs .base) (list xs)
+    mk-strict .make-strict-order.<-trans {xs} {ys} {zs} =
+      merge-list<-trans (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs)
+    mk-strict .make-strict-order.<-thin {xs} {ys} =
+      merge-list<-is-prop (xs .base) (list xs) (ys .base) (list ys)
+    mk-strict .make-strict-order.has-is-set = SupportList-is-set
+
+    mk : make-displacement-algebra (to-strict-order mk-strict)
+    mk .make-displacement-algebra.ε = empty
+    mk .make-displacement-algebra._⊗_ = merge
+    mk .make-displacement-algebra.idl = merge-idl _
+    mk .make-displacement-algebra.idr = merge-idr _
+    mk .make-displacement-algebra.associative = merge-assoc _ _ _
+    mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} =
+      merge-left-invariant xs ys zs
 
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
 
-module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
+module _ {o r} {𝒟 : Displacement-algebra o r} (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
   private
-    module 𝒟 = DisplacementAlgebra 𝒟
+    module 𝒟 = Displacement-algebra 𝒟
     open 𝒟 using (ε; _⊗_; _<_; _≤_)
     open NearlyConst 𝒟 cmp
     open Inf 𝒟
@@ -1480,29 +1484,31 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (cmp : ∀ x y → Tri (Displace
 
 
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
-  NearlyConstant⊆InfProd = subalgebra
-    where
-
-
-      subalgebra : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
-      subalgebra .is-displacement-subalgebra.into ._⟨$⟩_ = into
-      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
-      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ xs ys = funext (into-preserves-⊗ xs ys)
-      subalgebra .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {xs} {ys} = index-strictly-mono (xs .base) (list xs) (ys .base) (list ys)
-      subalgebra .is-displacement-subalgebra.inj {xs} {ys} p = into-inj xs ys (happly p)
+  NearlyConstant⊆InfProd = to-displacement-subalgebra mk where
+    mk : make-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
+    mk .make-displacement-subalgebra.into = into
+    mk .make-displacement-subalgebra.pres-ε = refl
+    mk .make-displacement-subalgebra.pres-⊗ xs ys =
+      funext (into-preserves-⊗ xs ys)
+    mk .make-displacement-subalgebra.strictly-mono xs ys =
+      index-strictly-mono (xs .base) (list xs) (ys .base) (list ys)
+    mk .make-displacement-subalgebra.inj {xs} {ys} p = into-inj xs ys (happly p)
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
 
-module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-ordered-monoid : has-ordered-monoid 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
-
-  private
-    module 𝒟 = DisplacementAlgebra 𝒟
-    open 𝒟 using (ε; _⊗_; _<_; _≤_)
-    open NearlyConst 𝒟 cmp
-    open Inf 𝒟
-    open is-ordered-monoid 𝒟-ordered-monoid
-    open SupportList
+module _
+  {o r}
+  {𝒟 : Displacement-algebra o r}
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  (𝒟-ordered-monoid : has-ordered-monoid 𝒟)
+  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  where
+  open 𝒟 using (ε; _⊗_; _<_; _≤_)
+  open NearlyConst 𝒟 cmp
+  open Inf 𝒟
+  open is-ordered-monoid 𝒟-ordered-monoid
+  open SupportList
 
   merge-list≤-right-invariant : ∀ b1 xs b2 ys b3 zs
                                 → merge-list≤ b1 xs b2 ys
@@ -1574,14 +1580,17 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-ordered-monoid : has-order
 --------------------------------------------------------------------------------
 -- Joins
 
-module NearlyConstJoins {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) where
-  private
-    module 𝒟 = DisplacementAlgebra 𝒟
-    open 𝒟 using (ε; _⊗_; _<_; _≤_)
-    open NearlyConst 𝒟 cmp
-    open Inf 𝒟
-    open has-joins 𝒟-joins
-    open SupportList
+module NearlyConstJoins
+  {o r}
+  {𝒟 : Displacement-algebra o r}
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  where
+  open 𝒟 using (ε; _⊗_; _<_; _≤_)
+  open NearlyConst 𝒟 cmp
+  open Inf 𝒟
+  open has-joins 𝒟-joins
+  open SupportList
 
   join-list : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
   join-list = merge-with join
@@ -1716,7 +1725,7 @@ module NearlyConstJoins {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has
       go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
       go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
 
-  module _ (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
+  module _ (𝒟-lpo : LPO 𝒟.strict-order _≡?_) where
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-lpo
 
     nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟-joins)
@@ -1726,14 +1735,18 @@ module NearlyConstJoins {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-joins : has
 --------------------------------------------------------------------------------
 -- Bottoms
 
-module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-bottom : has-bottom 𝒟) (cmp : ∀ x y → Tri (DisplacementAlgebra._<_ 𝒟) x y) (b : ⌞ 𝒟 ⌟) where
-  private
-    module 𝒟 = DisplacementAlgebra 𝒟
-    open 𝒟 using (ε; _⊗_; _<_; _≤_)
-    open NearlyConst 𝒟 cmp
-    open Inf 𝒟
-    open SupportList
-    open has-bottom 𝒟-bottom
+module _
+  {o r}
+  {𝒟 : Displacement-algebra o r}
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  (𝒟-bottom : has-bottom 𝒟)
+  (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) (b : ⌞ 𝒟 ⌟)
+  where
+  open 𝒟 using (ε; _⊗_; _<_; _≤_)
+  open NearlyConst 𝒟 cmp
+  open Inf 𝒟
+  open SupportList
+  open has-bottom 𝒟-bottom
 
   bot-list : SupportList
   bot-list = support-list bot [] tt
@@ -1747,7 +1760,7 @@ module _ {o r} {𝒟 : DisplacementAlgebra o r} (𝒟-bottom : has-bottom 𝒟) 
   nearly-constant-has-bottom .has-bottom.is-bottom xs =
     merge≤→non-strict bot-list xs $ bot-list-is-bottom (xs .base) (list xs)
 
-  module _ (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
+  module _ (𝒟-lpo : LPO 𝒟.strict-order _≡?_) where
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-lpo
 
     nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟-bottom)
