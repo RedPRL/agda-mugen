@@ -5,6 +5,7 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
+open import Mugen.Algebra.Displacement
 open import Mugen.Order.StrictOrder
 open import Mugen.Data.Nat
 
@@ -151,33 +152,32 @@ diff-sucr (suc x) (suc y) = diff-sucr x y
 
 infixr 5 _+ℤ_
 
-+ℤ-associative : ∀ x y z → (x +ℤ y) +ℤ z ≡ x +ℤ (y +ℤ z)
++ℤ-associative : ∀ x y z → x +ℤ (y +ℤ z) ≡ (x +ℤ y) +ℤ z
 +ℤ-associative (pos x) (pos y) (pos z) =
   ap pos (+-associative x y z)
 +ℤ-associative (pos x) (pos y) (negsuc z) =
-  sym (+ℤ-diff-posl x y (suc z))
+  +ℤ-diff-posl x y (suc z)
 +ℤ-associative (pos x) (negsuc y) (pos z) =
-  diff x (suc y) +ℤ pos z ≡⟨ +ℤ-diff-posr x (suc y) z ⟩
-  diff (x + z) (suc y)    ≡˘⟨ +ℤ-diff-posl x z (suc y) ⟩
-  pos x +ℤ diff z (suc y) ∎
+  pos x +ℤ diff z (suc y) ≡⟨ +ℤ-diff-posl x z (suc y) ⟩
+  diff (x + z) (suc y)    ≡˘⟨ +ℤ-diff-posr x (suc y) z ⟩
+  diff x (suc y) +ℤ pos z ∎
 +ℤ-associative (pos x) (negsuc y) (negsuc z) =
-  +ℤ-diff-negr x (suc y) z
+  sym (+ℤ-diff-negr x (suc y) z)
 +ℤ-associative (negsuc x) (pos y) (pos z) =
-  +ℤ-diff-posr y (suc x) z
+  sym (+ℤ-diff-posr y (suc x) z)
 +ℤ-associative (negsuc x) (pos y) (negsuc z) =
-  diff y (suc x) +ℤ negsuc z ≡⟨ +ℤ-diff-negr y (suc x) z ⟩
-  diff y (suc (suc x + z)) ≡˘⟨ ap (diff y) (+-sucr (suc x) z) ⟩
-  diff y (suc x + suc z) ≡˘⟨ +ℤ-diff-negl x y (suc z) ⟩
-  negsuc x +ℤ diff y (suc z) ∎
+  negsuc x +ℤ diff y (suc z) ≡⟨ +ℤ-diff-negl x y (suc z) ⟩
+  diff y (suc x + suc z)     ≡⟨ ap (diff y) (+-sucr (suc x) z) ⟩
+  diff y (suc (suc x) + z)   ≡˘⟨ +ℤ-diff-negr y (suc x) z ⟩
+  diff y (suc x) +ℤ negsuc z ∎
 +ℤ-associative (negsuc x) (negsuc y) (pos z) =
-  diff z (suc (suc x) + y)   ≡˘⟨ ap (diff z) (+-sucr (suc x) y) ⟩
-  diff z (suc x + suc y)     ≡⟨ sym (+ℤ-diff-negl x z (suc y)) ⟩
-  negsuc x +ℤ diff z (suc y) ∎
+  negsuc x +ℤ diff z (suc y) ≡⟨ +ℤ-diff-negl x z (suc y) ⟩
+  diff z (suc x + suc y)     ≡⟨ ap (diff z) (+-sucr (suc x) y) ⟩
+  diff z (suc (suc x) + y)   ∎
 +ℤ-associative (negsuc x) (negsuc y) (negsuc z) =
-  negsuc (suc (suc x) + y + z) ≡⟨ ap negsuc (+-associative (suc (suc x)) y z) ⟩
-  negsuc (suc (suc x) + (y + z)) ≡˘⟨ ap negsuc (+-sucr (suc x) (y + z)) ⟩
-  negsuc (suc x + suc (y + z)) ∎
-
+  negsuc (suc (x + suc (y + z)))   ≡⟨ ap negsuc (+-sucr (suc x) (y + z)) ⟩
+  negsuc (suc (suc (x + (y + z)))) ≡⟨ ap negsuc (+-associative (suc (suc x)) y z) ⟩
+  negsuc (suc (suc (x + y + z)))   ∎
 
 +ℤ-negate : ∀ x y → - (x + y) ≡ (- x) +ℤ (- y)
 +ℤ-negate zero zero = refl
@@ -190,19 +190,6 @@ negate-inj zero zero p = refl
 negate-inj zero (suc y) p = absurd (pos≠negsuc p)
 negate-inj (suc x) zero p = absurd (pos≠negsuc (sym p))
 negate-inj (suc x) (suc y) p = ap suc (negsuc-inj p)
-
-+ℤ-is-magma : is-magma _+ℤ_
-+ℤ-is-magma .has-is-set = hlevel 2
-
-+ℤ-is-semigroup : is-semigroup _+ℤ_
-+ℤ-is-semigroup .has-is-magma = +ℤ-is-magma
-+ℤ-is-semigroup .associative {x} {y} {z} = sym $ +ℤ-associative x y z
-
-+ℤ-0ℤ-is-monoid : is-monoid 0ℤ _+ℤ_
-+ℤ-0ℤ-is-monoid .has-is-semigroup = +ℤ-is-semigroup
-+ℤ-0ℤ-is-monoid .idl {x} = +ℤ-idl x
-+ℤ-0ℤ-is-monoid .idr {y} =  +ℤ-idr y
-
 
 --------------------------------------------------------------------------------
 -- Order
@@ -221,8 +208,8 @@ negsuc x ≤ℤ negsuc y = y ≤ x
 
 
 <ℤ-irrefl : ∀ x → x <ℤ x → ⊥
-<ℤ-irrefl (pos x) = <-irrefl x
-<ℤ-irrefl (negsuc x) = <-irrefl x
+<ℤ-irrefl (pos x) = <-irrefl refl
+<ℤ-irrefl (negsuc x) = <-irrefl refl
 
 <ℤ-trans : ∀ x y z → x <ℤ y → y <ℤ z → x <ℤ z
 <ℤ-trans (pos x) (pos y) (pos z) x<y y<z = <-trans x y z x<y y<z
@@ -231,14 +218,14 @@ negsuc x ≤ℤ negsuc y = y ≤ x
 <ℤ-trans (negsuc x) (negsuc y) (negsuc z) x<y y<z = <-trans z y x y<z x<y
 
 ≤ℤ-refl : ∀ x → x ≤ℤ x
-≤ℤ-refl (pos x) = ≤-refl x
-≤ℤ-refl (negsuc x) = ≤-refl x
+≤ℤ-refl (pos x) = ≤-refl
+≤ℤ-refl (negsuc x) = ≤-refl
 
 ≤ℤ-trans : ∀ x y z → x ≤ℤ y → y ≤ℤ z → x ≤ℤ z
-≤ℤ-trans (pos x) (pos y) (pos z) x≤y y≤z = ≤-trans x y z x≤y y≤z
+≤ℤ-trans (pos x) (pos y) (pos z) x≤y y≤z = ≤-trans x≤y y≤z
 ≤ℤ-trans (negsuc x) (pos y) (pos z) x≤y y≤z = tt
 ≤ℤ-trans (negsuc x) (negsuc y) (pos z) x≤y y≤z = tt
-≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y≤z = ≤-trans z y x y≤z x≤y
+≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y≤z = ≤-trans y≤z x≤y
 
 <ℤ-weaken : ∀ x y → x <ℤ y → x ≤ℤ y
 <ℤ-weaken (pos x) (pos y) x<y = <-weaken x y x<y
@@ -258,27 +245,22 @@ to-≤ℤ x y (inl x≡y) = subst (x ≤ℤ_) x≡y (≤ℤ-refl x)
 to-≤ℤ x y (inr x<y) = <ℤ-weaken x y x<y
 
 <ℤ-≤ℤ-trans : ∀ x y z → x <ℤ y → y ≤ℤ z → x <ℤ z
-<ℤ-≤ℤ-trans (pos x) (pos y) (pos z) x<y y≤z = <-≤-trans x y z x<y y≤z
+<ℤ-≤ℤ-trans (pos x) (pos y) (pos z) x<y y≤z = ≤-trans x<y y≤z
 <ℤ-≤ℤ-trans (negsuc x) (pos y) (pos z) x<y y≤z = tt
 <ℤ-≤ℤ-trans (negsuc x) (negsuc y) (pos z) x<y y≤z = tt
-<ℤ-≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x<y y≤z = ≤-<-trans z y x y≤z x<y
+<ℤ-≤ℤ-trans (negsuc x) (negsuc y) (negsuc z) x<y y≤z = ≤-trans (s≤s y≤z) x<y
 
 ≤ℤ-<ℤ-trans : ∀ x y z → x ≤ℤ y → y <ℤ z → x <ℤ z
-≤ℤ-<ℤ-trans (pos x) (pos y) (pos z) x≤y y<z = ≤-<-trans x y z x≤y y<z
+≤ℤ-<ℤ-trans (pos x) (pos y) (pos z) x≤y y<z = ≤-trans (s≤s x≤y) y<z
 ≤ℤ-<ℤ-trans (negsuc x) (pos y) (pos z) x≤y y<z = tt
 ≤ℤ-<ℤ-trans (negsuc x) (negsuc y) (pos z) x≤y y<z = tt
-≤ℤ-<ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y<z = <-≤-trans z y x y<z x≤y
+≤ℤ-<ℤ-trans (negsuc x) (negsuc y) (negsuc z) x≤y y<z = ≤-trans y<z x≤y
 
 <ℤ-is-prop : ∀ x y → is-prop (x <ℤ y)
-<ℤ-is-prop (pos x) (pos y) = <-prop x y
+<ℤ-is-prop (pos x) (pos y) = ≤-is-prop
 <ℤ-is-prop (pos x) (negsuc y) = hlevel 1
 <ℤ-is-prop (negsuc x) (pos y) = hlevel 1
-<ℤ-is-prop (negsuc x) (negsuc y) = <-prop y x
-
-<ℤ-is-strict-order : is-strict-order _<ℤ_
-<ℤ-is-strict-order .is-strict-order.irrefl {x} = <ℤ-irrefl x
-<ℤ-is-strict-order .is-strict-order.trans {x} {y} {z} = <ℤ-trans x y z
-<ℤ-is-strict-order .is-strict-order.has-prop {x} {y} = <ℤ-is-prop x y
+<ℤ-is-prop (negsuc x) (negsuc y) = ≤-is-prop
 
 module Int-<Reasoning where
   infix  1 begin-<_
@@ -360,15 +342,15 @@ diff-negsuc-< (suc x) (suc y) = begin-<
 
 diff-left-invariant : ∀ x y z → z < y → diff x y <ℤ diff x z
 diff-left-invariant zero (suc y) zero z<y = tt
-diff-left-invariant zero (suc y) (suc z) z<y = z<y
+diff-left-invariant zero (suc y) (suc z) (s≤s z<y) = z<y
 diff-left-invariant (suc x) (suc y) zero z<y = diff-suc-< (suc x) y
-diff-left-invariant (suc x) (suc y) (suc z) z<y = diff-left-invariant x y z z<y
+diff-left-invariant (suc x) (suc y) (suc z) (s≤s z<y) = diff-left-invariant x y z z<y
 
 diff-right-invariant : ∀ x y z → x < y → diff x z <ℤ diff y z
-diff-right-invariant zero (suc y) zero x<y = 0≤x y
+diff-right-invariant zero (suc y) zero x<y = x<y
 diff-right-invariant zero (suc y) (suc z) x<y = diff-negsuc-< y z
 diff-right-invariant (suc x) (suc y) zero x<y = x<y
-diff-right-invariant (suc x) (suc y) (suc z) x<y = diff-right-invariant x y z x<y
+diff-right-invariant (suc x) (suc y) (suc z) (s≤s x<y) = diff-right-invariant x y z x<y
 
 diff-weak-left-invariant : ∀ x y z → z ≤ y → diff x y ≤ℤ diff x z
 diff-weak-left-invariant x y z z≤y with ≤-strengthen z y z≤y
@@ -379,18 +361,18 @@ diff-weak-left-invariant x y z z≤y with ≤-strengthen z y z≤y
 +ℤ-left-invariant (pos x) (pos y) (pos z) y<z = +-<-left-invariant x y z y<z
 +ℤ-left-invariant (pos x) (negsuc y) (pos z) y<z = begin-<
   diff x (suc y) <⟨ diff-suc-< x y ⟩
-  pos x          ≤⟨ ≤-plusr x z ⟩
+  pos x          ≤⟨ +-≤l x z ⟩
   pos (x + z)    <∎
 +ℤ-left-invariant (pos x) (negsuc y) (negsuc z) y<z =
-  diff-left-invariant x (suc y) (suc z) y<z
+  diff-left-invariant x (suc y) (suc z) (s≤s y<z)
 +ℤ-left-invariant (negsuc x) (pos y) (pos z) y<z =
   diff-right-invariant y z (suc x) y<z
 +ℤ-left-invariant (negsuc x) (negsuc y) (pos z) y<z = begin-<
   negsuc (suc (x + y)) <⟨ diff-negsuc-< z (suc (x + y))  ⟩
-  diff z (suc (x + y)) ≤⟨ diff-weak-left-invariant z (suc (x + y)) (suc x) (≤-plusr x y) ⟩
+  diff z (suc (x + y)) ≤⟨ diff-weak-left-invariant z (suc (x + y)) (suc x) (+-≤l (suc x) y) ⟩
   diff z (suc x) <∎
 +ℤ-left-invariant (negsuc x) (negsuc y) (negsuc z) y<z =
-  +-<-left-invariant x z y y<z
+  s≤s (+-<-left-invariant x z y y<z)
 
 +ℤ-right-invariant : ∀ x y z → x <ℤ y → (x +ℤ z) <ℤ (y +ℤ z)
 +ℤ-right-invariant (pos x) (pos y) (pos z) x<y =
@@ -399,17 +381,17 @@ diff-weak-left-invariant x y z z≤y with ≤-strengthen z y z≤y
   diff-right-invariant x y (suc z) x<y
 +ℤ-right-invariant (negsuc x) (pos y) (pos z) x<y = begin-<
   diff z (suc x) <⟨ diff-suc-< z x ⟩
-  pos z          ≤⟨ ≤-plusl z y ⟩
+  pos z          ≤⟨ +-≤r y z ⟩
   pos (y + z)    <∎
 +ℤ-right-invariant (negsuc x) (pos y) (negsuc z) x<y = begin-<
   negsuc (suc (x + z)) ≡̇⟨ ap negsuc (sym (+-sucr x z)) ⟩
-  negsuc (x + suc z)   ≤⟨ ≤-plusl (suc z) x ⟩
+  negsuc (x + suc z)   ≤⟨ +-≤r x (suc z) ⟩
   negsuc (suc z)       <⟨ diff-negsuc-< y (suc z) ⟩
   diff y (suc z)       <∎
 +ℤ-right-invariant (negsuc x) (negsuc y) (pos z) x<y =
-  diff-left-invariant z (suc x) (suc y) x<y
+  diff-left-invariant z (suc x) (suc y) (s≤s x<y)
 +ℤ-right-invariant (negsuc x) (negsuc y) (negsuc z) x<y =
-  +-<-right-invariant y x z x<y
+  s≤s (+-<-right-invariant y x z x<y)
 
 +ℤ-weak-right-invariant : ∀ x y z → non-strict _<ℤ_ x y → non-strict _<ℤ_ (x +ℤ z) (y +ℤ z)
 +ℤ-weak-right-invariant x y z (inl x≡y) = inl (ap (_+ℤ z) x≡y)
@@ -417,14 +399,14 @@ diff-weak-left-invariant x y z z≤y with ≤-strengthen z y z≤y
 
 maxℤ-≤l : ∀ x y → x ≤ℤ maxℤ x y
 maxℤ-≤l (pos x) (pos y) = max-≤l x y
-maxℤ-≤l (pos x) (negsuc y) = ≤-refl x
+maxℤ-≤l (pos x) (negsuc y) = ≤-refl
 maxℤ-≤l (negsuc x) (pos y) = tt
 maxℤ-≤l (negsuc x) (negsuc y) = min-≤l x y
 
 maxℤ-≤r : ∀ x y → y ≤ℤ maxℤ x y
 maxℤ-≤r (pos x) (pos y) = max-≤r x y
 maxℤ-≤r (pos x) (negsuc y) = tt
-maxℤ-≤r (negsuc x) (pos y) = ≤-refl y
+maxℤ-≤r (negsuc x) (pos y) = ≤-refl
 maxℤ-≤r (negsuc x) (negsuc y) = min-≤r x y
 
 maxℤ-is-lub : ∀ x y z → x ≤ℤ z → y ≤ℤ z → maxℤ x y ≤ℤ z
@@ -436,4 +418,31 @@ maxℤ-is-lub (negsuc x) (negsuc y) (negsuc z) x≤z y≤z = min-is-glb x y z x�
 
 negate-anti-mono : ∀ x y → x < y → (- y) <ℤ (- x)
 negate-anti-mono zero (suc y) x<y = tt
-negate-anti-mono (suc x) (suc y) x<y = x<y
+negate-anti-mono (suc x) (suc y) (s≤s x<y) = x<y
+
+--------------------------------------------------------------------------------
+-- Bundles
+
+ℤ-Strict-order : Strict-order lzero lzero
+ℤ-Strict-order = to-strict-order mk where
+  mk : make-strict-order _ _ 
+  mk .make-strict-order._<_ = _<ℤ_
+  mk .make-strict-order.<-irrefl = <ℤ-irrefl _
+  mk .make-strict-order.<-trans = <ℤ-trans _ _ _
+  mk .make-strict-order.<-thin = <ℤ-is-prop _ _
+  mk .make-strict-order.has-is-set = hlevel 2
+
+ℤ-Displacement : Displacement-algebra lzero lzero
+ℤ-Displacement = to-displacement-algebra mk where
+  mk : make-displacement-algebra ℤ-Strict-order
+  mk .make-displacement-algebra.ε = pos 0
+  mk .make-displacement-algebra._⊗_ = _+ℤ_
+  mk .make-displacement-algebra.idl = +ℤ-idl _
+  mk .make-displacement-algebra.idr = +ℤ-idr _
+  mk .make-displacement-algebra.associative {x} {y} {z} = +ℤ-associative x y z
+  mk .make-displacement-algebra.left-invariant {x} {y} {z} = +ℤ-left-invariant x y z
+
+ℤ-has-ordered-monoid : has-ordered-monoid ℤ-Displacement
+ℤ-has-ordered-monoid =
+  right-invariant→has-ordered-monoid ℤ-Displacement
+    (+ℤ-weak-right-invariant _ _ _)

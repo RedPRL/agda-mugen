@@ -39,6 +39,12 @@ open import Data.Nat public
 <-weaken : ∀ x y → x < y → x ≤ y
 <-weaken x (suc y) (s≤s p) = ≤-sucr p
 
+<-suc : ∀ x → x < suc x
+<-suc _ = ≤-refl
+
+<-trans : ∀ x y z → x < y → y < z → x < z
+<-trans _ _ _ p q = ≤-trans (≤-sucr p) q
+
 ≡→≤ : ∀ {x y} → x ≡ y → x ≤ y
 ≡→≤ {x = zero} {y = y} p = 0≤x
 ≡→≤ {x = suc x} {y = zero} p = absurd (zero≠suc (sym p))
@@ -54,7 +60,7 @@ open import Data.Nat public
 
 <-is-strict-order : is-strict-order _<_
 <-is-strict-order .is-strict-order.<-irrefl {x} = <-irrefl refl
-<-is-strict-order .is-strict-order.<-trans {x} {y} {z} p q = ≤-trans (≤-sucr p) q
+<-is-strict-order .is-strict-order.<-trans {x} {y} {z} p q = <-trans x y z p q
 <-is-strict-order .is-strict-order.<-thin {x} {y} = ≤-is-prop
 <-is-strict-order .is-strict-order.has-is-set = Nat-is-set
 
