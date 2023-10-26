@@ -22,15 +22,26 @@ open import Mugen.Order.Poset
 -- Given a Monad 'H' on the category of strict orders, we can construct a displacement
 -- algebra whose carrier set is the set of endomorphisms 'Free H Δ → Free H Δ' between
 -- free H-algebras in the Eilenberg-Moore category.
+open Algebra-hom
+
+instance
+  Funlike-algebra-hom
+    : ∀ {o ℓ} {C : Precategory o ℓ}
+    → {M : Monad C}
+    → (let module C = Precategory C)
+    → ⦃ ul : Underlying C.Ob ⦄
+    → ⦃ fl : Funlike C.Hom ⦄
+    → Funlike (Algebra-hom C M)
+  Funlike-algebra-hom .Funlike._#_ f x = f .morphism # x
+  Funlike-algebra-hom .Funlike.ext p = Algebra-hom-path _ (ext p)
 
 module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
 
   open Monad H renaming (M₀ to H₀; M₁ to H₁)
   open Cat (Eilenberg-Moore (Strict-orders o r) H)
-  module H⟨Δ⟩ = Strict-order (H₀ Δ)
-  open Algebra-hom
 
   private
+    module H⟨Δ⟩ = Strict-order (H₀ Δ)
     Fᴴ⟨Δ⟩ : Algebra (Strict-orders o r) H
     Fᴴ⟨Δ⟩ = Functor.F₀ (Free (Strict-orders o r) H) Δ
     {-# INLINE Fᴴ⟨Δ⟩ #-}
@@ -39,11 +50,6 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
     Endomorphism = Hom Fᴴ⟨Δ⟩ Fᴴ⟨Δ⟩
     {-# INLINE Endomorphism #-}
 
-  instance
-    Funlike-algebra-hom
-      : Funlike Hom
-    Funlike-algebra-hom .Funlike._#_ f x = f .morphism # x
-    Funlike-algebra-hom .Funlike.ext p = Algebra-hom-path (Strict-orders o r) (ext p)
 
   --------------------------------------------------------------------------------
   -- Algebra
@@ -112,22 +118,23 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
 
   --------------------------------------------------------------------------------
   -- Bundles
+  --
+  -- We do this with copatterns for performance reasons.
 
-  Endos : Strict-order (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
-  Endos = to-strict-order mk where
-    mk : make-strict-order (lsuc o ⊔ lsuc r) Endomorphism
-    mk .make-strict-order._<_ = endo[_<_]
-    mk .make-strict-order.<-irrefl = endo-<-irrefl
-    mk .make-strict-order.<-trans = endo-<-trans
-    mk .make-strict-order.<-thin = hlevel 1
-    mk .make-strict-order.has-is-set = Hom-set _ _
+  Endo< : Strict-order (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
+  Endo< .Strict-order.Ob = Endomorphism
+  Endo< .Strict-order.strict-order-on .Strict-order-on._<_ = endo[_<_]
+  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl = endo-<-irrefl
+  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-trans = endo-<-trans
+  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-thin = hlevel!
+  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.has-is-set = Hom-set _ _
 
-  Endos-displacement : Displacement-algebra (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
-  Endos-displacement = to-displacement-algebra mk where
-    mk : make-displacement-algebra Endos
-    mk .make-displacement-algebra.ε = id
-    mk .make-displacement-algebra._⊗_ = _∘_
-    mk .make-displacement-algebra.idl = idl _
-    mk .make-displacement-algebra.idr = idr _
-    mk .make-displacement-algebra.associative = assoc _ _ _
-    mk .make-displacement-algebra.left-invariant = ∘-left-invariant _ _ _
+  Endo∘ : Displacement-algebra (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
+  Endo∘ .Displacement-algebra.strict-order = Endo<
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.ε = id
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on._⊗_ = _∘_
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .has-is-semigroup .has-is-magma .has-is-set = hlevel!
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .has-is-semigroup .associative = assoc _ _ _
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idl = idl _
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idr = idr _
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.left-invariant = ∘-left-invariant _ _ _

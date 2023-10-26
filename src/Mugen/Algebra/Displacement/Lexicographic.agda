@@ -22,22 +22,22 @@ open import Mugen.Order.StrictOrder
 -- As noted earlier, algebraic structure is given by the product of monoids, so we don't need
 -- to prove that here.
 
-module Lex {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
+module Lex {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
   private
-    module 𝒟₁ = DisplacementAlgebra-on (structure 𝒟₁)
-    module 𝒟₂ = DisplacementAlgebra-on (structure 𝒟₂)
+    module 𝒟₁ = Displacement-algebra 𝒟₁
+    module 𝒟₂ = Displacement-algebra 𝒟₂
     open Product 𝒟₁ 𝒟₂
 
   --------------------------------------------------------------------------------
   -- Ordering
 
   data lex< (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) : Type (o ⊔ r) where
-    fst< : 𝒟₁ [ fst x < fst y ]ᵈ → lex< x y
-    fst≡ : fst x ≡ fst y → 𝒟₂ [ snd x < snd y ]ᵈ → lex< x y
+    fst< : fst x 𝒟₁.< fst y → lex< x y
+    fst≡ : fst x ≡ fst y → snd x 𝒟₂.< snd y → lex< x y
 
   data lex≤ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) : Type (o ⊔ r) where
-    fst< : 𝒟₁ [ fst x < fst y ]ᵈ → lex≤ x y
-    fst≡ : fst x ≡ fst y → 𝒟₂ [ snd x ≤ snd y ]ᵈ → lex≤ x y
+    fst< : fst x 𝒟₁.< fst y → lex≤ x y
+    fst≡ : fst x ≡ fst y → snd x 𝒟₂.≤ snd y → lex≤ x y
 
   from-lex≤ : ∀ {x y} → lex≤ x y → non-strict lex< x y
   from-lex≤ (fst< x1<y1) = inr (fst< x1<y1)
@@ -49,34 +49,29 @@ module Lex {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   to-lex≤ (inr (fst< x1<y1)) = fst< x1<y1
   to-lex≤ (inr (fst≡ x1≡y1 x2<y2)) = fst≡ x1≡y1 (inr x2<y2)
 
-  lex≤-fst : ∀ {x y} → lex≤ x y → 𝒟₁ [ fst x ≤ fst y ]ᵈ
+  lex≤-fst : ∀ {x y} → lex≤ x y → fst x 𝒟₁.≤ fst y
   lex≤-fst (fst< x1<y1)   = inr x1<y1
   lex≤-fst (fst≡ x1≡y1 _) = inl x1≡y1
 
-  lex≤-both : ∀ {x1 x2 y1 y2} → 𝒟₁ [ x1 ≤ y1 ]ᵈ → 𝒟₂ [ x2 ≤ y2 ]ᵈ → lex≤ (x1 , x2) (y1 , y2)
+  lex≤-both : ∀ {x1 x2 y1 y2} → x1 𝒟₁.≤ y1 → x2 𝒟₂.≤ y2 → lex≤ (x1 , x2) (y1 , y2)
   lex≤-both (inl x1≡y1) x2≤y2 = fst≡ x1≡y1 x2≤y2
   lex≤-both (inr x1<y1) x2≤y2 = fst< x1<y1
 
   lex<-irrefl : ∀ x → lex< x x → ⊥
-  lex<-irrefl x (fst< x1<x1) = 𝒟₁.irrefl x1<x1
-  lex<-irrefl x (fst≡ x₁ x2<x2) = 𝒟₂.irrefl x2<x2
+  lex<-irrefl x (fst< x1<x1) = 𝒟₁.<-irrefl x1<x1
+  lex<-irrefl x (fst≡ x₁ x2<x2) = 𝒟₂.<-irrefl x2<x2
 
   lex<-trans : ∀ x y z → lex< x y → lex< y z → lex< x z
-  lex<-trans x y z (fst< x1<y1) (fst< y1<z1) = fst< (𝒟₁.trans x1<y1 y1<z1)
+  lex<-trans x y z (fst< x1<y1) (fst< y1<z1) = fst< (𝒟₁.<-trans x1<y1 y1<z1)
   lex<-trans x y z (fst< x1<y1) (fst≡ y1≡z1 _) = fst< (𝒟₁.≡-transr x1<y1 y1≡z1)
   lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst< y1<z1) = fst< (𝒟₁.≡-transl x1≡y1 y1<z1)
-  lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst≡ y1≡z1 y2<z2) = fst≡ (x1≡y1 ∙ y1≡z1) (𝒟₂.trans x2<y2 y2<z2)
+  lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst≡ y1≡z1 y2<z2) = fst≡ (x1≡y1 ∙ y1≡z1) (𝒟₂.<-trans x2<y2 y2<z2)
 
   lex<-is-prop : ∀ x y → is-prop (lex< x y)
-  lex<-is-prop x y (fst< x1<y1)       (fst< x1<y1′)        = ap lex<.fst< (𝒟₁.<-is-prop x1<y1 x1<y1′)
-  lex<-is-prop x y (fst< x1<y1)       (fst≡ x1≡y1 _)       = absurd (𝒟₁.irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
-  lex<-is-prop x y (fst≡ x1≡y1 _)     (fst< x1<y1)         = absurd (𝒟₁.irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
-  lex<-is-prop x y (fst≡ x1≡y1 x2<y2) (fst≡ x1≡y1′ x2<y2′) = ap₂ lex<.fst≡ (⌞ 𝒟₁ ⌟-set _ _ x1≡y1 x1≡y1′) (𝒟₂.<-is-prop x2<y2 x2<y2′)
-
-  lex-is-strict-order : is-strict-order lex<
-  lex-is-strict-order .is-strict-order.irrefl {x} = lex<-irrefl x
-  lex-is-strict-order .is-strict-order.trans {x} {y} {z} = lex<-trans x y z
-  lex-is-strict-order .is-strict-order.has-prop {x} {y} = lex<-is-prop x y
+  lex<-is-prop x y (fst< x1<y1)       (fst< x1<y1′)        = ap lex<.fst< (𝒟₁.<-thin x1<y1 x1<y1′)
+  lex<-is-prop x y (fst< x1<y1)       (fst≡ x1≡y1 _)       = absurd (𝒟₁.<-irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
+  lex<-is-prop x y (fst≡ x1≡y1 _)     (fst< x1<y1)         = absurd (𝒟₁.<-irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
+  lex<-is-prop x y (fst≡ x1≡y1 x2<y2) (fst≡ x1≡y1′ x2<y2′) = ap₂ lex<.fst≡ (𝒟₁.has-is-set _ _ x1≡y1 x1≡y1′) (𝒟₂.<-thin x2<y2 x2<y2′)
 
   --------------------------------------------------------------------------------
   -- Left Invariance
@@ -85,38 +80,45 @@ module Lex {o r} (𝒟₁ 𝒟₂ : DisplacementAlgebra o r) where
   lex-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst< y1<z1) = fst< (𝒟₁.left-invariant y1<z1)
   lex-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst≡ y1≡z1 y2<z2) = fst≡ (ap (x1 𝒟₁.⊗_) y1≡z1) (𝒟₂.left-invariant y2<z2)
 
-  lex-is-displacement-algebra : is-displacement-algebra lex< ε× _⊗×_
-  lex-is-displacement-algebra .is-displacement-algebra.has-monoid = ⊗×-is-monoid
-  lex-is-displacement-algebra .is-displacement-algebra.has-strict-order = lex-is-strict-order
-  lex-is-displacement-algebra .is-displacement-algebra.left-invariant {x} {y} {z} = lex-left-invariant x y z
-
-Lex : ∀ {o r} → DisplacementAlgebra o r → DisplacementAlgebra o r → DisplacementAlgebra o (o ⊔ r)
-Lex {o = o} {r = r} 𝒟₁ 𝒟₂ = displacement
+Lex
+  : ∀ {o r}
+  → Displacement-algebra o r → Displacement-algebra o r
+  → Displacement-algebra o (o ⊔ r)
+Lex {o = o} {r = r} 𝒟₁ 𝒟₂ = to-displacement-algebra displacement
   where
     open Product 𝒟₁ 𝒟₂
     open Lex 𝒟₁ 𝒟₂
+    module 𝒟₁ = Displacement-algebra 𝒟₁
+    module 𝒟₂ = Displacement-algebra 𝒟₂
 
-    displacement : DisplacementAlgebra o (o ⊔ r)
-    ⌞ displacement ⌟ =  ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟
-    displacement .structure .DisplacementAlgebra-on._<_ = lex<
-    displacement .structure .DisplacementAlgebra-on.ε = ε×
-    displacement .structure .DisplacementAlgebra-on._⊗_ = _⊗×_
-    displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = lex-is-displacement-algebra
-    ⌞ displacement ⌟-set = ×-is-hlevel 2 ⌞ 𝒟₁ ⌟-set ⌞ 𝒟₂ ⌟-set
+    order : make-strict-order (o ⊔ r) (⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟)
+    order .make-strict-order._<_ = lex<
+    order .make-strict-order.<-irrefl = lex<-irrefl _
+    order .make-strict-order.<-trans = lex<-trans _ _ _
+    order .make-strict-order.<-thin = lex<-is-prop _ _
+    order .make-strict-order.has-is-set = ×-is-hlevel 2 𝒟₁.has-is-set 𝒟₂.has-is-set
 
-module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
+    displacement : make-displacement-algebra (to-strict-order order)
+    displacement .make-displacement-algebra.ε = ε×
+    displacement .make-displacement-algebra._⊗_ = _⊗×_
+    displacement .make-displacement-algebra.idl = ⊗×-idl _
+    displacement .make-displacement-algebra.idr = ⊗×-idr _
+    displacement .make-displacement-algebra.associative = ⊗×-associative _ _ _
+    displacement .make-displacement-algebra.left-invariant = lex-left-invariant _ _ _
+
+module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
   private
-    module 𝒟₁ = DisplacementAlgebra-on (structure 𝒟₁)
-    module 𝒟₂ = DisplacementAlgebra-on (structure 𝒟₂)
+    module 𝒟₁ = Displacement-algebra 𝒟₁
+    module 𝒟₂ = Displacement-algebra 𝒟₂
     open Product 𝒟₁ 𝒟₂
     open Lex 𝒟₁ 𝒟₂
 
-  lex≤? : (∀ x1 y1 → Dec (𝒟₁ [ x1 ≤ y1 ]ᵈ)) → (∀ x2 y2 → Dec (𝒟₂ [ x2 ≤ y2 ]ᵈ)) → ∀ x y → Dec (lex≤ x y)
+  lex≤? : (∀ x1 y1 → Dec (x1 𝒟₁.≤ y1)) → (∀ x2 y2 → Dec (x2 𝒟₂.≤ y2)) → ∀ x y → Dec (lex≤ x y)
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) with ≤₁? x1 x2
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) with ≤₂? y1 y2
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | yes y1≤y2 = yes (fst≡ x1≡x2 y1≤y2)
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | no ¬y1≤y2 = no λ where
-    (fst< x1<x2) → absurd (𝒟₁.irrefl (𝒟₁.≡-transl (sym x1≡x2) x1<x2))
+    (fst< x1<x2) → absurd (𝒟₁.<-irrefl (𝒟₁.≡-transl (sym x1≡x2) x1<x2))
     (fst≡ x1≡x2 y1≤y2) → ¬y1≤y2 y1≤y2
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inr x1<x2) = yes (fst< x1<x2)
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | no ¬x1≤x2 = no λ where
@@ -127,7 +129,7 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
   -- Ordered Monoids
 
   -- When 𝒟₁ is /strictly/ right invariant and 𝒟₂ is an ordered monoid, then 'Lex 𝒟₁ 𝒟₂' is also an ordered monoid.
-  lex-has-ordered-monoid : (∀ {x y z} → 𝒟₁ [ x < y ]ᵈ → 𝒟₁ [ (x 𝒟₁.⊗ z) < (y 𝒟₁.⊗ z) ]ᵈ) → has-ordered-monoid 𝒟₂ → has-ordered-monoid (Lex 𝒟₁ 𝒟₂)
+  lex-has-ordered-monoid : (∀ {x y z} → x 𝒟₁.< y → (x 𝒟₁.⊗ z) 𝒟₁.< (y 𝒟₁.⊗ z)) → has-ordered-monoid 𝒟₂ → has-ordered-monoid (Lex 𝒟₁ 𝒟₂)
   lex-has-ordered-monoid 𝒟₁-strictly-right-invariant 𝒟₂-ordered-monoid =
     right-invariant→has-ordered-monoid (Lex 𝒟₁ 𝒟₂) λ x≤y → from-lex≤ (lex-right-invariant _ _ _ (to-lex≤ x≤y))
     where
@@ -140,7 +142,7 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : DisplacementAlgebra o r} where
   --------------------------------------------------------------------------------
   -- Joins
 
-  lex-has-joins : (∀ x1 y1 → Dec (𝒟₁ [ x1 ≤ y1 ]ᵈ)) → (∀ x2 y2 → Dec (𝒟₂ [ x2 ≤ y2 ]ᵈ))
+  lex-has-joins : (∀ x1 y1 → Dec (x1 𝒟₁.≤ y1)) → (∀ x2 y2 → Dec (x2 𝒟₂.≤ y2))
                 → has-joins 𝒟₁ → has-joins 𝒟₂ → has-bottom 𝒟₂ → has-joins (Lex 𝒟₁ 𝒟₂)
   lex-has-joins _≤₁?_ _≤₂?_ 𝒟₁-joins 𝒟₂-joins 𝒟₂-bottom = joins
     where

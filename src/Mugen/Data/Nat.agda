@@ -95,3 +95,11 @@ max-is-lub (suc x) (suc y) (suc z) (s≤s p) (s≤s q) = s≤s (max-is-lub x y z
 min-is-glb : ∀ x y z → z ≤ x → z ≤ y → z ≤ min x y
 min-is-glb x y zero 0≤x 0≤x = 0≤x
 min-is-glb (suc x) (suc y) (suc z) (s≤s p) (s≤s q) = s≤s (min-is-glb x y z p q)
+
+--------------------------------------------------------------------------------
+-- Bundles
+
+Nat< : Strict-order lzero lzero
+Nat< .Strict-order.Ob = Nat
+Nat< .Strict-order.strict-order-on .Strict-order-on._<_ = _<_
+Nat< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order = <-is-strict-order

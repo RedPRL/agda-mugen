@@ -27,7 +27,11 @@ prefix-is-prop {xs = []} {ys = y ∷ ys} aset phead phead = refl
 prefix-is-prop {xs = x ∷ xs} {ys = y ∷ ys} aset (ptail x≡y xs<ys) (ptail x≡y′ xs<ys′) =
   ap₂ ptail (aset x y x≡y x≡y′) (prefix-is-prop aset xs<ys xs<ys′)
 
-prefix-is-strict-order : is-set A → is-strict-order (Prefix A)
-prefix-is-strict-order aset .is-strict-order.irrefl {x} = prefix-irrefl x
-prefix-is-strict-order aset .is-strict-order.trans {x} {y} {z} = prefix-trans x y z
-prefix-is-strict-order aset .is-strict-order.has-prop = prefix-is-prop aset
+Prefix< : Set ℓ → Strict-order _ _
+Prefix< A = to-strict-order order where
+  order : make-strict-order _ (List ⌞ A ⌟)
+  order .make-strict-order._<_ = Prefix ⌞ A ⌟
+  order .make-strict-order.<-irrefl = prefix-irrefl _
+  order .make-strict-order.<-trans = prefix-trans _ _ _
+  order .make-strict-order.<-thin = prefix-is-prop (A .is-tr)
+  order .make-strict-order.has-is-set = hlevel!

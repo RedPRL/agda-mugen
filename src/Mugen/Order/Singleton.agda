@@ -4,10 +4,11 @@ open import Mugen.Prelude
 
 open import Mugen.Order.StrictOrder
 
-◆ : ∀ {o r} → StrictOrder o r
-⌞ ◆ ⌟ = Lift _ ⊤
-◆ .structure .StrictOrder-on._<_ _ _ = Lift _ ⊥
-◆ .structure .StrictOrder-on.has-is-strict-order .is-strict-order.irrefl (lift bot) = bot
-◆ .structure .StrictOrder-on.has-is-strict-order .is-strict-order.trans (lift bot) _ = lift bot
-◆ .structure .StrictOrder-on.has-is-strict-order .is-strict-order.has-prop = hlevel 1
-⌞ ◆ ⌟-set = hlevel 2
+-- We do this entirely with copatterns for performance reasons.
+◆ : ∀ {o r} → Strict-order o r
+◆ .Strict-order.Ob = Lift _ ⊤
+◆ .Strict-order.strict-order-on .Strict-order-on._<_ _ _ = Lift _ ⊥
+◆ .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl = Lift.lower
+◆ .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-trans p q = p
+◆ .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-thin = hlevel!
+◆ .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.has-is-set = hlevel!

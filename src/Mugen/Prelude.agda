@@ -41,6 +41,15 @@ record
 
 open Funlike ⦃...⦄ public
 
+_#ₚ_
+  : ∀ {ℓ ℓ' ℓ''}
+  → {A : Type ℓ} {B : Type ℓ'} {F : A → B → Type ℓ''}
+  → ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄
+  → ⦃ fl : Funlike F ⦄
+  → {X : A} {Y : B} {f g : F X Y}
+  → f ≡ g → (x : ⌞ X ⌟) → f # x ≡ g # x
+_#ₚ_ p x i = p i # x
+
 record
   Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'} 
     ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄ 

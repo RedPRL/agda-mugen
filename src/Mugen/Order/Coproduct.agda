@@ -56,15 +56,19 @@ module Strict-order-coproduct
   ⊕<-thin (inr x) (inl _) = hlevel 1
   ⊕<-thin (inr x) (inr _) = B.<-thin
 
-_⊕_ : ∀ {o r} → Strict-order o r → Strict-order o r → Strict-order o r
-A ⊕ B = to-strict-order mk where
-  open Strict-order
-  open Strict-order-coproduct A B
-  open make-strict-order
+  ⊕<-is-strict-order : is-strict-order _⊕<_
+  ⊕<-is-strict-order .is-strict-order.<-irrefl {x} = ⊕<-irrefl x
+  ⊕<-is-strict-order .is-strict-order.<-trans {x} {y} {z} = ⊕<-trans x y z
+  ⊕<-is-strict-order .is-strict-order.<-thin {x} {y} = ⊕<-thin x y
+  ⊕<-is-strict-order .is-strict-order.has-is-set = ⊎-is-hlevel 0 A.has-is-set B.has-is-set
 
-  mk : make-strict-order _ (⌞ A ⌟ ⊎ ⌞ B ⌟)
-  mk ._<_ = _⊕<_
-  mk .<-irrefl {x} = ⊕<-irrefl x
-  mk .<-trans {x} {y} {z} = ⊕<-trans x y z
-  mk .<-thin {x} {y} = ⊕<-thin x y
-  mk .has-is-set = ⊎-is-hlevel 0 (A .has-is-set) (B .has-is-set)
+module _ {o r} (A B : Strict-order o r) where
+  private
+    module A = Strict-order A
+    module B = Strict-order B
+  open Strict-order-coproduct A B
+
+  _⊕_ : Strict-order o r
+  _⊕_ .Strict-order.Ob =  ⌞ A ⌟ ⊎ ⌞ B ⌟
+  .Strict-order.strict-order-on ⊕ .Strict-order-on._<_ = _⊕<_
+  .Strict-order.strict-order-on ⊕ .Strict-order-on.has-is-strict-order = ⊕<-is-strict-order
