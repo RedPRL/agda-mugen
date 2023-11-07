@@ -148,20 +148,13 @@ Strictly-monotone-path
   : ∀ {o r o' r'}
   → {X : Strict-order o r} {Y : Strict-order o' r'}
   → (f g : Strictly-monotone X Y)
-  → (∀ x → f .hom x ≡ g .hom x)
+  → f .hom ≡ g .hom
   → f ≡ g
-Strictly-monotone-path f g p i .hom x = p x i
+Strictly-monotone-path f g p i .hom = p i
 Strictly-monotone-path {Y = Y} f g p i .strict-mono {x = x} {y = y} q =
-  is-prop→pathp (λ i → Strict-order.<-thin Y {x = p x i} {y = p y i})
+  is-prop→pathp (λ i → Strict-order.<-thin Y {x = p i x} {y = p i y})
     (f .strict-mono q)
     (g .strict-mono q) i
-
-instance
-  Funlike-strictly-monotone
-    : ∀ {o r o' r'}
-    → Funlike (Strictly-monotone {o} {r} {o'} {r'})
-  Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
-  Funlike-strictly-monotone .Funlike.ext p = Strictly-monotone-path _ _ p
 
 module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
   private
@@ -175,6 +168,30 @@ module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
       Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → Y.has-is-set) λ f →
       is-hlevel-suc 1 (is-strictly-monotone-is-prop X Y f)
       where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone)
+
+Extensional-Strictly-monotone
+  : ∀ {o r o' r' ℓ} {X : Strict-order o r} {Y : Strict-order o' r'}
+  → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
+  → Extensional (Strictly-monotone X Y) ℓ
+Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
+  injection→extensional!
+    {sb = Π-is-hlevel 2 λ _ → Strict-order.has-is-set Y}
+    {f = Strictly-monotone.hom}
+    (Strictly-monotone-path _ _) sa
+
+instance
+  Funlike-strictly-monotone
+    : ∀ {o r o' r'}
+    → Funlike (Strictly-monotone {o} {r} {o'} {r'})
+  Funlike-strictly-monotone .Funlike.au = Underlying-Strict-order
+  Funlike-strictly-monotone .Funlike.bu = Underlying-Strict-order
+  Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
+
+  extensionality-strictly-monotone
+    : ∀ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'}
+    → Extensionality (Strictly-monotone X Y)
+  extensionality-strictly-monotone = record { lemma = quote Extensional-Strictly-monotone }
+
 
 strictly-monotone-id : Strictly-monotone X X
 strictly-monotone-id .hom x = x

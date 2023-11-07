@@ -29,11 +29,11 @@ instance
     : ∀ {o ℓ} {C : Precategory o ℓ}
     → {M : Monad C}
     → (let module C = Precategory C)
-    → ⦃ ul : Underlying C.Ob ⦄
     → ⦃ fl : Funlike C.Hom ⦄
     → Funlike (Algebra-hom C M)
-  Funlike-algebra-hom .Funlike._#_ f x = f .morphism # x
-  Funlike-algebra-hom .Funlike.ext p = Algebra-hom-path _ (ext p)
+  Funlike-algebra-hom ⦃ fl ⦄ .Funlike.au = Underlying-Σ ⦃ ua = Funlike.au fl ⦄
+  Funlike-algebra-hom ⦃ fl ⦄ .Funlike.bu = Underlying-Σ ⦃ ua = Funlike.bu fl ⦄
+  Funlike-algebra-hom ⦃ fl ⦄ .Funlike._#_ f x = f .morphism # x
 
 module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
 

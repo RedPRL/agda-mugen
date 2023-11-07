@@ -47,7 +47,7 @@ module _ {o o' r r'} (X : Poset o r) (Y : Poset o' r') where
 
   is-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-monotone f)
   is-monotone-is-prop f =
-    Π-is-hlevel′ 1 λ _ → Π-is-hlevel′ 1 λ _ →
+    Π-is-hlevel' 1 λ _ → Π-is-hlevel' 1 λ _ →
     Π-is-hlevel 1 λ _ → Y.≤-thin
 
 record Monotone

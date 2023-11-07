@@ -26,30 +26,6 @@ dec-map : ∀ {ℓ ℓ′} {P : Type ℓ} {Q : Type ℓ′} → (P → Q) → (Q
 dec-map to from (yes p) = yes (to p)
 dec-map to from (no ¬p) = no (λ q → ¬p (from q))
 
---------------------------------------------------------------------------------
--- Function-likes
-
-record 
-  Funlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'} 
-    ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄ 
-    (F : A → B → Type ℓ'') : Typeω where
-  infixl 999 _#_
-
-  field
-    _#_ : ∀ {A B} → F A B → ⌞ A ⌟ → ⌞ B ⌟
-    ext : ∀ {A B} {f g : F A B} → (∀ x → f # x ≡ g # x) → f ≡ g
-
-open Funlike ⦃...⦄ public
-
-_#ₚ_
-  : ∀ {ℓ ℓ' ℓ''}
-  → {A : Type ℓ} {B : Type ℓ'} {F : A → B → Type ℓ''}
-  → ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄
-  → ⦃ fl : Funlike F ⦄
-  → {X : A} {Y : B} {f g : F X Y}
-  → f ≡ g → (x : ⌞ X ⌟) → f # x ≡ g # x
-_#ₚ_ p x i = p i # x
-
 record
   Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'} 
     ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄ 

@@ -42,13 +42,13 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
     ⋉-elim (λ a1≡a2 b1<b2 → biased (ap (f .hom) a1≡a2) b1<b2)
            (λ a1<a2 b1≤b b≤b2 → centred (f .strict-mono a1<a2) b1≤b b≤b2)
            (λ _ → trunc) x<y
-  M .F-id = ext λ _ → refl
-  M .F-∘ f g = ext λ _ → refl
+  M .F-id = trivial!
+  M .F-∘ f g = trivial!
 
   unit : Id => M
   unit .η L .hom l = l , ε
   unit .η L .strict-mono l<l' = centred l<l' (inl refl) (inl refl)
-  unit .is-natural L L' f = ext λ _ → refl
+  unit .is-natural L L' f = trivial!
 
   mult : M F∘ M => M
   mult .η L .hom ((l , x) , y) = l , (x ⊗ y)
@@ -65,18 +65,18 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
                       (λ _ → trunc)
                     α<β)
            (λ _ → trunc) l<l'
-  mult .is-natural L L' f = ext λ _ → refl
+  mult .is-natural L L' f = trivial!
 
   ht : Hierarchy-theory o o
   ht .Monad.M = M
   ht .Monad.unit = unit
   ht .Monad.mult = mult
   ht .Monad.left-ident = ext λ where
-    (α , d) i → (α , idl {d} i)
+    (α , d) → (refl , idl {d})
   ht .Monad.right-ident = ext λ where
-    (α , d) i → (α , idr {d} i)
+    (α , d) → (refl , idr {d})
   ht .Monad.mult-assoc = ext λ where
-    (((α , d1) , d2) , d3) i → α , associative {d1} {d2} {d3} (~ i)
+    (((α , d1) , d2) , d3) → (refl , sym (associative {d1} {d2} {d3}))
 
 --------------------------------------------------------------------------------
 -- Hierarchy Theory Algebras

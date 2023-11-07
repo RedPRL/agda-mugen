@@ -159,15 +159,14 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Strict-order o r) (Ψ : Set (lsu
         ⋉-elim (λ α≡β d1<d2 → biased α≡β (𝒟.left-invariant d1<d2))
                (λ α<β d1≤id id≤d2 → absurd (Lift.lower α<β))
                (λ _ → Fᴹᴰ⟨Ψ⟩.<-thin)
-      functor .Functor.F₁ σ .commutes = ext λ _ →
-        refl ,ₚ (SOrdᴴ.assoc (T′ σ) _ _)
+      functor .Functor.F₁ σ .commutes = trivial!
       functor .Functor.F-id = ext λ (α , d) →
-        refl ,ₚ ext λ β →
+        refl , λ β →
           H.mult.η _ # (H.M₁ (σ̅ SOrdᴴ.id) # (d # β)) ≡⟨ ap (λ e → H.mult.η _ # (H.M₁ e # (d # β))) σ̅-id ⟩
           H.mult.η _ # (H.M₁ (H.unit.η _) # (d # β)) ≡⟨ (H.left-ident #ₚ _) ⟩
           d # β ∎
       functor .Functor.F-∘ σ δ = ext λ (α , d) →
-        refl ,ₚ ext λ β →
+        refl , λ β →
           H.mult.η _ # (H.M₁ (σ̅ (σ SOrdᴴ.∘ δ)) # (d # β))                                 ≡⟨ ap (λ e → H.mult.η _ # (H.M₁ e # (d # β))) (σ̅-∘ σ δ) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) # (d # β))                   ≡⟨ ap (λ e → H.mult.η _ # (e # (d # β))) (H.M-∘ _ _ ∙ ap (H.M₁ (H.mult.η _) ∘_) (H.M-∘ _ _)) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _) # (H.M₁ (H.M₁ (σ̅ σ)) # (H.M₁ (σ̅ δ) # (d # β)))) ≡⟨ H.mult-assoc #ₚ _ ⟩
@@ -262,7 +261,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Strict-order o r) (Ψ : Set (lsu
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
       nt ._=>_.η _ .strict-mono (lift ℓ<ℓ′) = biased refl (ν′-strictly-mono ℓ<ℓ′)
       nt ._=>_.is-natural _ _ σ =  ext λ ℓ →
-        Σ-pathp refl $ ext λ α →
+        refl , λ α →
           H.mult.η _ # (H.M₁ (ℓ̅ (σ # ℓ .Lift.lower)) # α)                                         ≡⟨ ap (λ e → (H.mult.η _ ∘ H.M₁ e) # α) (ℓ̅-σ̅ σ) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ (ℓ .Lift.lower)) # α)                   ≡⟨ ap (H.mult.η _ #_) ((H.M-∘ _ _  ∙ ((refl⟩∘⟨ H.M-∘ _ _))) #ₚ α) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _) # (H.M₁ (H.M₁ (σ̅ σ)) # (H.M₁ (ℓ̅ (ℓ .Lift.lower)) # α))) ≡⟨ H.mult-assoc #ₚ _ ⟩

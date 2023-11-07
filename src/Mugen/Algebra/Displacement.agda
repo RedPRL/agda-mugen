@@ -112,14 +112,12 @@ Displacement-algebra-hom-path
   : ∀ {o r o' r'}
   → {X : Displacement-algebra o r} {Y : Displacement-algebra o' r'}
   → (f g : Displacement-algebra-hom X Y)
-  → (∀ (x : ⌞ X ⌟) → f .strict-hom # x ≡ g .strict-hom # x)
+  → f .strict-hom ≡ g .strict-hom
   → f ≡ g
-Displacement-algebra-hom-path f g p i .strict-hom =
-  Strictly-monotone-path (f .strict-hom) (g .strict-hom) p i
+Displacement-algebra-hom-path f g p i .strict-hom = p i
 Displacement-algebra-hom-path {X = X} {Y = Y} f g p i .has-is-displacement-hom =
   is-prop→pathp
-    (λ i → is-displacement-algebra-hom-is-prop X Y
-      (Strictly-monotone-path (f .strict-hom) (g .strict-hom) p i))
+    (λ i → is-displacement-algebra-hom-is-prop X Y (p i))
     (f .has-is-displacement-hom)
     (g .has-is-displacement-hom) i
 
@@ -127,10 +125,24 @@ instance
   Funlike-displacement-algebra-hom
     : ∀ {o r o' r'}
     → Funlike (Displacement-algebra-hom {o} {r} {o'} {r'})
-  Funlike-displacement-algebra-hom .Funlike._#_ f x =
-    f .strict-hom # x
-  Funlike-displacement-algebra-hom .Funlike.ext p =
-    Displacement-algebra-hom-path _ _ p
+  Funlike-displacement-algebra-hom .Funlike.au = Underlying-displacement-algebra
+  Funlike-displacement-algebra-hom .Funlike.bu = Underlying-displacement-algebra
+  Funlike-displacement-algebra-hom .Funlike._#_ f x = f .strict-hom # x
+
+module _ {o r o' r' ℓ} {X : Displacement-algebra o r} {Y : Displacement-algebra o' r'} where
+  private
+    module X = Displacement-algebra X
+    module Y = Displacement-algebra Y
+
+  Extensional-Displacement-algebra-hom
+    : ∀ ⦃ sa : Extensional (Strictly-monotone X.strict-order Y.strict-order) ℓ ⦄
+    → Extensional (Displacement-algebra-hom X Y) ℓ
+  Extensional-Displacement-algebra-hom ⦃ sa ⦄ =
+    injection→extensional! {f = strict-hom} (Displacement-algebra-hom-path _ _) sa
+
+  instance
+    extensionality-displacement-algebra-hom : Extensionality (Displacement-algebra-hom X Y)
+    extensionality-displacement-algebra-hom = record { lemma = quote Extensional-Displacement-algebra-hom }
 
 displacement-hom-∘
   : Displacement-algebra-hom Y Z
