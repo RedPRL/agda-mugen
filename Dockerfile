@@ -2,13 +2,13 @@
 # Stage 1: building everything except agda-mugen
 ####################################################################################################
 
-FROM fossa/haskell-static-alpine:ghc-9.0.2 AS agda
+FROM fossa/haskell-static-alpine:ghc-9.4.7 AS agda
 
 WORKDIR /build/agda
 RUN \
   git init && \
   git remote add origin https://github.com/agda/agda.git && \
-  git fetch --depth 1 origin efa6fe4cc65132bcc375f608542154674a37f1ba && \
+  git fetch --depth 1 origin 5c8116227e2d9120267aed43f0e545a65d9c2fe2 && \
   git checkout FETCH_HEAD
 
 # We build Agda and place it in /dist along with its data files.
@@ -36,7 +36,7 @@ WORKDIR /dist/1lab
 RUN \
   git init && \
   git remote add origin https://github.com/plt-amy/1lab && \
-  git fetch --depth 1 origin f5465e947501f971bd2dfb76915e4065b13194c5 && \
+  git fetch --depth 1 origin ac6f81089a261e9c0d2ce3ede37a4a09764cb2ad && \
   git checkout FETCH_HEAD
 RUN echo "/dist/1lab/1lab.agda-lib" > /dist/libraries
 
