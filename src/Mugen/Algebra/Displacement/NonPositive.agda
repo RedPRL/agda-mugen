@@ -6,6 +6,8 @@ open import Mugen.Algebra.Displacement.Int
 open import Mugen.Algebra.Displacement.Nat
 open import Mugen.Algebra.Displacement.Opposite
 
+open import Mugen.Order.Opposite
+
 open import Mugen.Data.Int
 open import Mugen.Data.Nat
 
@@ -16,10 +18,8 @@ open import Mugen.Data.Nat
 -- These have a terse definition as the opposite order of Nat+,
 -- so we just use that.
 
-NonPositive+ : DisplacementAlgebra lzero lzero
-NonPositive+ = Op Nat+
-
-open Op Nat+
+NonPositive+ : Displacement-algebra lzero lzero
+NonPositive+ = Nat+ ^opᵈ
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -27,31 +27,33 @@ open Op Nat+
 non-positive-+-has-joins : has-joins NonPositive+
 non-positive-+-has-joins .has-joins.join = min
 non-positive-+-has-joins .has-joins.joinl {x} {y} =
-  from-op≤ $
+  from-op≤ Nat< $
   ≤-strengthen (min x y) x $
   min-≤l x y
 non-positive-+-has-joins .has-joins.joinr {x} {y} =
-  from-op≤ $
+  from-op≤ Nat< $
   ≤-strengthen (min x y) y $
   min-≤r x y
 non-positive-+-has-joins .has-joins.universal {x} {y} {z} z≤x z≤y =
-  from-op≤ $
+  from-op≤ Nat< $
   ≤-strengthen z (min x y) $
   min-is-glb x y z
-    (to-≤ z x (to-op≤ z≤x))
-    (to-≤ z y (to-op≤ z≤y))
+    (Equiv.from ≤≃non-strict (to-op≤ Nat< z≤x))
+    (Equiv.from ≤≃non-strict (to-op≤ Nat< z≤y))
 
 --------------------------------------------------------------------------------
 -- Subalgebra
 
 NonPositive+⊆Int+ : is-displacement-subalgebra NonPositive+ Int+
-NonPositive+⊆Int+ .is-displacement-subalgebra.into ⟨$⟩ x = - x
-NonPositive+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-ε = refl
-NonPositive+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.pres-⊗ = +ℤ-negate
-NonPositive+⊆Int+ .is-displacement-subalgebra.into .homo .is-displacement-algebra-homomorphism.strictly-mono {x} {y} = negate-anti-mono y x
-NonPositive+⊆Int+ .is-displacement-subalgebra.inj = negate-inj _ _
+NonPositive+⊆Int+ = to-displacement-subalgebra subalg where
+  subalg : make-displacement-subalgebra NonPositive+ Int+
+  subalg .make-displacement-subalgebra.into x = - x
+  subalg .make-displacement-subalgebra.pres-ε = refl
+  subalg .make-displacement-subalgebra.pres-⊗ = +ℤ-negate 
+  subalg .make-displacement-subalgebra.strictly-mono x y = negate-anti-mono y x
+  subalg .make-displacement-subalgebra.inj = negate-inj _ _
 
-NonPositive-is-subsemilattice : is-displacement-subsemilattice non-positive-+-has-joins int+-has-joins
+NonPositive-is-subsemilattice : is-displacement-subsemilattice non-positive-+-has-joins Int+-has-joins
 NonPositive-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NonPositive+⊆Int+
 NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins zero zero = refl
 NonPositive-is-subsemilattice .is-displacement-subsemilattice.pres-joins zero (suc y) = refl

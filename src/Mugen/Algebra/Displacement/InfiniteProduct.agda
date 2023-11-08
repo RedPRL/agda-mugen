@@ -19,9 +19,9 @@ open import Mugen.Order.StrictOrder
 -- of functions 'Nat → 𝒟'. Multiplication is performerd pointwise,
 -- and ordering is given by 'f < g' if '∀ n. f n ≤ n' and '∃ n. f n < g n'.
 
-module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
+module Inf {o r} (𝒟 : Displacement-algebra o r) where
   private
-    module 𝒟 = DisplacementAlgebra 𝒟
+    module 𝒟 = Displacement-algebra 𝒟
     open 𝒟 using (ε; _⊗_)
 
   _⊗∞_ : (Nat → ⌞ 𝒟 ⌟) → (Nat → ⌞ 𝒟 ⌟) → (Nat → ⌞ 𝒟 ⌟)
@@ -43,7 +43,7 @@ module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
   -- Algebra
 
   ⊗∞-is-magma : is-magma _⊗∞_
-  ⊗∞-is-magma .has-is-set = Π-is-hlevel 2 (λ _ → ⌞ 𝒟 ⌟-set)
+  ⊗∞-is-magma .has-is-set = Π-is-hlevel 2 (λ _ → 𝒟.has-is-set)
 
   ⊗∞-is-semigroup : is-semigroup _⊗∞_
   ⊗∞-is-semigroup .has-is-magma = ⊗∞-is-magma
@@ -62,30 +62,25 @@ module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
   record _inf<_ (f g : Nat → ⌞ 𝒟 ⌟) : Type (o ⊔ r) where
     constructor inf-<
     field
-      ≤-everywhere : ∀ n → 𝒟 [ f n ≤ g n ]ᵈ 
-      <-somewhere  : ∃[ n ∈ Nat ] (𝒟 [ f n < g n ]ᵈ)
+      ≤-everywhere : ∀ n →  f n 𝒟.≤ g n
+      <-somewhere  : ∃[ n ∈ Nat ] (f n 𝒟.< g n)
  
   open _inf<_ public
 
-  inf≤-everywhere : ∀ {f g} → non-strict _inf<_ f g → ∀ n → 𝒟 [ f n ≤ g n ]ᵈ
+  inf≤-everywhere : ∀ {f g} → non-strict _inf<_ f g → ∀ n → f n 𝒟.≤ g n
   inf≤-everywhere (inl f≡g) n = inl (happly f≡g n)
   inf≤-everywhere (inr f<g) n = ≤-everywhere f<g n
 
   inf<-irrefl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → f inf< f → ⊥
-  inf<-irrefl f f<f = ∥-∥-rec (hlevel 1) (λ { (_ , fn<fn) → 𝒟.irrefl fn<fn }) (<-somewhere f<f)
+  inf<-irrefl f f<f = ∥-∥-rec (hlevel 1) (λ { (_ , fn<fn) → 𝒟.<-irrefl fn<fn }) (<-somewhere f<f)
 
   inf<-trans : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → f inf< g → g inf< h → f inf< h
   inf<-trans f g h f<g g<h .≤-everywhere n = 𝒟.≤-trans (≤-everywhere f<g n) (≤-everywhere g<h n)
   inf<-trans f g h f<g g<h .<-somewhere = ∥-∥-map (λ { (n , fn<gn) → n , 𝒟.≤-transr fn<gn (≤-everywhere g<h n) }) (<-somewhere f<g)
 
   inf<-is-prop : ∀ f g  → is-prop (f inf< g) 
-  inf<-is-prop f g f<g f<g′ i .≤-everywhere n = 𝒟.≤-is-prop (≤-everywhere f<g n) (≤-everywhere f<g′ n) i
+  inf<-is-prop f g f<g f<g′ i .≤-everywhere n = 𝒟.≤-thin (≤-everywhere f<g n) (≤-everywhere f<g′ n) i
   inf<-is-prop f g f<g f<g′ i .<-somewhere = squash (<-somewhere f<g) (<-somewhere f<g′) i
-
-  inf-is-strict-order : is-strict-order _inf<_
-  inf-is-strict-order .is-strict-order.irrefl {x} = inf<-irrefl x
-  inf-is-strict-order .is-strict-order.trans {x} {y} {z} = inf<-trans x y z
-  inf-is-strict-order .is-strict-order.has-prop {x} {y} = inf<-is-prop x y
 
   --------------------------------------------------------------------------------
   -- Left Invariance
@@ -94,44 +89,63 @@ module Inf {o r} (𝒟 : DisplacementAlgebra o r) where
   ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.left-invariant-≤ (≤-everywhere g<h n)
   ⊗∞-left-invariant f g h g<h .<-somewhere = ∥-∥-map (λ { (n , gn<hn) → n , 𝒟.left-invariant gn<hn }) (<-somewhere g<h)
 
-  ⊗∞-is-displacement-algebra : is-displacement-algebra _inf<_ ε∞ _⊗∞_
-  ⊗∞-is-displacement-algebra .is-displacement-algebra.has-monoid = ⊗∞-is-monoid
-  ⊗∞-is-displacement-algebra .is-displacement-algebra.has-strict-order = inf-is-strict-order
-  ⊗∞-is-displacement-algebra .is-displacement-algebra.left-invariant {f} {g} {h} = ⊗∞-left-invariant f g h
 
-InfProd : ∀ {o r} → DisplacementAlgebra o r → DisplacementAlgebra o (o ⊔ r)
-InfProd {o = o} {r = r} 𝒟 = displacement
-  where
-    open Inf 𝒟
+Inf : ∀ {o r} → Displacement-algebra o r → Strict-order o (o ⊔ r)
+Inf {o = o} {r = r} 𝒟 = to-strict-order mk where
+  module 𝒟 = Displacement-algebra 𝒟
+  open Inf 𝒟
+  open make-strict-order
 
-    displacement : DisplacementAlgebra o (o ⊔ r)
-    ⌞ displacement ⌟ =  Nat → ⌞ 𝒟 ⌟
-    displacement .structure .DisplacementAlgebra-on._<_ = _inf<_
-    displacement .structure .DisplacementAlgebra-on.ε = ε∞
-    displacement .structure .DisplacementAlgebra-on._⊗_ = _⊗∞_
-    displacement .structure .DisplacementAlgebra-on.has-displacement-algebra = ⊗∞-is-displacement-algebra
-    ⌞ displacement ⌟-set = Π-is-hlevel 2 (λ _ → ⌞ 𝒟 ⌟-set)
+  mk : make-strict-order (o ⊔ r) (Nat → ⌞ 𝒟 ⌟)
+  mk ._<_ = _inf<_
+  mk .<-irrefl {x} = inf<-irrefl x
+  mk .<-trans {x} {y} {z} = inf<-trans x y z
+  mk .<-thin {x} {y} = inf<-is-prop x y
+  mk .has-is-set = Π-is-hlevel 2 λ _ → 𝒟.has-is-set
+
+InfProd : ∀ {o r} → Displacement-algebra o r → Displacement-algebra o (o ⊔ r)
+InfProd {o = o} {r = r} 𝒟 = to-displacement-algebra mk where
+  module 𝒟 = Displacement-algebra 𝒟
+  open Inf 𝒟
+  open make-displacement-algebra
+
+  mk : make-displacement-algebra (Inf 𝒟)
+  mk .ε = ε∞
+  mk ._⊗_ = _⊗∞_
+  mk .idl {x} = ⊗∞-idl x
+  mk .idr {x} = ⊗∞-idr x
+  mk .associative {x} {y} {z} = ⊗∞-associative x y z
+  mk .left-invariant {x} {y} {z} = ⊗∞-left-invariant x y z
 
 -- All of the following results require a form of the Limited Principle of Omniscience,
 -- which states that if '∀ n. f n ≤ g n', then 'f ≡ g', or there is some 'k' where 'f k < g k'.
 -- See Mugen.Axioms.LPO for a distillation of LPO into Markov's Principle + LEM
-module InfProperties {o r} {𝒟 : DisplacementAlgebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-lpo : LPO (DA→SO 𝒟) _≡?_) where
-  open Inf 𝒟
-  open DisplacementAlgebra 𝒟
+module InfProperties
+  {o r}
+  {𝒟 : Displacement-algebra o r}
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-lpo : LPO 𝒟.strict-order _≡?_)
+  where
+  private
+    open Inf 𝒟
+    module 𝒟∞ = Displacement-algebra (InfProd 𝒟)
 
-  lpo : ∀ {f g} → (∀ n → 𝒟 [ f n ≤ g n ]ᵈ) → InfProd 𝒟 [ f ≤ g ]ᵈ
-  lpo p = ⊎-mapr (λ lt → Inf.inf-< p lt) (𝒟-lpo p)
+    lpo : ∀ {f g} → (∀ n → f n 𝒟.≤ g n) → f 𝒟∞.≤ g
+    lpo p = ⊎-mapr (λ lt → Inf.inf-< p lt) (𝒟-lpo p)
 
   --------------------------------------------------------------------------------
   -- Ordered Monoid
 
-  ⊗∞-has-ordered-monoid : (∀ {f g} → (∀ n → 𝒟 [ f n ≤ g n ]ᵈ) → non-strict _inf<_ f g) → has-ordered-monoid 𝒟 → has-ordered-monoid (InfProd 𝒟)
-  ⊗∞-has-ordered-monoid lpo 𝒟-ordered-monoid = right-invariant→has-ordered-monoid (InfProd 𝒟) ⊗∞-right-invariant
+  ⊗∞-has-ordered-monoid : has-ordered-monoid 𝒟 → has-ordered-monoid (InfProd 𝒟)
+  ⊗∞-has-ordered-monoid 𝒟-om =
+    right-invariant→has-ordered-monoid
+      (InfProd 𝒟)
+      ⊗∞-right-invariant
     where
-      open is-ordered-monoid 𝒟-ordered-monoid
+      open is-ordered-monoid 𝒟-om
 
-      ⊗∞-right-invariant : ∀ {f g h} → non-strict _inf<_ f g → non-strict _inf<_ (f ⊗∞ h) (g ⊗∞ h)
-      ⊗∞-right-invariant f≤g = lpo λ n → right-invariant (inf≤-everywhere f≤g n)
+      ⊗∞-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f ⊗∞ h) 𝒟∞.≤ (g ⊗∞ h)
+      ⊗∞-right-invariant f≤g = lpo (λ n → right-invariant (inf≤-everywhere f≤g n))
 
   --------------------------------------------------------------------------------
   -- Joins

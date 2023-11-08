@@ -1,38 +1,61 @@
-module Mugen.Order.Poset where
-
 open import Mugen.Prelude
 
-open import Relation.Order using (is-preorder; is-partial-order) public
+import Order.Base
+
+module Mugen.Order.Poset where
+
 
 --------------------------------------------------------------------------------
--- Preorders
+-- Partial Orders
+--
+-- We opt not to use the 1labs definition of partial order,
+-- as it is defined as a structure on sets.
+--
+-- As this development is heavily focused on order theory,
+-- it is much nicer to view partial orders/strict orders as
+-- the primitive objects, and everything else as structures
+-- atop that.
 
-record Preorder-on {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+open Order.Base using
+  ( is-partial-order
+  ; is-partial-order-is-prop
+  ; Poset-on
+  ; Poset-on-pathp
+  ; Poset-on-path
+  ) public
+
+record Poset o r : Type (lsuc (o ⊔ r)) where
   field
-    _≤_ : A → A → Type r
-    has-is-preorder : is-preorder _≤_
+    Ob       : Type o
+    poset-on : Poset-on r Ob
+  open Poset-on poset-on public
 
-  open is-preorder has-is-preorder public
-
-Preorder : ∀ o r → Type (lsuc o ⊔ lsuc r)
-Preorder o r = SetStructure (Preorder-on {o} r)
-
-module Preorder {o r} (P : Preorder o r) where
-  open Preorder-on (structure P) public
+instance
+  Underlying-Poset : ∀ {o r} → Underlying (Poset o r)
+  Underlying-Poset = record { ⌞_⌟ = Poset.Ob }
 
 --------------------------------------------------------------------------------
--- Posets
+-- Monotonic Maps
 
-record Poset-on {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+module _ {o o' r r'} (X : Poset o r) (Y : Poset o' r') where
+  private
+    module X = Poset X
+    module Y = Poset Y
+
+  is-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type _
+  is-monotone f = ∀ {x y} → x X.≤ y → f x Y.≤ f y
+
+  is-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-monotone f)
+  is-monotone-is-prop f =
+    Π-is-hlevel' 1 λ _ → Π-is-hlevel' 1 λ _ →
+    Π-is-hlevel 1 λ _ → Y.≤-thin
+
+record Monotone
+  {o o' r r'}
+  (X : Poset o r) (Y : Poset o' r')
+  : Type (o ⊔ o' ⊔ r ⊔ r')
+  where
+  no-eta-equality
   field
-    _≤_ : A → A → Type r
-    has-is-partial-order : is-partial-order _≤_
-
-  open is-partial-order has-is-partial-order public
-
-Poset : ∀ o r → Type (lsuc o ⊔ lsuc r)
-Poset o r = SetStructure (Poset-on {o} r)
-
-module Poset {o r} (P : Poset o r) where
-  open Poset-on (structure P) public
-
+    hom : ⌞ X ⌟ → ⌞ Y ⌟
+    mono : is-monotone X Y hom

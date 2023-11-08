@@ -31,14 +31,12 @@ import Mugen.Data.Nat
 import Mugen.Data.NonEmpty
 import Mugen.Order.Coproduct
 import Mugen.Order.Discrete
-import Mugen.Order.InfiniteCoproduct
 import Mugen.Order.LeftInvariantRightCentered
 import Mugen.Order.Opposite
-import Mugen.Order.PartialOrder
 import Mugen.Order.Poset
 import Mugen.Order.Prefix
-import Mugen.Order.Prelude
-import Mugen.Order.Product
 import Mugen.Order.Singleton
 import Mugen.Order.StrictOrder
+import Mugen.Order.StrictOrder.Coimage
+import Mugen.Order.StrictOrder.Reasoning
 import Mugen.Prelude

@@ -5,45 +5,34 @@ open import Mugen.Order.StrictOrder
 
 private variable
   o r : Level
-  X Y Z : StrictOrder o r
+  X Y Z : Strict-order o r
 
 --------------------------------------------------------------------------------
 -- The Category of Strict Orders
 
 open Precategory
-open StrictOrder-on
-open is-strict-order
 
-strict-order-id : StrictOrder-Hom X X
-strict-order-id {X = X} = homomorphism (λ x → x) (λ x<y → x<y)
+Strict-orders : ∀ (o r : Level) → Precategory (lsuc o ⊔ lsuc r) (o ⊔ r)
+Strict-orders o r .Ob = Strict-order o r
+Strict-orders o r .Hom = Strictly-monotone
+Strict-orders o r .Hom-set X Y = hlevel 2
+Strict-orders o r .id = strictly-monotone-id
+Strict-orders o r ._∘_ = strictly-monotone-∘
+Strict-orders o r .idr f = ext (λ _ → refl)
+Strict-orders o r .idl f = ext (λ _ → refl)
+Strict-orders o r .assoc f g h = ext (λ _ → refl)
 
-strict-order-∘ : StrictOrder-Hom Y Z → StrictOrder-Hom X Y → StrictOrder-Hom X Z
-strict-order-∘ f g = homomorphism (λ x → f ⟨$⟩ g ⟨$⟩ x) (λ x<y → homo f $ homo g x<y)
+Lift<
+  : ∀ {o r}
+  → (o′ r′ : Level)
+  → Strict-order o r
+  → Strict-order (o ⊔ o′) (r ⊔ r′)
+Lift< o' r' X = to-strict-order mk where
+  open Strict-order X
 
-strict-order-path : {f g : StrictOrder-Hom X Y} → (∀ x → f ⟨$⟩ x ≡ g ⟨$⟩ x) → f ≡ g
-strict-order-path = homomorphism-path strictly-monotonic-is-prop
-
-strict-order-happly : {f g : StrictOrder-Hom X Y} → f ≡ g → (∀ x → f ⟨$⟩ x ≡ g ⟨$⟩ x)
-strict-order-happly p x i = p i ⟨$⟩ x
-
-StrictOrders : ∀ (o r : Level) → Precategory (lsuc o ⊔ lsuc r) (o ⊔ r)
-StrictOrders o r .Ob = StrictOrder o r
-StrictOrders o r .Hom = StrictOrder-Hom
-StrictOrders o r .Hom-set X Y = hlevel 2
-StrictOrders o r .id = strict-order-id
-StrictOrders o r ._∘_ = strict-order-∘
-StrictOrders o r .idr f = strict-order-path λ _ → refl
-StrictOrders o r .idl f = strict-order-path λ _ → refl
-StrictOrders o r .assoc f g h = strict-order-path λ _ → refl
-
-Lift< : ∀ {o r} → (o′ r′ : Level) → StrictOrder o r → StrictOrder (o ⊔ o′) (r ⊔ r′)
-⌞ Lift< o′ r′ X ⌟ = Lift o′ ⌞ X ⌟
-Lift< o′ r′ X .structure ._<_ (lift x) (lift y) = Lift r′ (X [ x < y ])
-Lift< o′ r′ X .structure .has-is-strict-order .irrefl (lift x<x) = X .structure .irrefl x<x
-Lift< o′ r′ X .structure .has-is-strict-order .trans (lift x<y) (lift y<z) = lift (X .structure .trans x<y y<z) 
-Lift< o′ r′ X .structure .has-is-strict-order .has-prop =
-  let open is-strict-order (X .structure .has-is-strict-order)
-  in hlevel 1
-⌞ Lift< o′ r′ X ⌟-set =
-  let open SetStructure X
-  in hlevel 2
+  mk : make-strict-order _ (Lift o' ⌞ X ⌟)
+  mk .make-strict-order._<_ x y = Lift r' (Lift.lower x < Lift.lower y)
+  mk .make-strict-order.<-irrefl (lift p) = <-irrefl p
+  mk .make-strict-order.<-trans (lift p) (lift q) = lift (<-trans p q)
+  mk .make-strict-order.<-thin = Lift-is-hlevel 1 <-thin
+  mk .make-strict-order.has-is-set = Lift-is-hlevel 2 has-is-set

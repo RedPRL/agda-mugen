@@ -1,27 +1,31 @@
-module Mugen.Order.StrictOrder where
-
 open import Mugen.Prelude
 open import Mugen.Order.Poset
+
+module Mugen.Order.StrictOrder where
 
 --------------------------------------------------------------------------------
 -- Strict Orders
 
+non-strict : ∀ {o r} {A : Type o} (R : A → A → Type r) → A → A → Type (o ⊔ r)
+non-strict R x y = x ≡ y ⊎ (R x y)
+
 record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o ⊔ r) where
   no-eta-equality
   field
-    irrefl : ∀ {x} → x < x → ⊥
-    trans : ∀ {x y z} → x < y → y < z → x < z
-    has-prop : ∀ {x y} → is-prop (x < y)
+    <-irrefl : ∀ {x} → x < x → ⊥
+    <-trans : ∀ {x y z} → x < y → y < z → x < z
+    <-thin : ∀ {x y} → is-prop (x < y)
+    has-is-set : is-set A
 
-  asym : ∀ {x y} → x < y → y < x → ⊥
-  asym x<y y<x = irrefl (trans x<y y<x)
+  <-asym : ∀ {x y} → x < y → y < x → ⊥
+  <-asym x<y y<x = <-irrefl (<-trans x<y y<x)
 
   _≤_ : A → A → Type (o ⊔ r)
-  x ≤ y = x ≡ y ⊎ x < y
+  x ≤ y = non-strict _<_ x y
 
   instance
     <-hlevel : ∀ {x y} {n} → H-Level (x < y) (suc n)
-    <-hlevel = prop-instance has-prop
+    <-hlevel = prop-instance <-thin
 
   ≡-transl : ∀ {x y z} → x ≡ y → y < z → x < z
   ≡-transl x≡y y<z = subst (λ ϕ → ϕ < _) (sym x≡y) y<z
@@ -31,37 +35,50 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
 
   ≤-transl : ∀ {x y z} → x ≤ y → y < z → x < z
   ≤-transl (inl x≡y) y<z = ≡-transl x≡y y<z
-  ≤-transl (inr x<y) y<z = trans x<y y<z
+  ≤-transl (inr x<y) y<z = <-trans x<y y<z
 
   ≤-transr : ∀ {x y z} → x < y → y ≤ z → x < z
   ≤-transr x<y (inl y≡z) = ≡-transr x<y y≡z
-  ≤-transr x<y (inr y<z) = trans x<y y<z
+  ≤-transr x<y (inr y<z) = <-trans x<y y<z
 
   ≤-trans : ∀ {x y z} → x ≤ y → y ≤ z → x ≤ z
   ≤-trans (inl p) (inl q) = inl (p ∙ q)
   ≤-trans (inl p) (inr y<z) = inr (≡-transl p y<z)
   ≤-trans (inr x<y) (inl q) = inr (≡-transr x<y q)
-  ≤-trans (inr x<y) (inr y<z) = inr (trans x<y y<z)
+  ≤-trans (inr x<y) (inr y<z) = inr (<-trans x<y y<z)
 
   ≤-antisym : ∀ {x y} → x ≤ y → y ≤ x → x ≡ y
   ≤-antisym (inl x≡y) y≤x = x≡y
   ≤-antisym (inr x<y) (inl y≡x) = sym y≡x
-  ≤-antisym (inr x<y) (inr y<x) = absurd (irrefl (trans x<y y<x))
-
+  ≤-antisym (inr x<y) (inr y<x) = absurd (<-irrefl (<-trans x<y y<x))
 
   <→≤ : ∀ {x y} → x < y → x ≤ y
   <→≤ x<y = inr x<y
 
-private unquoteDecl eqv = declare-record-iso eqv (quote is-strict-order)
+  ≤-refl : ∀ {x} → x ≤ x
+  ≤-refl = inl refl
+
+  ≤-thin : ∀ {x y} → is-prop (x ≤ y)
+  ≤-thin =
+    disjoint-⊎-is-prop (has-is-set _ _) <-thin
+      (λ (p , q) → <-irrefl (≡-transl (sym p) q))
+
+  has-is-partial-order : is-partial-order _≤_
+  has-is-partial-order .is-partial-order.≤-thin = ≤-thin
+  has-is-partial-order .is-partial-order.≤-refl = ≤-refl
+  has-is-partial-order .is-partial-order.≤-trans = ≤-trans
+  has-is-partial-order .is-partial-order.≤-antisym = ≤-antisym
+
 
 instance
   is-strict-order-hlevel : ∀ {o r} {A : Type o} {_<_ : A → A → Type r} {n}
                            → H-Level (is-strict-order _<_) (suc n)
   is-strict-order-hlevel = prop-instance λ x →
      let open is-strict-order x in
-     is-hlevel≃ 1 (Iso→Equiv eqv e⁻¹) (hlevel 1) x
+     is-hlevel≃ 1 (Iso→Equiv eqv) hlevel! x
+     where unquoteDecl eqv = declare-record-iso eqv (quote is-strict-order)
 
-record StrictOrder-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+record Strict-order-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
   no-eta-equality
   field
     _<_ : A → A → Type r
@@ -69,120 +86,127 @@ record StrictOrder-on {o : Level} (r : Level) (A : Type o) : Type (o ⊔ lsuc r)
 
   open is-strict-order has-is-strict-order public
 
-StrictOrder : ∀ o r → Type (lsuc o ⊔ lsuc r)
-StrictOrder o r = SetStructure (StrictOrder-on {o} r)
+  poset-on : Poset-on (o ⊔ r) A
+  poset-on .Poset-on._≤_ = _≤_
+  poset-on .Poset-on.has-is-poset = has-is-partial-order
 
-module StrictOrder {o r} (S : StrictOrder o r) where
-  open StrictOrder-on (structure S) public
+record Strict-order (o r : Level) : Type (lsuc (o ⊔ r)) where
+  no-eta-equality
+  field
+    Ob : Type o
+    strict-order-on : Strict-order-on r Ob
 
-  ≤-is-prop : ∀ {x y} → is-prop (x ≤ y)
-  ≤-is-prop = disjoint-⊎-is-prop (⌞ S ⌟-set _ _) has-prop λ {  (x≡y , x<y) → irrefl (≡-transr x<y (sym x≡y))  }
+  open Strict-order-on strict-order-on public
+
+  poset : Poset o (o ⊔ r)
+  poset .Poset.Ob = Ob
+  poset .Poset.poset-on = poset-on
+
+instance
+  Underlying-Strict-order : ∀ {o r} → Underlying (Strict-order o r)
+  Underlying-Strict-order .Underlying.ℓ-underlying = _
+  Underlying.⌞ Underlying-Strict-order ⌟ = Strict-order.Ob
 
 private variable
   o r : Level
-  X Y Z : StrictOrder o r
-
-_[_<_] : ∀ (X : StrictOrder o r) → ⌞ X ⌟ → ⌞ X ⌟ → Type r
-X [ x < y ] = StrictOrder-on._<_ (structure X) x y
-
-_[_≤_] : ∀ (X : StrictOrder o r) → ⌞ X ⌟ → ⌞ X ⌟ → Type (o ⊔ r)
-X [ x ≤ y ] = StrictOrder-on._≤_ (structure X) x y
+  X Y Z : Strict-order o r
 
 --------------------------------------------------------------------------------
 -- Strictly Monotonic Maps
 
-strictly-monotonic : ∀ (X Y : StrictOrder o r) (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r) 
-strictly-monotonic X Y f = ∀ {x y} → X [ x < y ] → Y [ f x < f y ]
+module _ {o r o' r'} (X : Strict-order o r) (Y : Strict-order o' r') where
+  private
+    module X = Strict-order X
+    module Y = Strict-order Y
 
+  is-strictly-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ r') 
+  is-strictly-monotone f = ∀ {x y} →  x X.< y → f x Y.< f y
 
-strictly-monotonic-is-prop : ∀ (X Y : StrictOrder o r) (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (strictly-monotonic X Y f)
-strictly-monotonic-is-prop X Y f =
-  let open StrictOrder-on (structure Y)
-  -- For whatever reason we need to do this to get things to compute?? Odd.
-  in Π-is-hlevel′ 1 λ x → hlevel 1
+  is-strictly-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-strictly-monotone f)
+  is-strictly-monotone-is-prop f = hlevel!
 
-StrictOrder-Hom : ∀ (X Y : StrictOrder o r) → Type (o ⊔ r)
-StrictOrder-Hom = Homomorphism strictly-monotonic
+record Strictly-monotone
+  {o o' r r'}
+  (X : Strict-order o r) (Y : Strict-order o' r')
+  : Type (o ⊔ o' ⊔ r ⊔ r') 
+  where
+  no-eta-equality
+  private
+    module X = Strict-order X
+    module Y = Strict-order Y
+  field
+    hom : ⌞ X ⌟ → ⌞ Y ⌟
+    strict-mono : is-strictly-monotone X Y hom
+
+  mono : ∀ {x y} → x X.≤ y → hom x Y.≤ hom y
+  mono (inl p) = inl (ap hom p)
+  mono (inr p) = inr (strict-mono p)
+
+open Strictly-monotone
+
+Strictly-monotone-path
+  : ∀ {o r o' r'}
+  → {X : Strict-order o r} {Y : Strict-order o' r'}
+  → (f g : Strictly-monotone X Y)
+  → f .hom ≡ g .hom
+  → f ≡ g
+Strictly-monotone-path f g p i .hom = p i
+Strictly-monotone-path {Y = Y} f g p i .strict-mono {x = x} {y = y} q =
+  is-prop→pathp (λ i → Strict-order.<-thin Y {x = p i x} {y = p i y})
+    (f .strict-mono q)
+    (g .strict-mono q) i
+
+module _ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'} where
+  private
+    module X = Strict-order X
+    module Y = Strict-order Y
+
+  instance
+    strict-monotone-hlevel : ∀ {n} → H-Level (Strictly-monotone X Y) (2 + n)
+    strict-monotone-hlevel = basic-instance 2 $
+      Iso→is-hlevel 2 eqv $
+      Σ-is-hlevel 2 (Π-is-hlevel 2 λ _ → Y.has-is-set) λ f →
+      is-hlevel-suc 1 (is-strictly-monotone-is-prop X Y f)
+      where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone)
+
+Extensional-Strictly-monotone
+  : ∀ {o r o' r' ℓ} {X : Strict-order o r} {Y : Strict-order o' r'}
+  → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
+  → Extensional (Strictly-monotone X Y) ℓ
+Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
+  injection→extensional!
+    {sb = Π-is-hlevel 2 λ _ → Strict-order.has-is-set Y}
+    {f = Strictly-monotone.hom}
+    (Strictly-monotone-path _ _) sa
 
 instance
-  strict-order-hlevel : ∀ {n} → H-Level (StrictOrder-Hom X Y) (2 + n)
-  strict-order-hlevel = homomorphism-hlevel strictly-monotonic-is-prop
+  Funlike-strictly-monotone
+    : ∀ {o r o' r'}
+    → Funlike (Strictly-monotone {o} {r} {o'} {r'})
+  Funlike-strictly-monotone .Funlike.au = Underlying-Strict-order
+  Funlike-strictly-monotone .Funlike.bu = Underlying-Strict-order
+  Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
 
-strictly-mono→mono : ∀ {X Y : StrictOrder o r} {x y} → (f : StrictOrder-Hom X Y) → X [ x ≤ y ] → Y [ f ⟨$⟩ x ≤ f ⟨$⟩ y ]
-strictly-mono→mono {Y = Y} f (inl p) = inl (ap (f ⟨$⟩_) p)
-strictly-mono→mono {Y = Y} f (inr x<y) = inr (f .homo x<y)
-  where
-    module Y = StrictOrder-on (structure Y)
+  extensionality-strictly-monotone
+    : ∀ {o r o' r'} {X : Strict-order o r} {Y : Strict-order o' r'}
+    → Extensionality (Strictly-monotone X Y)
+  extensionality-strictly-monotone = record { lemma = quote Extensional-Strictly-monotone }
 
---------------------------------------------------------------------------------
--- Constructing Strict Orders from Preorders
-module _ where
-  
-  private variable
-    A : Type o
-    _≤_ : A → A → Type r
-  
-  strict : ∀ {A : Type o} (_≤_ : A → A → Type r) → A → A → Type r
-  strict _≤_ x y = (x ≤ y) × ((y ≤ x) → ⊥)
-  
-  is-preorder→is-strict-order : ∀ {A : Type o} {_≤_ : A → A → Type r} → is-preorder _≤_ → is-strict-order (strict _≤_)
-  is-preorder→is-strict-order {A = A} {_≤_ = _≤_} preorder = strict-order
-    where
-      open is-preorder preorder
-  
-      strict-order : is-strict-order (strict _≤_)
-      strict-order .is-strict-order.irrefl (_ , x≰x) = x≰x reflexive
-      strict-order .is-strict-order.trans {x} {y} {z} (x≤y , y≰x) (y≤z , z≰y) =
-        transitive x≤y y≤z , λ z≤x → z≰y (transitive z≤x x≤y)
-      strict-order .is-strict-order.has-prop = Σ-is-hlevel 1 propositional λ _ → hlevel 1
-  
-  Preorder-on→StrictOrder-on : ∀ {A : Type o} → Preorder-on r A → StrictOrder-on r A
-  Preorder-on→StrictOrder-on P .StrictOrder-on._<_ = strict (Preorder-on._≤_ P)
-  Preorder-on→StrictOrder-on P .StrictOrder-on.has-is-strict-order = is-preorder→is-strict-order (Preorder-on.has-is-preorder P)
-  
-  Preorder→StrictOrder : ∀ {o r} → Preorder o r → StrictOrder o r
-  Preorder→StrictOrder = map-structure Preorder-on→StrictOrder-on
-  
-  --------------------------------------------------------------------------------
-  -- Constructing Preorders from Strict Orders
-  
-  non-strict : ∀ {A : Type o} (_<_ : A → A → Type r) → A → A → Type (o ⊔ r)
-  non-strict _<_ x y = x ≡ y ⊎ x < y
-  
-  is-strict-order→is-preorder : ∀ {A : Type o} {_<_ : A → A → Type r} → is-set A → is-strict-order _<_ → is-preorder (non-strict _<_)
-  is-strict-order→is-preorder {_<_ = _<_} A-set strict-order = preorder
-    where
-      open is-strict-order strict-order
-  
-      preorder : is-preorder (non-strict _<_)
-      preorder .is-preorder.reflexive = inl refl
-      preorder .is-preorder.transitive = ≤-trans
-      preorder .is-preorder.propositional =  disjoint-⊎-is-prop (A-set _ _) has-prop λ {  (x≡y , x<y) → irrefl (≡-transr x<y (sym x≡y))  }
 
-  StrictOrder-on→Preorder-on : ∀ {A : Type o} → is-set A → StrictOrder-on r A → Preorder-on (o ⊔ r) A
-  StrictOrder-on→Preorder-on A-set strict .Preorder-on._≤_ = non-strict (StrictOrder-on._<_ strict)
-  StrictOrder-on→Preorder-on A-set strict .Preorder-on.has-is-preorder = is-strict-order→is-preorder A-set (StrictOrder-on.has-is-strict-order strict)
-  
-  StrictOrder→Preorder : ∀ {o r} → StrictOrder o r → Preorder o (o ⊔ r)
-  ⌞ StrictOrder→Preorder S ⌟ = ⌞ S ⌟
-  StrictOrder→Preorder S .structure = StrictOrder-on→Preorder-on ⌞ S ⌟-set (structure S)
-  ⌞ StrictOrder→Preorder S ⌟-set = ⌞ S ⌟-set
+strictly-monotone-id : Strictly-monotone X X
+strictly-monotone-id .hom x = x
+strictly-monotone-id .strict-mono p = p
 
-  --------------------------------------------------------------------------------
-  -- Constructing Partial Orders from Strict Orders
-
-  is-strict-order→is-partial-order : ∀ {A : Type o} {_<_ : A → A → Type r} → is-set A → is-strict-order _<_ → is-partial-order (non-strict _<_)
-  is-strict-order→is-partial-order {_<_ = _<_} A-set strict-order = partial-order
-    where
-      open is-strict-order strict-order
-       
-      partial-order : is-partial-order (non-strict _<_)
-      partial-order .is-partial-order.preorder = is-strict-order→is-preorder A-set strict-order
-      partial-order .is-partial-order.antisym = ≤-antisym
+strictly-monotone-∘
+  : Strictly-monotone Y Z
+  → Strictly-monotone X Y
+  → Strictly-monotone X Z
+strictly-monotone-∘ f g .hom x = f # (g # x)
+strictly-monotone-∘ f g .strict-mono p =
+  f .strict-mono (g .strict-mono p)
 
 --------------------------------------------------------------------------------
 -- Decidability
-
 
 data Tri {o r} {A : Type o} (_<_ : A → A → Type r) (x y : A) : Type (o ⊔ r) where
   lt : x < y → Tri _<_ x y
@@ -207,51 +231,28 @@ module _ {o r} {A : Type o} {_<_ : A → A → Type r} where
   tri-rec rlt req rgt (gt x) = rgt
 
 --------------------------------------------------------------------------------
--- Reasoning
+-- Builders
 
-module StrictOrder-Reasoning {o r} (A : StrictOrder o r) where
-  open StrictOrder A
-
-  infix  1 begin-<_ begin-≤_
-  infixr 2 step-< step-≤ step-≡
-  infix  3 _<∎
-
-  data _IsRelatedTo_ : ⌞ A ⌟ → ⌞ A ⌟ → Type (o ⊔ r) where
-    done : ∀ x → x IsRelatedTo x
-    strong : ∀ x y → x < y → x IsRelatedTo y
-    weak : ∀ x y → x ≤ y → x IsRelatedTo y
-
-  Strong : ∀ {x y} → x IsRelatedTo y → Type
-  Strong (done _) = ⊥
-  Strong (strong _ _ _) = ⊤
-  Strong (weak _ _ _) = ⊥
-
-  begin-<_ : ∀ {x y} → (x<y : x IsRelatedTo y) → {Strong x<y} → x < y
-  begin-< (strong _ _ x<y) = x<y
-
-  begin-≤_ : ∀ {x y} → (x≤y : x IsRelatedTo y) → x ≤ y
-  begin-≤ done x = inl refl
-  begin-≤ strong x y x<y = inr x<y
-  begin-≤ weak x y x≤y = x≤y
-
-  step-< : ∀ x {y z} → y IsRelatedTo z → x < y → x IsRelatedTo z
-  step-< x (done y) x<y = strong x y x<y
-  step-< x (strong y z y<z) x<y = strong x z (trans x<y y<z)
-  step-< x (weak y z y≤z) x<y = strong x z (≤-transr x<y y≤z)
-
-  step-≤ : ∀ x {y z} → y IsRelatedTo z → x ≤ y → x IsRelatedTo z
-  step-≤ x (done y) x≤y = weak x y x≤y
-  step-≤ x (strong y z y<z) x≤y = strong x z (≤-transl x≤y y<z)
-  step-≤ x (weak y z y≤z) x≤y = weak x z (≤-trans x≤y y≤z)
-
-  step-≡ : ∀ x {y z} → y IsRelatedTo z → x ≡ y → x IsRelatedTo z
-  step-≡ x (done y) p = subst (x IsRelatedTo_) p (done x)
-  step-≡ x (strong y z y<z) p = strong x z (subst (_< z) (sym p) y<z)
-  step-≡ x (weak y z y≤z) p = weak x z (subst (_≤ z) (sym p) y≤z)
-
-  _<∎ : ∀ x → x IsRelatedTo x
-  _<∎ x = done x
-
-  syntax step-< x q p = x <⟨ p ⟩ q
-  syntax step-≤ x q p = x ≤⟨ p ⟩ q
-  syntax step-≡ x q p = x ≡̇⟨ p ⟩ q
+record make-strict-order {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where
+  no-eta-equality
+  field
+    _<_ : A → A → Type r
+    <-irrefl : ∀ {x} → x < x → ⊥
+    <-trans : ∀ {x y z} → x < y → y < z → x < z
+    <-thin : ∀ {x y} → is-prop (x < y)
+    has-is-set : is-set A
+    
+to-strict-order
+  : ∀ {o r} {A : Type o}
+  → make-strict-order r A → Strict-order o r
+to-strict-order {A = A} mk .Strict-order.Ob = A
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on._<_ = 
+  make-strict-order._<_ mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl =
+  make-strict-order.<-irrefl mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-trans =
+  make-strict-order.<-trans mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-thin =
+  make-strict-order.<-thin mk
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.has-is-set =
+  make-strict-order.has-is-set mk

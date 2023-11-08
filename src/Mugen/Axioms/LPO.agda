@@ -36,24 +36,24 @@ LEM A = ∥ Dec A ∥
 -- This can be shown to arise from the markov principle for pointwise equality
 -- of 'f' and 'g', along with LEM for the statement '∀ n → f n ≡ g n'.
 
-module _ {o r} (A : StrictOrder o r) (_≡?_ : Discrete ⌞ A ⌟) where
-  open StrictOrder A
+module _ {o r} (A : Strict-order o r) (_≡?_ : Discrete ⌞ A ⌟) where
+  open Strict-order A
 
   LPO : Type (o ⊔ r)
-  LPO = ∀ {f g : Nat → ⌞ A ⌟} → (∀ n → A [ f n ≤ g n ]) → f ≡ g ⊎ ∃[ n ∈ Nat ] (A [ f n < g n ])
+  LPO = ∀ {f g : Nat → ⌞ A ⌟} → (∀ n → f n ≤ g n) → f ≡ g ⊎ ∃[ n ∈ Nat ] (f n < g n)
 
   Markov+LEM→LPO : (∀ (f g : Nat → ⌞ A ⌟) → Markov (λ n → f n ≡ g n))
                  → (∀ (f g : Nat → ⌞ A ⌟) → LEM (∀ n → f n ≡ g n))
                  → LPO
   Markov+LEM→LPO markov lem {f = f} {g = g} p = ∥-∥-rec (disjoint-⊎-is-prop f≡g-is-prop squash disjoint) (λ x → x) $ do
     all-eq? ← lem f g
-    pure $ case (λ _ → f ≡ g ⊎ ∃[ n ∈ Nat ] (A [ f n < g n ]))
+    pure $ Dec-elim _
       (λ all-eq → inl (funext all-eq))
       (λ ¬all-eq → inr (∥-∥-map (Σ-map₂ (λ {n} fx≠gx → [ (λ fx≡gx → absurd $ fx≠gx fx≡gx) , (λ fx<gx → fx<gx) ] (p n))) $ markov f g (λ n → f n ≡? g n) ¬all-eq))
       all-eq?
     where
-      disjoint : (f ≡ g) × ∃[ n ∈ Nat ] (A [ f n < g n ]) → ⊥
-      disjoint (f≡g , ∃fn<gn) = ∥-∥-rec (hlevel 1) (λ { (n , fn<gn) → irrefl (≡-transl (sym (happly f≡g n)) fn<gn) }) ∃fn<gn
+      disjoint : (f ≡ g) × ∃[ n ∈ Nat ] (f n < g n) → ⊥
+      disjoint (f≡g , ∃fn<gn) = ∥-∥-rec (hlevel 1) (λ { (n , fn<gn) → <-irrefl (≡-transl (sym (happly f≡g n)) fn<gn) }) ∃fn<gn
 
       f≡g-is-prop : is-prop (f ≡ g)
-      f≡g-is-prop p q = is-set→squarep (λ i j → Π-is-hlevel 2 λ n → ⌞ A ⌟-set) (λ j → f) p q (λ j → g)
+      f≡g-is-prop p q = is-set→squarep (λ i j → Π-is-hlevel 2 λ n → has-is-set) (λ j → f) p q (λ j → g)

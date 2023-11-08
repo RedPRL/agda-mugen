@@ -173,11 +173,11 @@ bwd-fwd (xs #r x) =
   bwd (fwd xs ++ ys)        ≡˘⟨ ap bwd (⊗▷-fwd xs ys) ⟩
   bwd (xs ⊗▷ ys) ∎
 
-List≃Bwd : List A ≃ Bwd A
-List≃Bwd = Iso→Equiv (bwd , iso fwd bwd-fwd fwd-bwd)
+Bwd≃List : Bwd A ≃ List A
+Bwd≃List = Iso→Equiv (fwd , iso bwd fwd-bwd bwd-fwd)
 
 Bwd-is-hlevel : (n : Nat) → is-hlevel A (2 + n) → is-hlevel (Bwd A) (2 + n)
-Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) List≃Bwd (List-is-hlevel n ahl)
+Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) Bwd≃List (List-is-hlevel n ahl)
   where open ListPath
 
 instance
