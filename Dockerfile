@@ -21,16 +21,12 @@ RUN \
   cabal v1-install --bindir=/dist --datadir=/dist --datasubdir=/dist/data --enable-executable-static
 
 ####################################################################################################
-# Stage 2: Agda and 1lab (everything except agda-mugan)
+# Stage 2: Download 1lab (everything except agda-mugan)
 ####################################################################################################
 
-FROM alpine:edge AS ci
+FROM alpine AS onelab
 
-# We need gmp and ncurses because GHC doesn't statically link agda against GMP.
-# We also need git to check out 1lab.
-RUN apk add --no-cache gmp ncurses git
-
-COPY --from=agda /dist /dist
+RUN apk add --no-cache git
 
 WORKDIR /dist/1lab
 RUN \
@@ -42,9 +38,10 @@ RUN echo "/dist/1lab/1lab.agda-lib" > /dist/libraries
 
 ###############################################################################################################
 
-FROM alpine:edge
+FROM scratch
 
-COPY --from=ci /dist /dist
+COPY --from=agda /dist /dist
+COPY --from=onelab /dist /dist
 
 WORKDIR /build/agda-mugen
 COPY ["src", "/build/agda-mugen/src"]
