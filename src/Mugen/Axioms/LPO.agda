@@ -57,4 +57,4 @@ module _ {o r} (A : Strict-order o r) (_≡?_ : Discrete ⌞ A ⌟) where
       disjoint (f≡g , ∃fn<gn) = ∥-∥-rec (hlevel 1) (λ { (n , fn<gn) → <-not-equal fn<gn (happly f≡g n) }) ∃fn<gn
 
       f≡g-is-prop : is-prop (f ≡ g)
-      f≡g-is-prop p q = is-set→squarep (λ i j → Π-is-hlevel 2 λ n → has-is-set) (λ j → f) p q (λ j → g)
+      f≡g-is-prop = Π-is-hlevel 2 (λ n → has-is-set) f g
