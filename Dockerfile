@@ -1,14 +1,22 @@
 ####################################################################################################
+# Stage 0: versions of Agda and 1lab
+####################################################################################################
+
+ARG GHC_VERSION=9.4.7
+ARG AGDA_VERSION=5c8116227e2d9120267aed43f0e545a65d9c2fe2
+ARG ONELAB_VERSION=3f461009858d64a93d5d2b687ecf02504b9848a7
+
+####################################################################################################
 # Stage 1: building everything except agda-mugen
 ####################################################################################################
 
-FROM fossa/haskell-static-alpine:ghc-9.4.7 AS agda
+FROM fossa/haskell-static-alpine:ghc-${GHC_VERSION} AS agda
 
 WORKDIR /build/agda
 RUN \
   git init && \
   git remote add origin https://github.com/agda/agda.git && \
-  git fetch --depth 1 origin 5c8116227e2d9120267aed43f0e545a65d9c2fe2 && \
+  git fetch --depth 1 origin "${AGDA_VERSION}" && \
   git checkout FETCH_HEAD
 
 # We build Agda and place it in /dist along with its data files.
@@ -32,7 +40,7 @@ WORKDIR /dist/1lab
 RUN \
   git init && \
   git remote add origin https://github.com/plt-amy/1lab && \
-  git fetch --depth 1 origin ac6f81089a261e9c0d2ce3ede37a4a09764cb2ad && \
+  git fetch --depth 1 origin "${ONELAB_VERSION}" && \
   git checkout FETCH_HEAD
 RUN echo "/dist/1lab/1lab.agda-lib" > /dist/libraries
 
