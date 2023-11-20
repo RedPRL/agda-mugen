@@ -33,6 +33,9 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   ≡-transr : ∀ {x y z} → x < y → y ≡ z → x < z
   ≡-transr x<y y≡z = subst (λ ϕ → _ < ϕ) y≡z x<y
 
+  <-not-equal : ∀ {x y} → x < y → x ≡ y → ⊥
+  <-not-equal x<y x≡y = <-irrefl $ subst (λ ϕ → ϕ < _) x≡y x<y
+
   ≤-transl : ∀ {x y z} → x ≤ y → y < z → x < z
   ≤-transl (inl x≡y) y<z = ≡-transl x≡y y<z
   ≤-transl (inr x<y) y<z = <-trans x<y y<z
@@ -119,7 +122,7 @@ module _ {o r o' r'} (X : Strict-order o r) (Y : Strict-order o' r') where
     module X = Strict-order X
     module Y = Strict-order Y
 
-  is-strictly-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ r') 
+  is-strictly-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ r')
   is-strictly-monotone f = ∀ {x y} →  x X.< y → f x Y.< f y
 
   is-strictly-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-strictly-monotone f)
@@ -128,7 +131,7 @@ module _ {o r o' r'} (X : Strict-order o r) (Y : Strict-order o' r') where
 record Strictly-monotone
   {o o' r r'}
   (X : Strict-order o r) (Y : Strict-order o' r')
-  : Type (o ⊔ o' ⊔ r ⊔ r') 
+  : Type (o ⊔ o' ⊔ r ⊔ r')
   where
   no-eta-equality
   private
@@ -241,12 +244,12 @@ record make-strict-order {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) wher
     <-trans : ∀ {x y z} → x < y → y < z → x < z
     <-thin : ∀ {x y} → is-prop (x < y)
     has-is-set : is-set A
-    
+
 to-strict-order
   : ∀ {o r} {A : Type o}
   → make-strict-order r A → Strict-order o r
 to-strict-order {A = A} mk .Strict-order.Ob = A
-to-strict-order mk .Strict-order.strict-order-on .Strict-order-on._<_ = 
+to-strict-order mk .Strict-order.strict-order-on .Strict-order-on._<_ =
   make-strict-order._<_ mk
 to-strict-order mk .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl =
   make-strict-order.<-irrefl mk
