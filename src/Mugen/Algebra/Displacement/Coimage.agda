@@ -54,10 +54,10 @@ module Coim-of-displacement-hom
   -- Algebra
 
   _⊗coim_ : X/f → X/f → X/f
-  _⊗coim_ = Coim-map₂ (λ x y → x X.⊗ y) λ w x y z p q → 
-    (pres-⊗ w y ∙ ap₂ Y._⊗_ p q ∙ sym (pres-⊗ x z)) 
+  _⊗coim_ = Coim-map₂ (λ x y → x X.⊗ y) λ w x y z p q →
+    (pres-⊗ w y ∙ ap₂ Y._⊗_ p q ∙ sym (pres-⊗ x z))
 
-  εcoim : X/f 
+  εcoim : X/f
   εcoim = inc X.ε
 
   ⊗coim-idl : ∀ x → εcoim ⊗coim x ≡ x
@@ -167,7 +167,7 @@ module _ {o r} {X Y : Displacement-algebra o r} {f : Displacement-algebra-hom X 
           (Y-joins.universal (coim≤→Y≤ x≤z) (coim≤→Y≤ y≤z))
 
       joins : has-joins (Coim-of-displacement-hom f)
-      joins .has-joins.join = coim-join 
+      joins .has-joins.join = coim-join
       joins .has-joins.joinl {x} {y} =
         Coim-elim-prop₂ {C = λ x y → x coim≤ (coim-join x y)}
           (λ x y → X/f.≤-thin) coim-joinl x y

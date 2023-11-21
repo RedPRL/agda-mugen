@@ -68,7 +68,7 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
   merge-fin : FinSupportList → FinSupportList → FinSupportList
   merge-fin xs ys .FinSupportList.support = merge (xs .support) (ys .support)
   merge-fin xs ys .FinSupportList.is-ε = ap₂ _⊗_ (xs .is-ε) (ys .is-ε) ∙ 𝒟.idl
-  
+
   empty-fin : FinSupportList
   empty-fin .support = empty
   empty-fin .is-ε = refl
@@ -126,7 +126,7 @@ module _
   where
   open FinSupport 𝒟 cmp
   open FinSupportList
-  
+
   FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (NearlyConstant 𝒟 cmp)
   FinSupport⊆NearlyConstant = to-displacement-subalgebra mk where
     mk : make-displacement-subalgebra _ _

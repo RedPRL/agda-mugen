@@ -43,13 +43,13 @@ module _ {o r} {A B : Strict-order o r} {b : ⌞ B ⌟} where
        → (a3≡a4 : fst y ≡ fst z) → (b3<b4 : snd y B.< snd z)
        → P (biased a1≡a2 b1<b2) (biased a3≡a4 b3<b4))
     → (∀ (a1≡a2 : fst w ≡ fst x) → (b1<b2 : snd w B.< snd x)
-       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z) 
+       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z)
        → P (biased a1≡a2 b1<b2) (centred a3<a4 b3≤b b≤b4))
     → (∀ (a1<a2 : fst w A.< fst x) → (b1≤b : snd w B.≤ b) → (b≤b2 : b B.≤ snd x)
        → (a3≡a4 : fst y ≡ fst z) → (b3<b4 : snd y B.< snd z)
        → P (centred a1<a2 b1≤b b≤b2) (biased a3≡a4 b3<b4))
     → (∀ (a1<a2 : fst w A.< fst x) → (b1≤b : snd w B.≤ b) → (b≤b2 : b B.≤ snd x)
-       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z) 
+       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z)
        → P (centred a1<a2 b1≤b b≤b2) (centred a3<a4 b3≤b b≤b4))
     → (∀ p q → is-prop (P p q))
     → ∀ p q → P p q
@@ -100,4 +100,4 @@ A ⋉ B [ b ] = to-strict-order order where
   order .make-strict-order.<-irrefl {x} = ⋉-irrefl x
   order .make-strict-order.<-trans {x} {y} {z} = ⋉-trans x y z
   order .make-strict-order.<-thin = trunc
-  order .make-strict-order.has-is-set = ×-is-hlevel 2 A.has-is-set B.has-is-set 
+  order .make-strict-order.has-is-set = ×-is-hlevel 2 A.has-is-set B.has-is-set

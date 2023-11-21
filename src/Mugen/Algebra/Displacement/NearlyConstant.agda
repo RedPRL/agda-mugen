@@ -95,7 +95,7 @@ module NearlyConst
 
   -- Helper type for motives.
   is-compact-case : ∀ {x base : ⌞ 𝒟 ⌟} → Dec (x ≡ base) → Type
-  is-compact-case p = 
+  is-compact-case p =
     Dec-elim _
       (λ _ → ⊥)
       (λ _ → ⊤)
@@ -103,7 +103,7 @@ module NearlyConst
 
   -- Propositional computation helpers for 'is-compact'
   ¬base-is-compact : ∀ xs {x base} → (x ≡ base → ⊥) → is-compact base (xs #r x)
-  ¬base-is-compact xs {x = x} {base = base} ¬base with x ≡? base 
+  ¬base-is-compact xs {x = x} {base = base} ¬base with x ≡? base
   ... | yes base! = ¬base base!
   ... | no _ = tt
 
@@ -184,9 +184,9 @@ module NearlyConst
 
   --------------------------------------------------------------------------------
   -- Vanishing Lists
-  -- 
+  --
   -- We say a list vanishes relative to some base 'b' if it /only/ contains 'b'.
-  -- Furthermore, we say a /backward/ list compacts relative to some base if 
+  -- Furthermore, we say a /backward/ list compacts relative to some base if
   -- it's compaction is equal to [].
   --
   -- These conditions may seems somewhat redundant. Why not define one as
@@ -247,14 +247,14 @@ module NearlyConst
   compacts-head-∷ base x xs compacts =
     vanish-head-∷ base x xs $
     subst (vanishes base) (fwd-bwd (x ∷ xs)) $
-    vanishes-fwd base (bwd (x ∷ xs)) compacts 
+    vanishes-fwd base (bwd (x ∷ xs)) compacts
 
   compacts-tail-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → compact base (bwd xs) ≡ []
   compacts-tail-∷ base x xs compacts =
     compacts-bwd base xs $
     vanish-tail-∷ base x xs $
     subst (vanishes base) (fwd-bwd (x ∷ xs)) $
-    vanishes-fwd base (bwd (x ∷ xs)) compacts 
+    vanishes-fwd base (bwd (x ∷ xs)) compacts
 
   compact-vanishr-++r : ∀ {base} xs ys → compact base ys ≡ [] → compact base (xs ++r ys) ≡ compact base xs
   compact-vanishr-++r {base = base} xs [] ys-vanish = refl
@@ -316,7 +316,7 @@ module NearlyConst
 
   --------------------------------------------------------------------------------
   -- Merging Lists
-  -- 
+  --
   -- We start by defining how to merge two lists without performing
   -- compaction.
 
@@ -463,7 +463,7 @@ module NearlyConst
       ∎
   ... | no ¬base =
     refl
- 
+
   --------------------------------------------------------------------------------
   -- Compact Support Lists
   --
@@ -556,7 +556,7 @@ module NearlyConst
     compact (xs .base) (xs .elts)
       ≡⟨ elts-compact xs ⟩
     xs .elts ∎
-  
+
   -- Lifting of 'merge-assoc' to support lists.
   merge-assoc : ∀ xs ys zs → merge xs (merge ys zs) ≡ merge (merge xs ys) zs
   merge-assoc xs ys zs = support-list-path 𝒟.associative $
@@ -704,19 +704,19 @@ module NearlyConst
   ... | lt _ = pf
   ... | eq _ = pf
   ... | gt y<x = lift (𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
-  merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inr x<y) pf with cmp x y 
+  merge-list≤-step≤ _ _ _ _ {x = x} {y = y} (inr x<y) pf with cmp x y
   ... | lt _ = pf
   ... | eq _ = pf
   ... | gt y<x = lift (𝒟.<-asym x<y y<x)
 
   merge-list<-step< : ∀ b1 xs b2 ys {x y} → x < y → merge-list≤ b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
-  merge-list<-step< _ _ _ _ {x = x} {y = y} x<y pf with cmp x y 
+  merge-list<-step< _ _ _ _ {x = x} {y = y} x<y pf with cmp x y
   ... | lt _ = pf
   ... | eq x≡y = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
   ... | gt y<x = lift (𝒟.<-asym x<y y<x)
 
   merge-list<-step≡ : ∀ b1 xs b2 ys {x y} → x ≡ y → merge-list< b1 xs b2 ys → tri-rec (merge-list≤ b1 xs b2 ys) (merge-list< b1 xs b2 ys) (Lift _ ⊥) (cmp x y)
-  merge-list<-step≡ _ _ _ _ {x = x} {y = y} x≡y pf with cmp x y 
+  merge-list<-step≡ _ _ _ _ {x = x} {y = y} x≡y pf with cmp x y
   ... | lt x<y = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
   ... | eq _ = pf
   ... | gt y<x = lift (𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
@@ -847,20 +847,20 @@ module NearlyConst
       ... | lt x<b2 = merge-list<-step< b1 xs b3 [] (𝒟.<-trans x<b2 b2<b3) (go≤ xs [] [] xs<ys (inr b2<b3))
       ... | eq x≡b2 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡b2 b2<b3) (go≤ xs [] [] (weaken-< b1 xs b2 [] xs<ys) (inr b2<b3))
       go (x ∷ xs) [] (z ∷ zs) xs<ys ys<zs with cmp x b2 | cmp b2 z
-      ... | lt x<b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<b2 b2<z) (go≤ xs [] zs xs<ys ys<zs) 
-      ... | lt x<b2 | eq b2≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<b2 b2≡z) (go≤ xs [] zs xs<ys (weaken-< b2 [] b3 zs ys<zs))  
-      ... | eq x≡b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡b2 b2<z) (go≤ xs [] zs (weaken-< b1 xs b2 [] xs<ys) ys<zs)  
-      ... | eq x≡b2 | eq b2≡z = merge-list<-step≡ b1 xs b3 zs (x≡b2 ∙ b2≡z) (go xs [] zs xs<ys ys<zs)  
+      ... | lt x<b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<b2 b2<z) (go≤ xs [] zs xs<ys ys<zs)
+      ... | lt x<b2 | eq b2≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<b2 b2≡z) (go≤ xs [] zs xs<ys (weaken-< b2 [] b3 zs ys<zs))
+      ... | eq x≡b2 | lt b2<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡b2 b2<z) (go≤ xs [] zs (weaken-< b1 xs b2 [] xs<ys) ys<zs)
+      ... | eq x≡b2 | eq b2≡z = merge-list<-step≡ b1 xs b3 zs (x≡b2 ∙ b2≡z) (go xs [] zs xs<ys ys<zs)
       go (x ∷ xs) (y ∷ ys) [] xs<ys ys<zs with cmp x y | cmp y b3
-      ... | lt x<y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.<-trans x<y y<b3) (go≤ xs ys [] xs<ys ys<zs) 
-      ... | lt x<y | eq y≡b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transr x<y y≡b3) (go≤ xs ys [] xs<ys (weaken-< b2 ys b3 [] ys<zs)) 
-      ... | eq x≡y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡y y<b3) (go≤ xs ys [] (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
-      ... | eq x≡y | eq y≡b3 = merge-list<-step≡ b1 xs b3 [] (x≡y ∙ y≡b3) (go xs ys [] xs<ys ys<zs) 
+      ... | lt x<y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.<-trans x<y y<b3) (go≤ xs ys [] xs<ys ys<zs)
+      ... | lt x<y | eq y≡b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transr x<y y≡b3) (go≤ xs ys [] xs<ys (weaken-< b2 ys b3 [] ys<zs))
+      ... | eq x≡y | lt y<b3 = merge-list<-step< b1 xs b3 [] (𝒟.≡-transl x≡y y<b3) (go≤ xs ys [] (weaken-< b1 xs b2 ys xs<ys) ys<zs)
+      ... | eq x≡y | eq y≡b3 = merge-list<-step≡ b1 xs b3 [] (x≡y ∙ y≡b3) (go xs ys [] xs<ys ys<zs)
       go (x ∷ xs) (y ∷ ys) (z ∷ zs) xs<ys ys<zs with cmp x y | cmp y z
-      ... | lt x<y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<y y<z) (go≤ xs ys zs xs<ys ys<zs) 
-      ... | lt x<y | eq y≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<y y≡z) (go≤ xs ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs)) 
-      ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs) 
-      ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs) 
+      ... | lt x<y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.<-trans x<y y<z) (go≤ xs ys zs xs<ys ys<zs)
+      ... | lt x<y | eq y≡z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transr x<y y≡z) (go≤ xs ys zs xs<ys (weaken-< b2 ys b3 zs ys<zs))
+      ... | eq x≡y | lt y<z = merge-list<-step< b1 xs b3 zs (𝒟.≡-transl x≡y y<z) (go≤ xs ys zs (weaken-< b1 xs b2 ys xs<ys) ys<zs)
+      ... | eq x≡y | eq y≡z = merge-list<-step≡ b1 xs b3 zs (x≡y ∙ y≡z) (go xs ys zs xs<ys ys<zs)
 
   --------------------------------------------------------------------------------
   -- Heterogenous Compositions
@@ -919,7 +919,7 @@ module NearlyConst
       ... | eq x≡b2 = step< xs [] [] (𝒟.≡-transl x≡b2 b2<b3) xs≤ys (inr b2<b3)
       go (x ∷ xs) [] (z ∷ zs) xs≤ys ys<zs with cmp x b2 | cmp b2 z
       ... | lt x<b2 | lt b2<z = step< xs [] zs (𝒟.<-trans x<b2 b2<z) xs≤ys ys<zs
-      ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys (weaken-< b2 [] b3 zs ys<zs) 
+      ... | lt x<b2 | eq b2≡z = step< xs [] zs (𝒟.≡-transr x<b2 b2≡z) xs≤ys (weaken-< b2 [] b3 zs ys<zs)
       ... | eq x≡b2 | lt b2<z = step< xs [] zs (𝒟.≡-transl x≡b2 b2<z) xs≤ys ys<zs
       ... | eq x≡b2 | eq b2≡z = step≤ xs [] zs (inl (x≡b2 ∙ b2≡z)) xs≤ys ys<zs
       go (x ∷ xs) (y ∷ ys) [] xs≤ys ys<zs with cmp x y | cmp y b3
@@ -1041,7 +1041,7 @@ module NearlyConst
         |> ⊎-mapl $ λ p →
           let ys≡[] : ys ≡ []
               ys≡[] = bwd-inj $ ap elts (sym p)
-              
+
               b1≡b2 : b1 ≡ b2
               b1≡b2 = ap base p
 
@@ -1055,7 +1055,7 @@ module NearlyConst
         |> ⊎-mapl $ λ p →
           let xs≡[] : xs ≡ []
               xs≡[] = bwd-inj $ ap elts p
-              
+
               b1≡b2 : b1 ≡ b2
               b1≡b2 = ap base p
 
@@ -1299,7 +1299,7 @@ module NearlyConst
     index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n)         ≡⟨ ap (λ ϕ → index b (fwd (compact b ϕ)) (suc n)) (◁⊗-bwd ([] #r x) xs) ⟩
     index b (fwd (compact b (([] #r x) ++r bwd xs))) (suc n)    ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
     index b (fwd (compact b (([] #r x) ++r (cs #r c)))) (suc n) ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-done (([] #r x) ++r cs) c≠base) ⟩
-    index b (fwd ((([] #r x) ++r cs) #r c)) (suc n)             ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (cs #r c)) ⟩     
+    index b (fwd ((([] #r x) ++r cs) #r c)) (suc n)             ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (cs #r c)) ⟩
     index b (fwd (cs #r c)) n                                   ≡˘⟨ ap (λ ϕ → index b (fwd ϕ) n) p ⟩
     index b (fwd (compact b (bwd xs))) n                        ≡⟨ index-compact b xs n ⟩
     index b xs n ∎

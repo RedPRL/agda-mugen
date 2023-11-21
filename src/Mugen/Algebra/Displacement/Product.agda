@@ -163,7 +163,7 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
 
       ⊗×-right-invariant : ∀ x y z → x ⊗×≤ y → (x ⊗× z) ⊗×≤ (y ⊗× z)
       ⊗×-right-invariant x y z (both≤ x1≤y1 x2≤y2) = both≤ (𝒟₁-ordered-monoid.right-invariant x1≤y1) (𝒟₂-ordered-monoid.right-invariant x2≤y2)
-        
+
   --------------------------------------------------------------------------------
   -- Joins
 

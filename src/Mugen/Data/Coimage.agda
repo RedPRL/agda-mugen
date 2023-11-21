@@ -127,7 +127,7 @@ Coim-map₂ : ∀ {f : A → B}
             → Coim f → Coim f → Coim f
 Coim-map₂ h h-pres = Coim-rec₂ squash
   (λ x y → inc (h x y))
-  (λ w x y z p q → glue (h w y) (h x z) (h-pres w x y z p q)) 
+  (λ w x y z p q → glue (h w y) (h x z) (h-pres w x y z p q))
 
 
 module Coim-Path (f : A → B) (B-set : is-set B) where
@@ -157,4 +157,4 @@ module Coim-Path (f : A → B) (B-set : is-set B) where
 
   Coim-effectful : ∀ {x y} → Path (Coim f) (inc x) (inc y) → f x ≡ f y
   Coim-effectful = Coim-path
-          
+

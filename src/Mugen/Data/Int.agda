@@ -336,8 +336,8 @@ diff-negsuc-< zero zero = tt
 diff-negsuc-< zero (suc y) = <-suc y
 diff-negsuc-< (suc x) zero = tt
 diff-negsuc-< (suc x) (suc y) = begin-<
-  negsuc (suc y) <⟨ -1ℤ-< (negsuc y) ⟩ 
-  negsuc y       <⟨ diff-negsuc-< x y ⟩ 
+  negsuc (suc y) <⟨ -1ℤ-< (negsuc y) ⟩
+  negsuc y       <⟨ diff-negsuc-< x y ⟩
   diff x y       <∎
 
 diff-left-invariant : ∀ x y z → z < y → diff x y <ℤ diff x z
@@ -425,7 +425,7 @@ negate-anti-mono (suc x) (suc y) (s≤s x<y) = x<y
 
 ℤ-Strict-order : Strict-order lzero lzero
 ℤ-Strict-order = to-strict-order mk where
-  mk : make-strict-order _ _ 
+  mk : make-strict-order _ _
   mk .make-strict-order._<_ = _<ℤ_
   mk .make-strict-order.<-irrefl = <ℤ-irrefl _
   mk .make-strict-order.<-trans = <ℤ-trans _ _ _

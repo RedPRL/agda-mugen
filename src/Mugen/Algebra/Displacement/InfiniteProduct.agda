@@ -31,13 +31,13 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   ε∞ _ = ε
 
   ⊗∞-associative : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → (f ⊗∞ (g ⊗∞ h)) ≡ ((f ⊗∞ g) ⊗∞ h)
-  ⊗∞-associative f g h = funext λ x → 𝒟.associative 
+  ⊗∞-associative f g h = funext λ x → 𝒟.associative
 
   ⊗∞-idl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → (ε∞ ⊗∞ f) ≡ f
-  ⊗∞-idl f = funext λ x → 𝒟.idl 
+  ⊗∞-idl f = funext λ x → 𝒟.idl
 
   ⊗∞-idr : ∀ (f : Nat → ⌞ 𝒟 ⌟) → (f ⊗∞ ε∞) ≡ f
-  ⊗∞-idr f = funext λ x → 𝒟.idr 
+  ⊗∞-idr f = funext λ x → 𝒟.idr
 
   --------------------------------------------------------------------------------
   -- Algebra
@@ -64,7 +64,7 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
     field
       ≤-everywhere : ∀ n →  f n 𝒟.≤ g n
       <-somewhere  : ∃[ n ∈ Nat ] (f n 𝒟.< g n)
- 
+
   open _inf<_ public
 
   inf≤-everywhere : ∀ {f g} → non-strict _inf<_ f g → ∀ n → f n 𝒟.≤ g n
@@ -78,7 +78,7 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   inf<-trans f g h f<g g<h .≤-everywhere n = 𝒟.≤-trans (≤-everywhere f<g n) (≤-everywhere g<h n)
   inf<-trans f g h f<g g<h .<-somewhere = ∥-∥-map (λ { (n , fn<gn) → n , 𝒟.≤-transr fn<gn (≤-everywhere g<h n) }) (<-somewhere f<g)
 
-  inf<-is-prop : ∀ f g  → is-prop (f inf< g) 
+  inf<-is-prop : ∀ f g  → is-prop (f inf< g)
   inf<-is-prop f g f<g f<g′ i .≤-everywhere n = 𝒟.≤-thin (≤-everywhere f<g n) (≤-everywhere f<g′ n) i
   inf<-is-prop f g f<g f<g′ i .<-somewhere = squash (<-somewhere f<g) (<-somewhere f<g′) i
 

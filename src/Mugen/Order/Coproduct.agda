@@ -26,7 +26,7 @@ module Strict-order-coproduct
   inl x ⊕≤ inl y = x A.≤ y
   inl x ⊕≤ inr y = Lift _ ⊥
   inr x ⊕≤ inl y = Lift _ ⊥
-  inr x ⊕≤ inr y = x B.≤ y 
+  inr x ⊕≤ inr y = x B.≤ y
 
   from-⊕≤ : (x y : ⌞ A ⌟ ⊎ ⌞ B ⌟) → x ⊕≤ y → non-strict _⊕<_ x y
   from-⊕≤ (inl x) (inl y) (inl x≡y) = inl (ap inl x≡y)

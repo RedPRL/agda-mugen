@@ -91,7 +91,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Strict-order o r) (Ψ : Set (lsu
     ι₁-monic g h p = ext λ α →
       inl-inj (inr-inj (p #ₚ α))
 
-  
+
   --------------------------------------------------------------------------------
   -- Construction of the functor T
   -- Section 3.4, Lemma 3.8

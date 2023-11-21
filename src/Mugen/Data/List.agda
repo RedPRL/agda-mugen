@@ -22,7 +22,7 @@ module _ {ℓ} {A : Type ℓ} (aset : is-set A) where
 
   ++-is-magma : is-magma {A = List A} _++_
   ++-is-magma .has-is-set = ListPath.List-is-hlevel 0 aset
-  
+
   ++-is-semigroup : is-semigroup {A = List A} _++_
   ++-is-semigroup .has-is-magma = ++-is-magma
   ++-is-semigroup .associative {x} {y} {z} = sym (++-assoc x y z)
@@ -69,7 +69,7 @@ replicater (suc n) a = replicater n a #r a
 -- Left action of backwards lists upon lists.
 _⊗▷_ : Bwd A → List A → List A
 [] ⊗▷ ys = ys
-(xs #r x) ⊗▷ ys = xs ⊗▷ (x ∷ ys) 
+(xs #r x) ⊗▷ ys = xs ⊗▷ (x ∷ ys)
 
 -- Right action of lists upon backwards lists.
 _◁⊗_ : Bwd A → List A → Bwd A
@@ -182,7 +182,7 @@ Bwd-is-hlevel n ahl = is-hlevel≃ (2 + n) Bwd≃List (List-is-hlevel n ahl)
 
 instance
   H-Level-Bwd : ∀ {n} {k} → ⦃ H-Level A (2 + n) ⦄ → H-Level (Bwd A) (2 + n + k)
-  H-Level-Bwd {n = n} ⦃ x ⦄ = 
+  H-Level-Bwd {n = n} ⦃ x ⦄ =
     basic-instance (2 + n) (Bwd-is-hlevel n (H-Level.has-hlevel x))
 
 

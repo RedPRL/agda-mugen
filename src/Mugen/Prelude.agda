@@ -27,8 +27,8 @@ dec-map to from (yes p) = yes (to p)
 dec-map to from (no ¬p) = no (λ q → ¬p (from q))
 
 record
-  Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'} 
-    ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄ 
+  Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'}
+    ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄
     (F : A → B → Type ℓ'') : Typeω where
   field
     ⟦_⟧ʳ : ∀ {A B} → F A B → ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
@@ -41,7 +41,7 @@ open Right-actionlike ⦃...⦄ public
 
 subst₂ : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (P : A → B → Type ℓ₃) {a1 a2 : A} {b1 b2 : B}
        → a1 ≡ a2 → b1 ≡ b2 → P a1 b1 → P a2 b2
-subst₂ P p q x = subst (λ a → P a _) p (subst (λ b → P _ b) q x) 
+subst₂ P p q x = subst (λ a → P a _) p (subst (λ b → P _ b) q x)
 
 record Reveal_·_is_ {a b} {A : Type a} {B : A → Type b}
                     (f : (x : A) → B x) (x : A) (y : B x) :
@@ -60,4 +60,4 @@ x |> f = f x
 {-# INLINE _|>_ #-}
 
 over : ∀ {ℓ} {A : Type ℓ} {x y : A} {f : A → A} → (∀ x → f x ≡ x) → f x ≡ f y → x ≡ y
-over {x = x} {y = y} p q =  sym (p x) ·· q ·· p y 
+over {x = x} {y = y} p q =  sym (p x) ·· q ·· p y

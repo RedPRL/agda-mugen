@@ -49,7 +49,7 @@ NonPositive+⊆Int+ = to-displacement-subalgebra subalg where
   subalg : make-displacement-subalgebra NonPositive+ Int+
   subalg .make-displacement-subalgebra.into x = - x
   subalg .make-displacement-subalgebra.pres-ε = refl
-  subalg .make-displacement-subalgebra.pres-⊗ = +ℤ-negate 
+  subalg .make-displacement-subalgebra.pres-⊗ = +ℤ-negate
   subalg .make-displacement-subalgebra.strictly-mono x y = negate-anti-mono y x
   subalg .make-displacement-subalgebra.inj = negate-inj _ _
 

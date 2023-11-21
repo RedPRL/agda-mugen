@@ -29,14 +29,14 @@ record is-ordered-monoid
   field
     has-is-monoid : is-monoid ε _⊗_
     invariant     : ∀ {w x y z} → w ≤ y → x ≤ z → (w ⊗ x) ≤ (y ⊗ z)
-    
+
   open is-monoid has-is-monoid public
 
   left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
   left-invariant y≤z = invariant ≤-refl y≤z
 
   right-invariant : ∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z)
-  right-invariant x≤y = invariant x≤y ≤-refl 
+  right-invariant x≤y = invariant x≤y ≤-refl
 
 record Ordered-monoid-on {o r : Level} (A : Poset o r) : Type (o ⊔ lsuc r) where
   field

@@ -95,7 +95,7 @@ module _
     Iso→is-hlevel 1 eqv $
     Σ-is-hlevel 1 (Y.has-is-set _ _) λ _ →
     Π-is-hlevel² 1 λ _ _ → Y.has-is-set _ _
-    where unquoteDecl eqv = declare-record-iso eqv (quote is-displacement-algebra-hom) 
+    where unquoteDecl eqv = declare-record-iso eqv (quote is-displacement-algebra-hom)
 
   record Displacement-algebra-hom : Type (o ⊔ o' ⊔ r ⊔ r') where
     no-eta-equality
@@ -152,7 +152,7 @@ displacement-hom-∘ f g .strict-hom =
   strictly-monotone-∘ (f .strict-hom) (g .strict-hom)
 displacement-hom-∘ f g .has-is-displacement-hom .is-displacement-algebra-hom.pres-ε =
   ap (λ x → f # x) (g .pres-ε)
-  ∙ f .pres-ε 
+  ∙ f .pres-ε
 displacement-hom-∘ f g .has-is-displacement-hom .is-displacement-algebra-hom.pres-⊗ x y =
   ap (λ x → f # x) (g .pres-⊗ x y)
   ∙ f .pres-⊗ (g # x) (g # y)
@@ -302,7 +302,7 @@ module _
       identity  : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
       compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
       invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.< y → α a x A.< α a y
-  
+
   is-right-displacement-action-is-prop
     : (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
     → is-prop (is-right-displacement-action α)
@@ -311,7 +311,7 @@ module _
     Σ-is-hlevel 1 (Π-is-hlevel 1 λ _ → A.has-is-set _ _) λ _ →
     Σ-is-hlevel 1 (Π-is-hlevel³ 1 λ _ _ _ → A.has-is-set _ _) λ _ →
     Π-is-hlevel³ 1 λ _ _ _ → Π-is-hlevel 1 λ _ → A.<-thin
-    where unquoteDecl eqv = declare-record-iso eqv (quote is-right-displacement-action) 
+    where unquoteDecl eqv = declare-record-iso eqv (quote is-right-displacement-action)
 
 record Right-displacement-action
   {o r o′ r′}
@@ -326,7 +326,7 @@ record Right-displacement-action
 
 module _ where
   open Right-displacement-action
-  
+
   Right-displacement-action-path
     : ∀ {o r o′ r′}
     → {A : Strict-order o r} {B : Displacement-algebra o′ r′}
