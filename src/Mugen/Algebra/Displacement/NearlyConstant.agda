@@ -83,15 +83,6 @@ module NearlyConst
   is-compact base [] = Lift o ⊤
   is-compact base (xs #r x) = ¬ (x ≡ base)
 
-  -- Propositional computation helpers for 'is-compact'
-  ¬base-is-compact : ∀ xs {x base} → (x ≡ base → ⊥) → is-compact base (xs #r x)
-  ¬base-is-compact _ ¬base = ¬base
-  {-# INLINE ¬base-is-compact #-}
-
-  base-isnt-compact : ∀ xs {x base} → x ≡ base → is-compact base (xs #r x) → ⊥
-  base-isnt-compact xs base! is-compact = is-compact base!
-  {-# INLINE base-isnt-compact #-}
-
   -- A singleton list consisting of only 'b' is not compact.
   base-isnt-compact-∷ : ∀ {xs x base} → xs ≡ [] → x ≡ base → is-compact base (bwd (x ∷ xs)) → ⊥
   base-isnt-compact-∷ {xs = []} p base! is-compact = is-compact base!
@@ -148,7 +139,7 @@ module NearlyConst
   compact-is-compact base [] = lift tt
   compact-is-compact base (xs #r x) with x ≡? base
   ... | yes _ = compact-is-compact base xs
-  ... | no ¬base = ¬base-is-compact xs ¬base
+  ... | no ¬base = ¬base
 
   compact-last : ∀ base xs ys y → compact base xs ≡ ys #r y → y ≡ base → ⊥
   compact-last base [] ys y p y≡base = #r≠[] (sym p)
