@@ -76,12 +76,6 @@ module NearlyConst
 
   --------------------------------------------------------------------------------
   -- Compactness Predicate
-  --
-  -- This is defined as a recursive family to avoid
-  -- frustrating situations with indexed types + cubical.
-  -- Furthermore, we avoid with-abstraction for things
-  -- that we actually want to compute: Agda can get
-  -- very confused if we do that!
 
   -- A list is compact relative to a base 'b' if it has
   -- no trailing b's.
