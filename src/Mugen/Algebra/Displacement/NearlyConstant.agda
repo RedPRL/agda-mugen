@@ -76,60 +76,29 @@ module NearlyConst
 
   --------------------------------------------------------------------------------
   -- Compactness Predicate
-  --
-  -- This is defined as a recursive family to avoid
-  -- frustrating situations with indexed types + cubical.
-  -- Furthermore, we avoid with-abstraction for things
-  -- that we actually want to compute: Agda can get
-  -- very confused if we do that!
 
   -- A list is compact relative to a base 'b' if it has
   -- no trailing b's.
-  is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type
-  is-compact base [] = ⊤
-  is-compact base (xs #r x) =
-    Dec-elim _
-      (λ _ → ⊥)
-      (λ _ → ⊤)
-      (x ≡? base)
-
-  -- Helper type for motives.
-  is-compact-case : ∀ {x base : ⌞ 𝒟 ⌟} → Dec (x ≡ base) → Type
-  is-compact-case p =
-    Dec-elim _
-      (λ _ → ⊥)
-      (λ _ → ⊤)
-      p
-
-  -- Propositional computation helpers for 'is-compact'
-  ¬base-is-compact : ∀ xs {x base} → (x ≡ base → ⊥) → is-compact base (xs #r x)
-  ¬base-is-compact xs {x = x} {base = base} ¬base with x ≡? base
-  ... | yes base! = ¬base base!
-  ... | no _ = tt
-
-  base-isnt-compact : ∀ xs {x base} → x ≡ base → is-compact base (xs #r x) → ⊥
-  base-isnt-compact xs {x = x} {base = base} base! is-compact with x ≡? base
-  ... | no ¬base = ¬base base!
+  is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type o
+  is-compact base [] = Lift o ⊤
+  is-compact base (xs #r x) = ¬ (x ≡ base)
 
   -- A singleton list consisting of only 'b' is not compact.
   base-isnt-compact-∷ : ∀ {xs x base} → xs ≡ [] → x ≡ base → is-compact base (bwd (x ∷ xs)) → ⊥
-  base-isnt-compact-∷ {xs = []} p base! is-compact = base-isnt-compact [] base! is-compact
+  base-isnt-compact-∷ {xs = []} p base! is-compact = is-compact base!
   base-isnt-compact-∷ {xs = x ∷ xs} p base! is-compact = ∷≠[] p
 
   is-compact-++r : ∀ xs ys base → is-compact base (xs ++r ys) → is-compact base ys
-  is-compact-++r xs [] base compact = tt
-  is-compact-++r xs (ys #r x) base compact with x ≡? base
-  ... | no ¬base = tt
+  is-compact-++r xs [] base compact = lift tt
+  is-compact-++r xs (ys #r x) base compact = compact
 
   is-compact-tail : ∀ x xs base → is-compact base (bwd (x ∷ xs)) → is-compact base (bwd xs)
   is-compact-tail x xs base compact =
-     is-compact-++r ([] #r x) (bwd xs) base (subst (is-compact base) (bwd-++ (x ∷ []) xs) compact)
+    is-compact-++r ([] #r x) (bwd xs) base (subst (is-compact base) (bwd-++ (x ∷ []) xs) compact)
 
   is-compact-is-prop : ∀ base xs → is-prop (is-compact base xs)
   is-compact-is-prop base [] = hlevel 1
-  is-compact-is-prop base (xs #r x) with x ≡? base
-  ... | yes _ = hlevel 1
-  ... | no _ = hlevel 1
+  is-compact-is-prop base (xs #r x) = hlevel 1
 
   --------------------------------------------------------------------------------
   -- Compacting Lists
@@ -140,14 +109,11 @@ module NearlyConst
 
   -- Remove all trailing 'base' elements
   compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟
-  compact base [] = []
-  compact base (xs #r x) =
-    Dec-elim _
-      (λ _ → compact base xs)
-      (λ _ → xs #r x)
-      (x ≡? base)
-
   compact-case : ∀ xs {x base} → Dec (x ≡ base) → Bwd ⌞ 𝒟 ⌟
+
+  compact base [] = []
+  compact base (xs #r x) = compact-case xs (x ≡? base)
+
   compact-case xs {x = x} {base = base} p =
     Dec-elim _
       (λ _ → compact base xs)
@@ -167,14 +133,13 @@ module NearlyConst
 
   compact-compacted : ∀ base xs → is-compact base xs → compact base xs ≡ xs
   compact-compacted base [] is-compact = refl
-  compact-compacted base (xs #r x) is-compact with x ≡? base
-  ... | no _ = refl
+  compact-compacted base (xs #r x) is-compact = compact-done xs is-compact
 
   compact-is-compact : ∀ base xs → is-compact base (compact base xs)
-  compact-is-compact base [] = tt
+  compact-is-compact base [] = lift tt
   compact-is-compact base (xs #r x) with x ≡? base
   ... | yes _ = compact-is-compact base xs
-  ... | no ¬base = ¬base-is-compact xs ¬base
+  ... | no ¬base = ¬base
 
   compact-last : ∀ base xs ys y → compact base xs ≡ ys #r y → y ≡ base → ⊥
   compact-last base [] ys y p y≡base = #r≠[] (sym p)
@@ -516,7 +481,7 @@ module NearlyConst
   empty : SupportList
   empty .base = ε
   empty .elts = []
-  empty .compacted = tt
+  empty .compacted = lift tt
 
   -- Compacting a support lists elements does nothing
   elts-compact : ∀ xs → compact (xs .base) (xs .elts) ≡ xs .elts
@@ -1394,6 +1359,7 @@ module NearlyConst
   -- If a non-empty list denotes the function 'λ _ → b', then the list is not compact.
   all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
   all-base→¬compact b x [] p xs-compact with x ≡? b
+  ... | yes x=base = absurd (xs-compact x=base)
   ... | no x≠base = x≠base (p 0)
   all-base→¬compact b x (y ∷ xs) p xs-compact =
     all-base→¬compact b y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) b xs-compact)
@@ -1734,7 +1700,7 @@ module _
   open has-bottom 𝒟-bottom
 
   bot-list : SupportList
-  bot-list = support-list bot [] tt
+  bot-list = support-list bot [] (lift tt)
 
   bot-list-is-bottom : ∀ b xs → merge-list≤ bot [] b xs
   bot-list-is-bottom b [] = is-bottom b

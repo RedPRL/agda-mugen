@@ -42,16 +42,15 @@ module _ {o r} (A : Strict-order o r) (_≡?_ : Discrete ⌞ A ⌟) where
   LPO : Type (o ⊔ r)
   LPO = ∀ {f g : Nat → ⌞ A ⌟} → (∀ n → f n ≤ g n) → f ≡ g ⊎ ∃[ n ∈ Nat ] (f n < g n)
 
-  Markov+LEM→LPO : (∀ (f g : Nat → ⌞ A ⌟) → Markov (λ n → f n ≡ g n))
-                 → (∀ (f g : Nat → ⌞ A ⌟) → LEM (∀ n → f n ≡ g n))
-                 → LPO
-  Markov+LEM→LPO markov lem {f = f} {g = g} p = ∥-∥-rec (disjoint-⊎-is-prop f≡g-is-prop squash disjoint) (λ x → x) $ do
-    all-eq? ← lem f g
-    pure $ Dec-elim _
-      (λ all-eq → inl (funext all-eq))
-      (λ ¬all-eq → inr (∥-∥-map (Σ-map₂ (λ {n} fx≠gx → [ (λ fx≡gx → absurd $ fx≠gx fx≡gx) , (λ fx<gx → fx<gx) ] (p n))) $
-        markov f g (λ n → f n ≡? g n) ¬all-eq))
-      all-eq?
+  Markov+LEM→LPO
+    : (∀ (f g : Nat → ⌞ A ⌟) → Markov (λ n → f n ≡ g n))
+    → (∀ (f g : Nat → ⌞ A ⌟) → LEM (∀ n → f n ≡ g n))
+    → LPO
+  Markov+LEM→LPO markov lem {f = f} {g = g} p = ∥-∥-proj (disjoint-⊎-is-prop f≡g-is-prop squash disjoint) $ do
+    no ¬all-eq ← lem f g
+      where yes all-eq → pure $ inl $ funext all-eq
+    n , fn≠gn ← markov f g (λ n → f n ≡? g n) ¬all-eq
+    pure $ inr $ inc (n , [ (λ fn≡gn → absurd $ fn≠gn fn≡gn) , (λ fn<gn → fn<gn) ] (p n))
     where
       disjoint : (f ≡ g) × ∃[ n ∈ Nat ] (f n < g n) → ⊥
       disjoint (f≡g , ∃fn<gn) = ∥-∥-rec (hlevel 1) (λ { (n , fn<gn) → <-not-equal fn<gn (happly f≡g n) }) ∃fn<gn
