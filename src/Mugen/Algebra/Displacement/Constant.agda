@@ -30,7 +30,7 @@ module Constant
     open Strict-order-coproduct A B.strict-order
 
   _⊗α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟
-  _     ⊗α inl a = inl a
+  _ ⊗α inl a = inl a
   inl a ⊗α inr x = inl (⟦ α ⟧ʳ a x)
   inr x ⊗α inr y = inr (x B.⊗ y)
 
@@ -38,8 +38,8 @@ module Constant
   εα = inr B.ε
 
   ⊗α-associative : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → (x ⊗α (y ⊗α z)) ≡ ((x ⊗α y) ⊗α z)
-  ⊗α-associative _       _       (inl _) = refl
-  ⊗α-associative _       (inl _) (inr _) = refl
+  ⊗α-associative _ _ (inl _) = refl
+  ⊗α-associative _ (inl _) (inr _) = refl
   ⊗α-associative (inl a) (inr y) (inr z) = ap inl (sym (α.compat a y z))
   ⊗α-associative (inr x) (inr y) (inr z) = ap inr B.associative
 
@@ -66,7 +66,7 @@ module Constant
   -- Left Invariance
 
   ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y <α z → (x ⊗α y) <α (x ⊗α z)
-  ⊗α-left-invariant _       (inl y) (inl z) y<z = y<z
+  ⊗α-left-invariant _ (inl y) (inl z) y<z = y<z
   ⊗α-left-invariant (inl x) (inr y) (inr z) y<z = α.invariant x y z y<z
   ⊗α-left-invariant (inr x) (inr y) (inr z) y<z = B.left-invariant y<z
 
@@ -113,6 +113,6 @@ module ConstantProperties
       module B-ordered-monoid = is-ordered-monoid (B-ordered-monoid)
 
       ⊗α-right-invariant : ∀ x y z → x ≤α y → (x ⊗α z) ≤α (y ⊗α z)
-      ⊗α-right-invariant _       _       (inl z) x≤y = inl refl
+      ⊗α-right-invariant _ _ (inl z) x≤y = inl refl
       ⊗α-right-invariant (inl x) (inl y) (inr z) x≤y = α-right-invariant x≤y
       ⊗α-right-invariant (inr x) (inr y) (inr z) x≤y = B-ordered-monoid.right-invariant x≤y

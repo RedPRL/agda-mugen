@@ -42,9 +42,10 @@ module _ {o r} (A : Strict-order o r) (_≡?_ : Discrete ⌞ A ⌟) where
   LPO : Type (o ⊔ r)
   LPO = ∀ {f g : Nat → ⌞ A ⌟} → (∀ n → f n ≤ g n) → f ≡ g ⊎ ∃[ n ∈ Nat ] (f n < g n)
 
-  Markov+LEM→LPO : (∀ (f g : Nat → ⌞ A ⌟) → Markov (λ n → f n ≡ g n))
-                 → (∀ (f g : Nat → ⌞ A ⌟) → LEM (∀ n → f n ≡ g n))
-                 → LPO
+  Markov+LEM→LPO
+    : (∀ (f g : Nat → ⌞ A ⌟) → Markov (λ n → f n ≡ g n))
+    → (∀ (f g : Nat → ⌞ A ⌟) → LEM (∀ n → f n ≡ g n))
+    → LPO
   Markov+LEM→LPO markov lem {f = f} {g = g} p = ∥-∥-proj (disjoint-⊎-is-prop f≡g-is-prop squash disjoint) $ do
     no ¬all-eq ← lem f g
       where yes all-eq → pure $ inl $ funext all-eq
