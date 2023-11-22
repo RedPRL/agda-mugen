@@ -74,210 +74,279 @@ module NearlyConst
       (λ y<x → no λ x≡y → 𝒟.<-irrefl (𝒟.≡-transl x≡y y<x))
       (cmp x y)
 
-  --------------------------------------------------------------------------------
-  -- Compactness Predicate
+  module _ (base :  ⌞ 𝒟 ⌟) where
+    --------------------------------------------------------------------------------
+    -- Compactness Predicate
 
-  -- A list is compact relative to a base 'b' if it has
-  -- no trailing b's.
-  is-compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Type o
-  is-compact base [] = Lift o ⊤
-  is-compact base (xs #r x) = ¬ (x ≡ base)
+    -- A list is compact relative to a base 'b' if it has
+    -- no trailing b's.
+    is-compact : Bwd ⌞ 𝒟 ⌟ → Type o
+    is-compact [] = Lift o ⊤
+    is-compact (xs #r x) = ¬ (x ≡ base)
 
-  -- A singleton list consisting of only 'b' is not compact.
-  base-isnt-compact-∷ : ∀ {xs x base} → xs ≡ [] → x ≡ base → is-compact base (bwd (x ∷ xs)) → ⊥
-  base-isnt-compact-∷ {xs = []} p base! is-compact = is-compact base!
-  base-isnt-compact-∷ {xs = x ∷ xs} p base! is-compact = ∷≠[] p
+    -- A singleton list consisting of only 'b' is not compact.
+    base-isnt-compact-∷ : ∀ {xs x} → xs ≡ [] → x ≡ base → is-compact (bwd (x ∷ xs)) → ⊥
+    base-isnt-compact-∷ {xs = []} p base! is-compact = is-compact base!
+    base-isnt-compact-∷ {xs = x ∷ xs} p base! is-compact = ∷≠[] p
 
-  is-compact-++r : ∀ xs ys base → is-compact base (xs ++r ys) → is-compact base ys
-  is-compact-++r xs [] base compact = lift tt
-  is-compact-++r xs (ys #r x) base compact = compact
+    is-compact-++r : ∀ xs ys → is-compact (xs ++r ys) → is-compact ys
+    is-compact-++r xs [] compact = lift tt
+    is-compact-++r xs (ys #r x) compact = compact
 
-  is-compact-tail : ∀ x xs base → is-compact base (bwd (x ∷ xs)) → is-compact base (bwd xs)
-  is-compact-tail x xs base compact =
-    is-compact-++r ([] #r x) (bwd xs) base (subst (is-compact base) (bwd-++ (x ∷ []) xs) compact)
+    is-compact-tail : ∀ x xs → is-compact (bwd (x ∷ xs)) → is-compact (bwd xs)
+    is-compact-tail x xs compact =
+      is-compact-++r ([] #r x) (bwd xs) (subst is-compact (bwd-++ (x ∷ []) xs) compact)
 
-  is-compact-is-prop : ∀ base xs → is-prop (is-compact base xs)
-  is-compact-is-prop base [] = hlevel 1
-  is-compact-is-prop base (xs #r x) = hlevel 1
+    is-compact-is-prop : ∀ xs → is-prop (is-compact xs)
+    is-compact-is-prop [] = hlevel 1
+    is-compact-is-prop (xs #r x) = hlevel 1
 
-  --------------------------------------------------------------------------------
-  -- Compacting Lists
-  --
-  -- Now that we've defined a notion of normal form via
-  -- 'is-compact', we need to define a normalization function that
-  -- strips off all the trailing 'b' elements.
+    --------------------------------------------------------------------------------
+    -- Compacting Lists
+    --
+    -- Now that we've defined a notion of normal form via
+    -- 'is-compact', we need to define a normalization function that
+    -- strips off all the trailing 'b' elements.
 
-  -- Remove all trailing 'base' elements
-  compact : ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟
-  compact-case : ∀ xs {x base} → Dec (x ≡ base) → Bwd ⌞ 𝒟 ⌟
+    -- Remove all trailing 'base' elements
+    compact : Bwd ⌞ 𝒟 ⌟ → Bwd ⌞ 𝒟 ⌟
+    compact-case : ∀ xs {x} → Dec (x ≡ base) → Bwd ⌞ 𝒟 ⌟
 
-  compact base [] = []
-  compact base (xs #r x) = compact-case xs (x ≡? base)
+    compact [] = []
+    compact (xs #r x) = compact-case xs (x ≡? base)
 
-  compact-case xs {x = x} {base = base} p =
-    Dec-elim _
-      (λ _ → compact base xs)
-      (λ _ → xs #r x)
-      p
+    compact-case xs {x = x} p =
+      Dec-elim _
+        (λ _ → compact xs)
+        (λ _ → xs #r x)
+        p
 
-  -- Propositional computation helpers for 'compact'
-  compact-step : ∀ xs {x base} → x ≡ base → compact base (xs #r x) ≡ compact base xs
-  compact-step xs {x = x} {base = base} base! with x ≡? base
-  ... | yes _ = refl
-  ... | no ¬base = absurd $ ¬base base!
+    -- Propositional computation helpers for 'compact'
+    compact-step : ∀ xs {x} → x ≡ base → compact (xs #r x) ≡ compact xs
+    compact-step xs {x = x} base! with x ≡? base
+    ... | yes _ = refl
+    ... | no ¬base = absurd $ ¬base base!
 
-  compact-done : ∀ xs {x base} → (x ≡ base → ⊥) → compact base (xs #r x) ≡ xs #r x
-  compact-done xs {x = x} {base = base} ¬base with x ≡? base
-  ... | yes base! = absurd $ ¬base base!
-  ... | no _ = refl
+    compact-done : ∀ xs {x} → (x ≡ base → ⊥) → compact (xs #r x) ≡ xs #r x
+    compact-done xs {x = x} ¬base with x ≡? base
+    ... | yes base! = absurd $ ¬base base!
+    ... | no _ = refl
 
-  compact-compacted : ∀ base xs → is-compact base xs → compact base xs ≡ xs
-  compact-compacted base [] is-compact = refl
-  compact-compacted base (xs #r x) is-compact = compact-done xs is-compact
+    compact-compacted : ∀ xs → is-compact xs → compact xs ≡ xs
+    compact-compacted [] is-compact = refl
+    compact-compacted (xs #r x) is-compact = compact-done xs is-compact
 
-  compact-is-compact : ∀ base xs → is-compact base (compact base xs)
-  compact-is-compact base [] = lift tt
-  compact-is-compact base (xs #r x) with x ≡? base
-  ... | yes _ = compact-is-compact base xs
-  ... | no ¬base = ¬base
+    compact-is-compact : ∀ xs → is-compact (compact xs)
+    compact-is-compact [] = lift tt
+    compact-is-compact (xs #r x) with x ≡? base
+    ... | yes _ = compact-is-compact xs
+    ... | no ¬base = ¬base
 
-  compact-last : ∀ base xs ys y → compact base xs ≡ ys #r y → y ≡ base → ⊥
-  compact-last base [] ys y p y≡base = #r≠[] (sym p)
-  compact-last base (xs #r x) ys y p y≡base with x ≡? base
-  ... | yes x≡base = compact-last base xs ys y p y≡base
-  ... | no x≠base = x≠base (#r-last-inj p ∙ y≡base)
+    compact-last : ∀ xs ys y → compact xs ≡ ys #r y → y ≡ base → ⊥
+    compact-last [] ys y p y≡base = #r≠[] (sym p)
+    compact-last (xs #r x) ys y p y≡base with x ≡? base
+    ... | yes x≡base = compact-last xs ys y p y≡base
+    ... | no x≠base = x≠base (#r-last-inj p ∙ y≡base)
 
-  --------------------------------------------------------------------------------
-  -- Vanishing Lists
-  --
-  -- We say a list vanishes relative to some base 'b' if it /only/ contains 'b'.
-  -- Furthermore, we say a /backward/ list compacts relative to some base if
-  -- it's compaction is equal to [].
-  --
-  -- These conditions may seems somewhat redundant. Why not define one as
-  -- primary, and the reversed version with fwd/bwd? Indeed, both conditions
-  -- are equivalent! However, the induction orders are different, and we want
-  -- to *trust the natural recursion*.
+    --------------------------------------------------------------------------------
+    -- Vanishing Lists
+    --
+    -- We say a list vanishes relative to some base 'b' if it /only/ contains 'b'.
+    -- Furthermore, we say a /backward/ list compacts relative to some base if
+    -- it's compaction is equal to [].
+    --
+    -- These conditions may seems somewhat redundant. Why not define one as
+    -- primary, and the reversed version with fwd/bwd? Indeed, both conditions
+    -- are equivalent! However, the induction orders are different, and we want
+    -- to *trust the natural recursion*.
 
-  vanishes : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type
-  vanishes b [] = ⊤
-  vanishes b (x ∷ xs) =
-    Dec-elim _
-      (λ _ → vanishes b xs)
-      (λ _ → ⊥)
-      (x ≡? b)
+    vanishes : List ⌞ 𝒟 ⌟ → Type o
+    vanishes [] = Lift o ⊤
+    vanishes (x ∷ xs) = (x ≡ base) × vanishes xs
 
-  vanish-step : ∀ base x xs → x ≡ base → vanishes base xs → vanishes base (x ∷ xs)
-  vanish-step base x xs base! vanish with x ≡? base
-  ... | yes _ = vanish
-  ... | no ¬base = absurd $ ¬base base!
+    vanish-step : ∀ x xs → x ≡ base → vanishes xs → vanishes (x ∷ xs)
+    vanish-step x xs base! vanish = base! , vanish
 
-  vanishes-◁⊗-compact : ∀ base xs ys → compact base xs ≡ [] → vanishes base ys → compact base (xs ◁⊗ ys) ≡ []
-  vanishes-◁⊗-compact base xs [] compacts vanishes = compacts
-  vanishes-◁⊗-compact base xs (y ∷ ys) compacts vanishes with y ≡? base
-  ... | yes base! = vanishes-◁⊗-compact base (xs #r y) ys (compact-step xs base! ∙ compacts) vanishes
+    vanishes-◁⊗-compact : ∀ xs ys → compact xs ≡ [] → vanishes ys → compact (xs ◁⊗ ys) ≡ []
+    vanishes-◁⊗-compact xs [] compacts vanishes = compacts
+    vanishes-◁⊗-compact xs (y ∷ ys) compacts (x≡base , vanishes) with y ≡? base
+    ... | yes _ = vanishes-◁⊗-compact (xs #r y) ys (compact-step xs x≡base ∙ compacts) vanishes
+    ... | no x≠base = absurd (x≠base x≡base)
 
-  vanishes-⊗▷-compact : ∀ base xs ys → compact base xs ≡ [] → vanishes base ys → vanishes base (xs ⊗▷ ys)
-  vanishes-⊗▷-compact base [] ys compacts vanishes = vanishes
-  vanishes-⊗▷-compact base (xs #r x) ys compacts vanishes with x ≡? base
-  ... | yes base! = vanishes-⊗▷-compact base xs (x ∷ ys) compacts (vanish-step base x ys base! vanishes)
-  ... | no _ = absurd $ #r≠[] compacts
+    vanishes-⊗▷-compact : ∀ xs ys → compact xs ≡ [] → vanishes ys → vanishes (xs ⊗▷ ys)
+    vanishes-⊗▷-compact [] ys compacts vanishes = vanishes
+    vanishes-⊗▷-compact (xs #r x) ys compacts vanishes with x ≡? base
+    ... | yes x≡base = vanishes-⊗▷-compact xs (x ∷ ys) compacts (vanish-step x ys x≡base vanishes)
+    ... | no _ = absurd $ #r≠[] compacts
 
-  compacts-bwd : ∀ base xs → vanishes base xs → compact base (bwd xs) ≡ []
-  compacts-bwd base xs vanishes = vanishes-◁⊗-compact base [] xs refl vanishes
+    compacts-bwd : ∀ xs → vanishes xs → compact (bwd xs) ≡ []
+    compacts-bwd xs vanishes = vanishes-◁⊗-compact [] xs refl vanishes
 
-  compacts-fwd : ∀ base xs → vanishes base (fwd xs) → compact base xs ≡ []
-  compacts-fwd base xs vanishes = subst (λ ϕ → compact base ϕ ≡ []) (bwd-fwd xs) (compacts-bwd base (fwd xs) vanishes)
+    compacts-fwd : ∀ xs → vanishes (fwd xs) → compact xs ≡ []
+    compacts-fwd xs vanishes = subst (λ ϕ → compact ϕ ≡ []) (bwd-fwd xs) (compacts-bwd (fwd xs) vanishes)
 
-  vanishes-fwd : ∀ base xs → compact base xs ≡ [] → vanishes base (fwd xs)
-  vanishes-fwd base xs compacts = vanishes-⊗▷-compact base xs [] compacts tt
+    vanishes-fwd : ∀ xs → compact xs ≡ [] → vanishes (fwd xs)
+    vanishes-fwd xs compacts = vanishes-⊗▷-compact xs [] compacts (lift tt)
 
-  vanishes-bwd : ∀ base xs → compact base (bwd xs) ≡ [] → vanishes base xs
-  vanishes-bwd base xs compacts = subst (vanishes base) (fwd-bwd xs) (vanishes-fwd base (bwd xs) compacts)
+    vanishes-bwd : ∀ xs → compact (bwd xs) ≡ [] → vanishes xs
+    vanishes-bwd xs compacts = subst vanishes (fwd-bwd xs) (vanishes-fwd (bwd xs) compacts)
 
-  vanish-++ : ∀ {base} xs ys → vanishes base (xs ++ ys) → vanishes base ys
-  vanish-++ [] ys vanish = vanish
-  vanish-++ {base = base} (x ∷ xs) ys vanish with x ≡? base
-  ... | yes _ = vanish-++ xs ys vanish
+    vanish-++ : ∀ xs ys → vanishes (xs ++ ys) → vanishes ys
+    vanish-++ [] ys vanish = vanish
+    vanish-++ (x ∷ xs) ys (_ , vanish) = vanish-++ xs ys vanish
 
-  vanish-head-∷ : ∀ base x xs → vanishes base (x ∷ xs) → x ≡ base
-  vanish-head-∷ base x xs v with x ≡? base
-  ... | yes base! = base!
+    vanish-head-∷ : ∀ x xs → vanishes (x ∷ xs) → x ≡ base
+    vanish-head-∷ x xs (v , _) = v
 
-  vanish-tail-∷ : ∀ base x xs → vanishes base (x ∷ xs) → vanishes base xs
-  vanish-tail-∷ base x xs vanish with x ≡? base
-  ... | yes base! = vanish
+    vanish-tail-∷ : ∀ x xs → vanishes (x ∷ xs) → vanishes xs
+    vanish-tail-∷ x xs (_ , v) = v
 
-  compacts-head-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → x ≡ base
-  compacts-head-∷ base x xs compacts =
-    vanish-head-∷ base x xs $
-    subst (vanishes base) (fwd-bwd (x ∷ xs)) $
-    vanishes-fwd base (bwd (x ∷ xs)) compacts
+    compacts-head-∷ : ∀ x xs → compact (bwd (x ∷ xs)) ≡ [] → x ≡ base
+    compacts-head-∷ x xs compacts =
+      vanish-head-∷ x xs $
+      subst vanishes (fwd-bwd (x ∷ xs)) $
+      vanishes-fwd (bwd (x ∷ xs)) compacts
 
-  compacts-tail-∷ : ∀ base x xs → compact base (bwd (x ∷ xs)) ≡ [] → compact base (bwd xs) ≡ []
-  compacts-tail-∷ base x xs compacts =
-    compacts-bwd base xs $
-    vanish-tail-∷ base x xs $
-    subst (vanishes base) (fwd-bwd (x ∷ xs)) $
-    vanishes-fwd base (bwd (x ∷ xs)) compacts
+    compacts-tail-∷ : ∀ x xs → compact (bwd (x ∷ xs)) ≡ [] → compact (bwd xs) ≡ []
+    compacts-tail-∷ x xs compacts =
+      compacts-bwd xs $
+      vanish-tail-∷ x xs $
+      subst vanishes (fwd-bwd (x ∷ xs)) $
+      vanishes-fwd (bwd (x ∷ xs)) compacts
 
-  compact-vanishr-++r : ∀ {base} xs ys → compact base ys ≡ [] → compact base (xs ++r ys) ≡ compact base xs
-  compact-vanishr-++r {base = base} xs [] ys-vanish = refl
-  compact-vanishr-++r {base = base} xs (ys #r y) ys-vanish with y ≡? base
-  ... | yes _ = compact-vanishr-++r xs ys ys-vanish
-  ... | no _ = absurd $ #r≠[] ys-vanish
+    compact-vanishr-++r : ∀ xs ys → compact ys ≡ [] → compact (xs ++r ys) ≡ compact xs
+    compact-vanishr-++r xs [] ys-vanish = refl
+    compact-vanishr-++r xs (ys #r y) ys-vanish with y ≡? base
+    ... | yes _ = compact-vanishr-++r xs ys ys-vanish
+    ... | no _ = absurd $ #r≠[] ys-vanish
 
-  compact-++r : ∀ {base} xs ys zs → compact base ys ≡ compact base zs → compact base (xs ++r ys) ≡ compact base (xs ++r zs)
-  compact-++r {base = base} xs [] [] p =
-    refl
-  compact-++r {base = base} xs [] (zs #r z) p =
-    sym (compact-vanishr-++r xs (zs #r z) (sym p))
-  compact-++r {base = base} xs (ys #r y) [] p =
-    compact-vanishr-++r xs (ys #r y) p
-  compact-++r {base = base} xs (ys #r y) (zs #r z) =
-    -- Cannot be done using with-abstraction /or/ a helper function because the termination
-    -- checker gets confused.
-    -- Ouch.
-    Dec-elim (λ p → compact-case ys p ≡ compact base (zs #r z) → compact-case (xs ++r ys) p ≡ compact base (xs ++r (zs #r z)))
-      (λ y-base! →
-        Dec-elim (λ p → compact base ys ≡ compact-case zs p → compact base (xs ++r ys) ≡ compact-case (xs ++r zs) p)
-          (λ z-base! p → compact-++r xs ys zs p)
-          (λ ¬z-base p → compact-++r xs ys (zs #r z) (p ∙ sym (compact-done zs ¬z-base)) ∙ compact-done (xs ++r zs) ¬z-base)
-          (z ≡? base))
-      (λ ¬y-base →
-        Dec-elim (λ p → ys #r y ≡ compact-case zs p → (xs ++r ys) #r y ≡ compact-case (xs ++r zs) p)
-          (λ z-base! p → sym (compact-done ((xs ++r ys)) ¬y-base) ∙ compact-++r xs (ys #r y) zs (compact-done ys ¬y-base ∙ p))
-          (λ ¬z-base p → ap (xs ++r_) p)
-          (z ≡? base))
-      (y ≡? base)
+    compact-++r : ∀ xs ys zs → compact ys ≡ compact zs → compact (xs ++r ys) ≡ compact (xs ++r zs)
+    compact-++r xs [] [] p =
+      refl
+    compact-++r xs [] (zs #r z) p =
+      sym (compact-vanishr-++r xs (zs #r z) (sym p))
+    compact-++r xs (ys #r y) [] p =
+      compact-vanishr-++r xs (ys #r y) p
+    compact-++r xs (ys #r y) (zs #r z) =
+      -- Cannot be done using with-abstraction /or/ a helper function because the termination
+      -- checker gets confused.
+      -- Ouch.
+      Dec-elim (λ p → compact-case ys p ≡ compact (zs #r z) → compact-case (xs ++r ys) p ≡ compact (xs ++r (zs #r z)))
+        (λ y-base! →
+          Dec-elim (λ p → compact ys ≡ compact-case zs p → compact (xs ++r ys) ≡ compact-case (xs ++r zs) p)
+            (λ z-base! p → compact-++r xs ys zs p)
+            (λ ¬z-base p → compact-++r xs ys (zs #r z) (p ∙ sym (compact-done zs ¬z-base)) ∙ compact-done (xs ++r zs) ¬z-base)
+            (z ≡? base))
+        (λ ¬y-base →
+          Dec-elim (λ p → ys #r y ≡ compact-case zs p → (xs ++r ys) #r y ≡ compact-case (xs ++r zs) p)
+            (λ z-base! p → sym (compact-done ((xs ++r ys)) ¬y-base) ∙ compact-++r xs (ys #r y) zs (compact-done ys ¬y-base ∙ p))
+            (λ ¬z-base p → ap (xs ++r_) p)
+            (z ≡? base))
+        (y ≡? base)
 
-  compact-◁⊗ : ∀ {base} xs ys zs → compact base (bwd ys) ≡ compact base (bwd zs) → compact base (xs ◁⊗ ys) ≡ compact base (xs ◁⊗ zs)
-  compact-◁⊗ {base = base} xs ys zs p =
-    compact base (xs ◁⊗ ys)      ≡⟨ ap (compact base) (◁⊗-bwd xs ys) ⟩
-    compact base (xs ++r bwd ys) ≡⟨ compact-++r xs (bwd ys) (bwd zs) p ⟩
-    compact base (xs ++r bwd zs) ≡˘⟨ ap (compact base) (◁⊗-bwd xs zs) ⟩
-    compact base (xs ◁⊗ zs) ∎
+    compact-◁⊗ : ∀ xs ys zs → compact (bwd ys) ≡ compact (bwd zs) → compact (xs ◁⊗ ys) ≡ compact (xs ◁⊗ zs)
+    compact-◁⊗ xs ys zs p =
+      compact (xs ◁⊗ ys)      ≡⟨ ap compact (◁⊗-bwd xs ys) ⟩
+      compact (xs ++r bwd ys) ≡⟨ compact-++r xs (bwd ys) (bwd zs) p ⟩
+      compact (xs ++r bwd zs) ≡˘⟨ ap compact (◁⊗-bwd xs zs) ⟩
+      compact (xs ◁⊗ zs) ∎
 
-  compact-◁⊗-¬base : ∀ xs ys {x base} → (x ≡ base → ⊥) → compact base ((xs #r x) ◁⊗ ys) ≡ (xs #r x) ++r compact base (bwd ys)
-  compact-◁⊗-¬base xs ys {x = x} {base = base} x≠base with inspect (compact base (bwd ys))
-  ... | [] , p =
-    compact base ((xs #r x) ◁⊗ ys) ≡⟨ compact-◁⊗ (xs #r x) ys [] p ⟩
-    compact base ((xs #r x))       ≡⟨ compact-done xs x≠base ⟩
-    xs #r x                        ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
-    (xs #r x) ++r compact base (bwd ys) ∎
-  ... | cs #r c , p =
-    compact base ((xs #r x) ◁⊗ ys)                   ≡⟨ compact-◁⊗ (xs #r x) ys (fwd (cs #r c)) (p ∙ sym cs#rc-compact ∙ sym (ap (compact base) (bwd-fwd (cs #r c)))) ⟩
-    compact base ((xs #r x) ◁⊗ fwd (cs #r c))        ≡⟨ ap (compact base) (◁⊗-bwd (xs #r x) (fwd (cs #r c))) ⟩
-    compact base ((xs #r x) ++r bwd (fwd (cs #r c))) ≡⟨ ap (λ ϕ → compact base ((xs #r x) ++r ϕ)) (bwd-fwd (cs #r c)) ⟩
-    compact base ((xs #r x) ++r (cs #r c))           ≡⟨ compact-done ((xs #r x) ++r cs) c≠base ⟩
-    (xs #r x) ++r (cs #r c)                          ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
-    (xs #r x) ++r compact base (bwd ys) ∎
-    where
-      c≠base : c ≡ base → ⊥
-      c≠base = compact-last base (bwd ys) cs c p
+    compact-◁⊗-¬base : ∀ xs ys {x} → (x ≡ base → ⊥) → compact ((xs #r x) ◁⊗ ys) ≡ (xs #r x) ++r compact (bwd ys)
+    compact-◁⊗-¬base xs ys {x = x} x≠base with inspect (compact (bwd ys))
+    ... | [] , p =
+      compact ((xs #r x) ◁⊗ ys) ≡⟨ compact-◁⊗ (xs #r x) ys [] p ⟩
+      compact ((xs #r x))       ≡⟨ compact-done xs x≠base ⟩
+      xs #r x                   ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
+      (xs #r x) ++r compact (bwd ys) ∎
+    ... | cs #r c , p =
+      compact ((xs #r x) ◁⊗ ys)                   ≡⟨ compact-◁⊗ (xs #r x) ys (fwd (cs #r c)) (p ∙ sym cs#rc-compact ∙ sym (ap compact (bwd-fwd (cs #r c)))) ⟩
+      compact ((xs #r x) ◁⊗ fwd (cs #r c))        ≡⟨ ap compact (◁⊗-bwd (xs #r x) (fwd (cs #r c))) ⟩
+      compact ((xs #r x) ++r bwd (fwd (cs #r c))) ≡⟨ ap (λ ϕ → compact ((xs #r x) ++r ϕ)) (bwd-fwd (cs #r c)) ⟩
+      compact ((xs #r x) ++r (cs #r c))           ≡⟨ compact-done ((xs #r x) ++r cs) c≠base ⟩
+      (xs #r x) ++r (cs #r c)                     ≡˘⟨ ap ((xs #r x) ++r_) p ⟩
+      (xs #r x) ++r compact (bwd ys) ∎
+      where
+        c≠base : c ≡ base → ⊥
+        c≠base = compact-last (bwd ys) cs c p
 
-      cs#rc-compact : compact base (cs #r c) ≡ cs #r c
-      cs#rc-compact = compact-done cs c≠base
+        cs#rc-compact : compact (cs #r c) ≡ cs #r c
+        cs#rc-compact = compact-done cs c≠base
+
+    --------------------------------------------------------------------------------
+    -- Indexing
+    --
+    -- This is how we embed a support list into a map 'Nat → ⌞ 𝒟 ⌟'.
+
+    index : List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
+    index [] n = base
+    index (x ∷ xs) zero = x
+    index (x ∷ xs) (suc n) = index xs n
+
+    index-vanishes : ∀ xs n → vanishes xs → index xs n ≡ base
+    index-vanishes [] n vanishes = refl
+    index-vanishes (x ∷ xs) zero (x≡base , _) = x≡base
+    index-vanishes (x ∷ xs) (suc n) (_ , vanishes) = index-vanishes xs n vanishes
+
+    -- Indexing a compacted list is the same as indexing the uncompacted list.
+    index-compact : ∀ xs n → index (fwd (compact (bwd xs))) n ≡ index xs n
+    index-compact [] n = refl
+    index-compact (x ∷ xs) zero with x ≡? base
+    ... | yes x≡base with inspect (compact (bwd xs))
+    ... | [] , p =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) 0 ≡⟨ ap (λ ϕ → index (fwd ϕ) 0) (compact-◁⊗ ([] #r x) xs [] p) ⟩
+      index (fwd (compact ([] #r x))) 0         ≡⟨ ap (λ ϕ → index (fwd ϕ) 0) (compact-step [] x≡base) ⟩
+      base                                      ≡˘⟨ x≡base ⟩
+      x                                         ∎
+    ... | cs #r c , p =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) 0         ≡⟨ ap (λ ϕ → index (fwd (compact ϕ)) 0) (◁⊗-bwd ([] #r x) xs) ⟩
+      index (fwd (compact (([] #r x) ++r bwd xs))) 0    ≡⟨ ap (λ ϕ → index (fwd ϕ) 0) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
+      index (fwd (compact (([] #r x) ++r (cs #r c)))) 0 ≡⟨ ap (λ ϕ → index (fwd ϕ) 0) (compact-done (([] #r x) ++r cs) c≠base) ⟩
+      index (fwd (([] #r x) ++r (cs #r c))) 0           ≡⟨ ap (λ ϕ → index ϕ 0) (fwd-++r ([] #r x) (cs #r c)) ⟩
+      x ∎
+      where
+        c≠base : c ≡ base → ⊥
+        c≠base = compact-last (bwd xs) cs c p
+
+        cs#r-compact : compact (cs #r c) ≡ cs #r c
+        cs#r-compact = compact-done cs c≠base
+    index-compact (x ∷ xs) zero | no ¬x≡base =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) 0      ≡⟨ ap (λ ϕ → index (fwd ϕ) 0) (compact-◁⊗-¬base [] xs ¬x≡base) ⟩
+      index (fwd (([] #r x) ++r compact (bwd xs))) 0 ≡⟨ ap (λ ϕ → index ϕ 0) (fwd-++r ([] #r x) (compact (bwd xs))) ⟩
+      x ∎
+    index-compact (x ∷ xs) (suc n) with x ≡? base
+    ... | yes x≡base with inspect (compact (bwd xs))
+    ... | [] , p =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) (suc n) ≡⟨ ap (λ ϕ → index (fwd ϕ) (suc n)) (compact-◁⊗ ([] #r x) xs [] p) ⟩
+      index (fwd (compact ([] #r x))) (suc n)         ≡⟨ ap (λ ϕ → index (fwd ϕ) (suc n)) (compact-step [] x≡base) ⟩
+      base                                            ≡˘⟨ index-vanishes xs n (vanishes-bwd xs p) ⟩
+      index xs n ∎
+    ... | cs #r c , p =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) (suc n)         ≡⟨ ap (λ ϕ → index (fwd (compact ϕ)) (suc n)) (◁⊗-bwd ([] #r x) xs) ⟩
+      index (fwd (compact (([] #r x) ++r bwd xs))) (suc n)    ≡⟨ ap (λ ϕ → index (fwd ϕ) (suc n)) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
+      index (fwd (compact (([] #r x) ++r (cs #r c)))) (suc n) ≡⟨ ap (λ ϕ → index (fwd ϕ) (suc n)) (compact-done (([] #r x) ++r cs) c≠base) ⟩
+      index (fwd ((([] #r x) ++r cs) #r c)) (suc n)           ≡⟨ ap (λ ϕ → index ϕ (suc n)) (fwd-++r ([] #r x) (cs #r c)) ⟩
+      index (fwd (cs #r c)) n                                 ≡˘⟨ ap (λ ϕ → index (fwd ϕ) n) p ⟩
+      index (fwd (compact (bwd xs))) n                        ≡⟨ index-compact xs n ⟩
+      index xs n ∎
+      where
+        c≠base : c ≡ base → ⊥
+        c≠base = compact-last (bwd xs) cs c p
+
+        cs#r-compact : compact (cs #r c) ≡ cs #r c
+        cs#r-compact = compact-done cs c≠base
+    index-compact (x ∷ xs) (suc n) | no ¬x≡base =
+      index (fwd (compact (([] #r x) ◁⊗ xs))) (suc n)      ≡⟨ ap (λ ϕ → index (fwd ϕ) (suc n)) (compact-◁⊗-¬base [] xs ¬x≡base) ⟩
+      index (fwd (([] #r x) ++r compact (bwd xs))) (suc n) ≡⟨ ap (λ ϕ → index ϕ (suc n)) (fwd-++r ([] #r x) (compact (bwd xs))) ⟩
+      index (fwd (compact (bwd xs))) n                     ≡⟨ index-compact xs n ⟩
+      index xs n ∎
+
+    -- If a non-empty list denotes the function 'λ _ → base', then the list is not compact.
+    all-base→¬compact : ∀ x xs → (∀ n → index (x ∷ xs) n ≡ base) → is-compact (bwd (x ∷ xs)) → ⊥
+    all-base→¬compact x [] p xs-compact with x ≡? base
+    ... | yes x=base = absurd (xs-compact x=base)
+    ... | no x≠base = x≠base (p 0)
+    all-base→¬compact x (y ∷ xs) p xs-compact =
+      all-base→¬compact y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) xs-compact)
 
   --------------------------------------------------------------------------------
   -- Merging Lists
@@ -334,14 +403,14 @@ module NearlyConst
 
   merge-list-∷rl : ∀ b1 xs b2 ys → compact (b1 ⊗ b2) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ≡ compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 ys))
   merge-list-∷rl b1 [] b2 [] =
-    compact-step [] refl
+    compact-step (b1 ⊗ b2) [] refl
   merge-list-∷rl b1 [] b2 (y ∷ ys) =
     refl
   merge-list-∷rl b1 (x ∷ xs) b2 [] =
     compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 (xs ∷r b1) b2 []))
       ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 (xs ∷r b1) b2 [])) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 []))
-      ≡⟨ compact-++r (bwd ((x ⊗ b2) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 [])) (bwd (merge-list b1 xs b2 [])) (merge-list-∷rl b1 xs b2 []) ⟩
+      ≡⟨ compact-++r (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 [])) (bwd (merge-list b1 xs b2 [])) (merge-list-∷rl b1 xs b2 []) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ []) ++r bwd (merge-list b1 xs b2 []))
       ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ b2) ∷ []) (merge-list b1 xs b2 [])) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ b2) ∷ merge-list b1 xs b2 []))
@@ -350,7 +419,7 @@ module NearlyConst
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 (xs ∷r b1) b2 ys))
       ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 (xs ∷r b1) b2 ys)) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 (xs ∷r b1) b2 ys))
-      ≡⟨ compact-++r (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ((bwd (merge-list b1 xs b2 ys))) (merge-list-∷rl b1 xs b2 ys) ⟩
+      ≡⟨ compact-++r (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 (xs ∷r b1) b2 ys)) ((bwd (merge-list b1 xs b2 ys))) (merge-list-∷rl b1 xs b2 ys) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 xs b2 ys))
       ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ ((x ⊗ y) ∷ []) (merge-list b1 xs b2 ys)) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 xs b2 ys))
@@ -358,12 +427,12 @@ module NearlyConst
 
   merge-list-∷rr : ∀ b1 xs b2 ys → compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 (ys ∷r b2))) ≡ compact (b1 ⊗ b2) (bwd (merge-list b1 xs b2 ys))
   merge-list-∷rr b1 [] b2 [] =
-    compact-step [] refl
+    compact-step (b1 ⊗ b2) [] refl
   merge-list-∷rr b1 [] b2 (y ∷ ys) =
     compact (b1 ⊗ b2) (bwd ((b1 ⊗ y) ∷ merge-list b1 [] b2 (ys ∷r b2)))
       ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ (((b1 ⊗ y) ∷ [])) (merge-list b1 [] b2 (ys ∷r b2))) ⟩
     compact (b1 ⊗ b2) (bwd ((b1 ⊗ y) ∷ []) ++r bwd (merge-list b1 [] b2 (ys ∷r b2)))
-      ≡⟨ compact-++r (bwd ((b1 ⊗ y) ∷ [])) (bwd (merge-list b1 [] b2 (ys ∷r b2))) ( bwd (merge-list b1 [] b2 ys)) (merge-list-∷rr b1 [] b2 ys) ⟩
+      ≡⟨ compact-++r (b1 ⊗ b2) (bwd ((b1 ⊗ y) ∷ [])) (bwd (merge-list b1 [] b2 (ys ∷r b2))) ( bwd (merge-list b1 [] b2 ys)) (merge-list-∷rr b1 [] b2 ys) ⟩
     compact (b1 ⊗ b2) (bwd ((b1 ⊗ y) ∷ []) ++r bwd (merge-list b1 [] b2 ys))
       ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ (((b1 ⊗ y) ∷ [])) (merge-list b1 [] b2 ys)) ⟩
     compact (b1 ⊗ b2) (bwd ((b1 ⊗ y) ∷ merge-list b1 [] b2 ys))
@@ -374,7 +443,7 @@ module NearlyConst
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ merge-list b1 xs b2 (ys ∷r b2)))
       ≡⟨ ap (compact (b1 ⊗ b2)) (bwd-++ (((x ⊗ y) ∷ [])) (merge-list b1 xs b2 (ys ∷r b2))) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 xs b2 (ys ∷r b2)))
-      ≡⟨ compact-++r (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 xs b2 (ys ∷r b2))) (bwd (merge-list b1 xs b2 ys)) (merge-list-∷rr b1 xs b2 ys) ⟩
+      ≡⟨ compact-++r (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ [])) (bwd (merge-list b1 xs b2 (ys ∷r b2))) (bwd (merge-list b1 xs b2 ys)) (merge-list-∷rr b1 xs b2 ys) ⟩
     compact (b1 ⊗ b2) (bwd ((x ⊗ y) ∷ []) ++r bwd (merge-list b1 xs b2 ys))
       ≡˘⟨ ap (compact (b1 ⊗ b2)) (bwd-++ (((x ⊗ y) ∷ [])) (merge-list b1 xs b2 ys)) ⟩
     compact (b1 ⊗ b2) (bwd (merge-list b1 (x ∷ xs) b2 (y ∷ ys)))
@@ -1002,7 +1071,7 @@ module NearlyConst
       ... | lt b1<y = inr xs≤ys
       ... | eq b1≡y =
         -- This is done to avoid yet another helper function.
-        go b1 [] b2 ys xs-compact (is-compact-tail y ys b2 ys-compact) xs≤ys
+        go b1 [] b2 ys xs-compact (is-compact-tail b2 y ys ys-compact) xs≤ys
         |> ⊎-mapl $ λ p →
           let ys≡[] : ys ≡ []
               ys≡[] = bwd-inj $ ap elts (sym p)
@@ -1011,12 +1080,12 @@ module NearlyConst
               b1≡b2 = ap base p
 
               ¬y≡b2 : y ≡ b2 → ⊥
-              ¬y≡b2 y≡b2 = base-isnt-compact-∷ ys≡[] y≡b2 ys-compact
+              ¬y≡b2 y≡b2 = base-isnt-compact-∷ b2 ys≡[] y≡b2 ys-compact
           in absurd $ ¬y≡b2 $ (sym b1≡y) ∙ b1≡b2
       go b1 (x ∷ xs) b2 [] xs-compact ys-compact xs≤ys with cmp x b2
       ... | lt x<b2 = inr xs≤ys
       ... | eq x≡b2 =
-        go b1 xs b2 [] (is-compact-tail x xs b1 xs-compact) ys-compact xs≤ys
+        go b1 xs b2 [] (is-compact-tail b1 x xs xs-compact) ys-compact xs≤ys
         |> ⊎-mapl $ λ p →
           let xs≡[] : xs ≡ []
               xs≡[] = bwd-inj $ ap elts p
@@ -1025,12 +1094,12 @@ module NearlyConst
               b1≡b2 = ap base p
 
               ¬x≡b1 : x ≡ b1 → ⊥
-              ¬x≡b1 x≡b1 = base-isnt-compact-∷ xs≡[] x≡b1 xs-compact
+              ¬x≡b1 x≡b1 = base-isnt-compact-∷ b1 xs≡[] x≡b1 xs-compact
           in absurd $ ¬x≡b1 $ x≡b2 ∙ sym b1≡b2
       go b1 (x ∷ xs) b2 (y ∷ ys) xs-compact ys-compact xs≤ys with cmp x y
       ... | lt x<y = inr xs≤ys
       ... | eq x≡y =
-        go b1 xs b2 ys (is-compact-tail x xs b1 xs-compact) (is-compact-tail y ys b2 ys-compact) xs≤ys
+        go b1 xs b2 ys (is-compact-tail b1 x xs xs-compact) (is-compact-tail b2 y ys ys-compact) xs≤ys
         |> ⊎-mapl $ λ p →
           let xs≡ys : xs ≡ ys
               xs≡ys = bwd-inj $ ap elts p
@@ -1051,7 +1120,7 @@ module NearlyConst
       b (xs ⊗▷ (x ∷ []))
       b (fwd xs)
       b (fwd (compact b xs))
-      (merge-list≤-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b tt))
+      (merge-list≤-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b (lift tt)))
       (compact-≤ b xs)
   ... | no ¬x≡b =
     merge-list≤-refl b (fwd (xs #r x))
@@ -1066,7 +1135,7 @@ module NearlyConst
       b (fwd xs)
       b (xs ⊗▷ (x ∷ []))
       (compact-≥ b xs)
-      (merge-list≥-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b tt))
+      (merge-list≥-⊗▷-vanish b xs (x ∷ []) (vanish-step b x [] x≡b (lift tt)))
   ... | no ¬x≡b =
     merge-list≤-refl b (fwd (xs #r x))
 
@@ -1211,74 +1280,7 @@ module NearlyConst
       (merge-list<-left-invariant (xs .base) (list xs) (ys .base) (list ys) (zs .base) (list zs) ys<zs)
 
   --------------------------------------------------------------------------------
-  -- Indexing
-  --
-  -- This is how we embed a support list into a map 'Nat → ⌞ 𝒟 ⌟'.
-
-  index : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
-  index b [] n = b
-  index b (x ∷ xs) zero = x
-  index b (x ∷ xs) (suc n) = index b xs n
-
-  index-vanishes : ∀ b xs n → vanishes b xs → index b xs n ≡ b
-  index-vanishes b [] n vanishes = refl
-  index-vanishes b (x ∷ xs) zero vanishes with x ≡? b
-  ... | yes x≡b = x≡b
-  index-vanishes b (x ∷ xs) (suc n) vanishes with x ≡? b
-  ... | yes _ = index-vanishes b xs n vanishes
-
-  -- Indexing a compacted list is the same as indexing the uncompacted list.
-  index-compact : ∀ b xs n → index b (fwd (compact b (bwd xs))) n ≡ index b xs n
-  index-compact b [] n = refl
-  index-compact b (x ∷ xs) zero with x ≡? b
-  ... | yes x≡b with inspect (compact b (bwd xs))
-  ... | [] , p =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0 ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-◁⊗ ([] #r x) xs [] p) ⟩
-    index b (fwd (compact b ([] #r x))) 0         ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-step [] x≡b) ⟩
-    b                                             ≡˘⟨ x≡b ⟩
-    x                                             ∎
-  ... | cs #r c , p =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0         ≡⟨ ap (λ ϕ → index b (fwd (compact b ϕ)) 0) (◁⊗-bwd ([] #r x) xs) ⟩
-    index b (fwd (compact b (([] #r x) ++r bwd xs))) 0    ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
-    index b (fwd (compact b (([] #r x) ++r (cs #r c)))) 0 ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-done (([] #r x) ++r cs) c≠base) ⟩
-    index b (fwd (([] #r x) ++r (cs #r c))) 0             ≡⟨ ap (λ ϕ → index b ϕ 0) (fwd-++r ([] #r x) (cs #r c)) ⟩
-    x ∎
-    where
-      c≠base : c ≡ b → ⊥
-      c≠base = compact-last b (bwd xs) cs c p
-
-      cs#r-compact : compact b (cs #r c) ≡ cs #r c
-      cs#r-compact = compact-done cs c≠base
-  index-compact b (x ∷ xs) zero | no ¬x≡b =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) 0      ≡⟨ ap (λ ϕ → index b (fwd ϕ) 0) (compact-◁⊗-¬base [] xs ¬x≡b) ⟩
-    index b (fwd (([] #r x) ++r compact b (bwd xs))) 0 ≡⟨ ap (λ ϕ → index b ϕ 0) (fwd-++r ([] #r x) (compact b (bwd xs))) ⟩
-    x ∎
-  index-compact b (x ∷ xs) (suc n) with x ≡? b
-  ... | yes x≡b with inspect (compact b (bwd xs))
-  ... | [] , p =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n) ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-◁⊗ ([] #r x) xs [] p) ⟩
-    index b (fwd (compact b ([] #r x))) (suc n)         ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-step [] x≡b) ⟩
-    b                                                   ≡˘⟨ index-vanishes b xs n (vanishes-bwd b xs p) ⟩
-    index b xs n ∎
-  ... | cs #r c , p =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n)         ≡⟨ ap (λ ϕ → index b (fwd (compact b ϕ)) (suc n)) (◁⊗-bwd ([] #r x) xs) ⟩
-    index b (fwd (compact b (([] #r x) ++r bwd xs))) (suc n)    ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-++r ([] #r x) (bwd xs) (cs #r c) (p ∙ sym cs#r-compact)) ⟩
-    index b (fwd (compact b (([] #r x) ++r (cs #r c)))) (suc n) ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-done (([] #r x) ++r cs) c≠base) ⟩
-    index b (fwd ((([] #r x) ++r cs) #r c)) (suc n)             ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (cs #r c)) ⟩
-    index b (fwd (cs #r c)) n                                   ≡˘⟨ ap (λ ϕ → index b (fwd ϕ) n) p ⟩
-    index b (fwd (compact b (bwd xs))) n                        ≡⟨ index-compact b xs n ⟩
-    index b xs n ∎
-    where
-      c≠base : c ≡ b → ⊥
-      c≠base = compact-last b (bwd xs) cs c p
-
-      cs#r-compact : compact b (cs #r c) ≡ cs #r c
-      cs#r-compact = compact-done cs c≠base
-  index-compact b (x ∷ xs) (suc n) | no ¬x≡b =
-    index b (fwd (compact b (([] #r x) ◁⊗ xs))) (suc n)      ≡⟨ ap (λ ϕ → index b (fwd ϕ) (suc n)) (compact-◁⊗-¬base [] xs ¬x≡b) ⟩
-    index b (fwd (([] #r x) ++r compact b (bwd xs))) (suc n) ≡⟨ ap (λ ϕ → index b ϕ (suc n)) (fwd-++r ([] #r x) (compact b (bwd xs))) ⟩
-    index b (fwd (compact b (bwd xs))) n                     ≡⟨ index-compact b xs n ⟩
-    index b xs n ∎
+  -- Indexing and Merging
 
   index-mono : ∀ b1 xs b2 ys → merge-list≤ b1 xs b2 ys → ∀ n → (index b1 xs n) ≤ (index b2 ys n)
   index-mono b1 [] b2 [] xs≤ys n = xs≤ys
@@ -1356,13 +1358,6 @@ module NearlyConst
   index≡→base≡ b1 (x ∷ xs) b2 [] p = index≡→base≡ b1 xs b2 [] λ n → p (suc n)
   index≡→base≡ b1 (x ∷ xs) b2 (y ∷ ys) p = index≡→base≡ b1 xs b2 ys λ n → p (suc n)
 
-  -- If a non-empty list denotes the function 'λ _ → b', then the list is not compact.
-  all-base→¬compact : ∀ b x xs → (∀ n → index b (x ∷ xs) n ≡ b) → is-compact b (bwd (x ∷ xs)) → ⊥
-  all-base→¬compact b x [] p xs-compact with x ≡? b
-  ... | yes x=base = absurd (xs-compact x=base)
-  ... | no x≠base = x≠base (p 0)
-  all-base→¬compact b x (y ∷ xs) p xs-compact =
-    all-base→¬compact b y xs (λ n → p (suc n)) (is-compact-tail x (y ∷ xs) b xs-compact)
 
   into-inj : ∀ xs ys → (∀ n → into xs n ≡ into ys n) → xs ≡ ys
   into-inj xs ys p =
@@ -1389,8 +1384,8 @@ module NearlyConst
         where
           xs≡ys =
             go b1 xs b2 ys
-              (is-compact-tail x xs b1 xs-compact)
-              (is-compact-tail y ys b2 ys-compact)
+              (is-compact-tail b1 x xs xs-compact)
+              (is-compact-tail b2 y ys ys-compact)
               (λ n → p (suc n))
 
 --------------------------------------------------------------------------------
