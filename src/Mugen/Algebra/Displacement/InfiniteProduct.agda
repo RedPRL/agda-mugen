@@ -67,15 +67,15 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
 
   inf≤-pointwise : ∀ {f g} → non-strict _inf<_ f g → ∀ n → f n 𝒟.≤ g n
   inf≤-pointwise (inl f≡g) n = inl (happly f≡g n)
-  inf≤-pointwise (inr f<g) n = ≤-pointwise f<g n
+  inf≤-pointwise (inr f<g) n = f<g .≤-pointwise n
 
   inf<-irrefl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → f inf< f → ⊥
   inf<-irrefl f f<f = not-equal f<f λ _ → refl
 
   inf<-trans : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → f inf< g → g inf< h → f inf< h
-  inf<-trans f g h f<g g<h .≤-pointwise n = 𝒟.≤-trans (≤-pointwise f<g n) (≤-pointwise g<h n)
+  inf<-trans f g h f<g g<h .≤-pointwise n = 𝒟.≤-trans (f<g .≤-pointwise n) (g<h .≤-pointwise n)
   inf<-trans f g h f<g g<h .not-equal f=h =
-    g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-pointwise n) $ subst (𝒟._≤ _) (f=h n) (f<g .≤-pointwise n)
+    g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-pointwise n) $ 𝒟.≡+≤→≤ (sym $ f=h n) (f<g .≤-pointwise n)
 
   inf<-is-prop : ∀ f g → is-prop (f inf< g)
   inf<-is-prop f g f<g f<g′ i .≤-pointwise n = 𝒟.≤-thin (≤-pointwise f<g n) (≤-pointwise f<g′ n) i
@@ -87,7 +87,7 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
   ⊗∞-left-invariant f g h g<h .≤-pointwise n = 𝒟.≤-left-invariant (≤-pointwise g<h n)
   ⊗∞-left-invariant f g h g<h .not-equal p =
-    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-pointwise n) (λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n))
+    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-pointwise n) λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n)
 
 
 Inf : ∀ {o r} → Displacement-algebra o r → Strict-order o (o ⊔ r)
@@ -130,7 +130,7 @@ module InfProperties
     module 𝒟∞ = Displacement-algebra (InfProd 𝒟)
 
     wlpo : ∀ {f g} → (∀ n → f n 𝒟.≤ g n) → f 𝒟∞.≤ g
-    wlpo p = Dec-rec (λ f=g → inl $ funext f=g) (λ neq → inr $ Inf.inf-< p neq) (𝒟-wlpo p)
+    wlpo p = Dec-rec (inl ⊙ funext) (inr ⊙ Inf.inf-< p) (𝒟-wlpo p)
 
   --------------------------------------------------------------------------------
   -- Ordered Monoid
@@ -144,7 +144,7 @@ module InfProperties
       open is-ordered-monoid 𝒟-om
 
       ⊗∞-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f ⊗∞ h) 𝒟∞.≤ (g ⊗∞ h)
-      ⊗∞-right-invariant f≤g = wlpo (λ n → right-invariant (inf≤-pointwise f≤g n))
+      ⊗∞-right-invariant f≤g = wlpo λ n → right-invariant (inf≤-pointwise f≤g n)
 
   --------------------------------------------------------------------------------
   -- Joins
