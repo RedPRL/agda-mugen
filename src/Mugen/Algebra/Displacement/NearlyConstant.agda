@@ -38,15 +38,8 @@ open import Mugen.Data.List
 -- denote the same function!
 --
 -- To resolve this, we say that a list is compact relative
--- to some base 'b  : 𝒟' if it does not have any trailing b's.
+-- to some 'base : 𝒟' if it does not have any trailing base's.
 -- We then only work with compact lists in our displacement algebra.
---
--- There is a further wrinkle with the order of induction: we want
--- a mix of left + right folds over the same list, which can get really
--- fiddly. To resolve this, we convert our left folds into right folds
--- over snoc-lists; this does cause some code duplication, but makes
--- inductions much easier, and avoids issues of with-abstraction that
--- views would bring.
 
 module NearlyConst
   {o r}
@@ -74,19 +67,30 @@ module NearlyConst
       (λ y<x → no λ x≡y → 𝒟.<→≠ y<x (sym x≡y))
       (cmp x y)
 
+  --------------------------------------------------------------------------------
+  -- Indexing
+  --
+  -- This is how we turn a (support) list into a map 'Nat → ⌞ 𝒟 ⌟'.
+
+  index : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
+  index base [] n = base
+  index base (x ∷ xs) zero = x
+  index base (x ∷ xs) (suc n) = index base xs n
+
+  --------------------------------------------------------------------------------
+  -- Compactness Predicate and Normalization
+  --
+  -- A list is compact relative to the base if it has
+  -- no trailing base's.
+  --
+
   module _ (base :  ⌞ 𝒟 ⌟) where
-    --------------------------------------------------------------------------------
-    -- Compactness Predicate
-    --
-    -- A list is compact relative to the base if it has
-    -- no trailing base's.
-    --
     is-compact : List ⌞ 𝒟 ⌟ → Type o
     is-compact [] = Lift o ⊤
     is-compact (x ∷ []) = ¬ (x ≡ base)
     is-compact (_ ∷ y ∷ ys) = is-compact (y ∷ ys)
 
-    -- A singleton list consisting of only 'b' is not compact.
+    -- A singleton list consisting of only 'base' is not compact.
     base-singleton-isnt-compact : ∀ {x xs} → x ≡ base → xs ≡ [] → is-compact (x ∷ xs) → ⊥
     base-singleton-isnt-compact {xs = []} x=base xs=[] is-compact = is-compact x=base
     base-singleton-isnt-compact {xs = _ ∷ _} x=base xs=[] is-compact = ∷≠[] xs=[]
@@ -94,13 +98,6 @@ module NearlyConst
     is-compact-tail : ∀ x xs → is-compact (x ∷ xs) → is-compact xs
     is-compact-tail x [] _ = lift tt
     is-compact-tail x (y ∷ ys) compact = compact
-
-{-
-    is-compact-++ : ∀ xs ys → is-compact (xs ++ ys) → is-compact ys
-    is-compact-++ [] ys compact = compact
-    is-compact-++ (x ∷ xs) ys compact =
-      is-compact-++ xs ys $ is-compact-tail x (xs ++ ys) compact
--}
 
     is-compact-is-prop : ∀ xs → is-prop (is-compact xs)
     is-compact-is-prop [] = hlevel 1
@@ -111,25 +108,13 @@ module NearlyConst
     -- Compacting Lists
     --
     -- Now that we've defined a notion of normal form via
-    -- 'is-compact', we need to define a normalization function that
+    -- 'is-compact', we want to define a normalization function that
     -- strips off all the trailing 'base' elements.
 
-    -- 'just xs' means 'xs' is not empty, and 'nothing' means an empty list
-    -- We separate these two cases during recursion to avoid
-    -- re-pattern-matching on the returned lists.
-
-    compact-singleton-case : ∀ (x : ⌞ 𝒟 ⌟) → Dec (x ≡ base) → List ⌞ 𝒟 ⌟
-    compact-singleton-case x p =
-      Dec-elim _
-        (λ _ → [])
-        (λ _ → x ∷ [])
-        p
-
-    compact-singleton : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
-    compact-singleton x = compact-singleton-case x (x ≡? base)
-
     compact-step : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
-    compact-step x [] = compact-singleton x
+    compact-step x [] with x ≡? base
+    ... | yes _ = []
+    ... | no _ = x ∷ []
     compact-step x (y ∷ ys) = x ∷ y ∷ ys
 
     compact : List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
@@ -157,6 +142,11 @@ module NearlyConst
     compact-is-compact (x ∷ xs) =
       compact-step-is-compact x (compact xs) (compact-is-compact xs)
 
+    base→compact=[] : ∀ {x} → x ≡ base → compact (x ∷ []) ≡ []
+    base→compact=[] {x} x=base with x ≡? base
+    ... | yes _ = refl
+    ... | no x≠base = absurd (x≠base x=base)
+
 {-
     compact-last : ∀ xs ys y → compact xs ≡ ys #r y → y ≡ base → ⊥
     compact-last [] ys y p y=base = #r≠[] (sym p)
@@ -177,24 +167,6 @@ module NearlyConst
     -- are equivalent! However, the induction orders are different, and we want
     -- to *trust the natural recursion*.
 
-    vanishes : List ⌞ 𝒟 ⌟ → Type o
-    vanishes [] = Lift o ⊤
-    vanishes (x ∷ xs) = (x ≡ base) × vanishes xs
-
-    vanish→compact-singleton=[] : ∀ {x} → x ≡ base → compact-singleton x ≡ []
-    vanish→compact-singleton=[] {x} x=base with x ≡? base
-    ... | yes _ = refl
-    ... | no x≠base = absurd (x≠base x=base)
-
-    vanish→compact=[] : ∀ xs → vanishes xs → compact xs ≡ []
-    vanish→compact=[] [] _ = refl
-    vanish→compact=[] (x ∷ xs) (vx , vxs) =
-      compact-step x (compact xs)
-        ≡⟨ ap (compact-step x) $ vanish→compact=[] xs vxs ⟩
-      compact-step x []
-        ≡⟨ vanish→compact-singleton=[] vx ⟩
-      []
-        ∎
 
 {-
     vanish-step : ∀ x xs → x ≡ base → vanishes xs → vanishes (x ∷ xs)
@@ -281,36 +253,31 @@ module NearlyConst
     --
     -- This is how we embed a support list into a map 'Nat → ⌞ 𝒟 ⌟'.
 
-    index : List ⌞ 𝒟 ⌟ → Nat → ⌞ 𝒟 ⌟
-    index [] n = base
-    index (x ∷ xs) zero = x
-    index (x ∷ xs) (suc n) = index xs n
-
     index-compact-step-zero : ∀ x xs
-      → index (compact-step x xs) zero ≡ x
+      → index base (compact-step x xs) zero ≡ x
     index-compact-step-zero x [] with x ≡? base
     ... | yes x=base = sym x=base
     ... | no _ = refl
     index-compact-step-zero x (_ ∷ _) = refl
 
     index-compact-step-suc : ∀ x xs n
-      → index (compact-step x xs) (suc n) ≡ index xs n
+      → index base (compact-step x xs) (suc n) ≡ index base xs n
     index-compact-step-suc x [] n with x ≡? base
     ... | yes _ = refl
     ... | no _ = refl
     index-compact-step-suc x (_ ∷ _) n = refl
 
     -- Indexing a compacted list is the same as indexing the uncompacted list.
-    index-compact : ∀ xs n → index (compact xs) n ≡ index xs n
+    index-compact : ∀ xs n → index base (compact xs) n ≡ index base xs n
     index-compact [] n = refl
     index-compact (x ∷ xs) zero =
       index-compact-step-zero x (compact xs)
     index-compact (x ∷ xs) (suc n) =
-      index (compact-step x (compact xs)) (suc n)
+      index base (compact-step x (compact xs)) (suc n)
         ≡⟨ index-compact-step-suc x (compact xs) n ⟩
-      index (compact xs) n
+      index base (compact xs) n
         ≡⟨ index-compact xs n ⟩
-      index xs n
+      index base xs n
         ∎
 
   --------------------------------------------------------------------------------
@@ -363,7 +330,7 @@ module NearlyConst
     → compact (b1 ⊗ b2) (merge-list b1 (x ∷ []) b2 ys)
     ≡ compact (b1 ⊗ b2) (merge-list b1 [] b2 ys)
   compact-merge-basel b1 x b2 [] x=b1 =
-    vanish→compact-singleton=[] (b1 ⊗ b2) (ap (_⊗ b2) x=b1)
+    base→compact=[] (b1 ⊗ b2) (ap (_⊗ b2) x=b1)
   compact-merge-basel b1 x b2 (y ∷ ys) x=b1 =
     ap (λ x → compact (b1 ⊗ b2) ((x ⊗ y) ∷ merge-list b1 [] b2 ys)) x=b1
 
@@ -398,7 +365,7 @@ module NearlyConst
     → compact (b1 ⊗ b2) (merge-list b1 xs b2 (y ∷ []))
     ≡ compact (b1 ⊗ b2) (merge-list b1 xs b2 [])
   compact-merge-baser b1 [] b2 y y=b2 =
-    vanish→compact-singleton=[] (b1 ⊗ b2) (ap (b1 ⊗_) y=b2)
+    base→compact=[] (b1 ⊗ b2) (ap (b1 ⊗_) y=b2)
   compact-merge-baser b1 (x ∷ xs) b2 y y=b2 =
     ap (λ y → compact (b1 ⊗ b2) ((x ⊗ y) ∷ merge-list b1 xs b2 [])) y=b2
 
@@ -459,7 +426,7 @@ module NearlyConst
   SupportList-is-set =
     is-hlevel≃ 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 (hlevel 2) λ base →
-      Σ-is-hlevel 2 (ListPath.List-is-hlevel 0  𝒟.has-is-set) λ xs →
+      Σ-is-hlevel 2 (ListPath.List-is-hlevel 0 𝒟.has-is-set) λ xs →
       is-prop→is-set (is-compact-is-prop base xs)
 
   -- Smart constructor for SupportList that compacts the list.
@@ -536,30 +503,31 @@ module NearlyConst
 
   -- FIXME: reuse inf<
 
-  -- ≤ for lists relative to a base.
-  list≤ : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
-  list≤ b1 xs b2 ys = ∀ (n : Nat) → index b1 xs n ≤ index b2 ys n
+  module _ (b1 : ⌞ 𝒟 ⌟) (xs : List ⌞ 𝒟 ⌟) (b2 : ⌞ 𝒟 ⌟) (ys : List ⌞ 𝒟 ⌟) where
+    -- ≤ for lists relative to a base.
+    list≤ : Type (o ⊔ r)
+    list≤ = ∀ (n : Nat) → index b1 xs n ≤ index b2 ys n
 
-  -- = for lists relative to a base.
-  list= : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type o
-  list= b1 xs b2 ys = ∀ (n : Nat) → index b1 xs n ≡ index b2 ys n
+    -- = for lists relative to a base.
+    list= : Type o
+    list= = ∀ (n : Nat) → index b1 xs n ≡ index b2 ys n
 
-  -- < for lists relative to a base.
-  list< : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟ → Type (o ⊔ r)
-  list< b1 xs b2 ys = list≤ b1 xs b2 ys × (¬ list= b1 xs b2 ys)
+    -- < for lists relative to a base.
+    list< : Type (o ⊔ r)
+    list< = list≤ × (¬ list=)
 
-  -- We can transform a proof of < into a proof of ≤.
-  list<→≤ : ∀ b1 xs b2 ys → list< b1 xs b2 ys → list≤ b1 xs b2 ys
-  list<→≤ b1 xs b2 ys (xs≤ys , _) = xs≤ys
+    -- We can transform a proof of < into a proof of ≤.
+    list<→≤ : list< → list≤
+    list<→≤ (xs≤ys , _) = xs≤ys
+
+    list≤-is-prop : is-prop list≤
+    list≤-is-prop = hlevel 1
+
+    list<-is-prop : is-prop list<
+    list<-is-prop = hlevel 1
 
   --------------------------------------------------------------------------------
   -- Misc. Lemmas about ≤ and <
-
-  list≤-is-prop : ∀ b1 xs b2 ys → is-prop (list≤ b1 xs b2 ys)
-  list≤-is-prop b1 xs b2 ys = hlevel 1
-
-  list<-is-prop : ∀ b1 xs b2 ys → is-prop (list< b1 xs b2 ys)
-  list<-is-prop b1 xs b2 ys = hlevel 1
 
   base<→list< : ∀ b1 xs b2 ys → xs ≡ ys → b1 < b2 → list< b1 xs b2 ys
   base<→list< b1 [] b2 [] xs=ys b1<b2 = (λ n → inr b1<b2) , (λ p → 𝒟.<→≠ b1<b2 (p 0))
@@ -755,35 +723,9 @@ module NearlyConst
   index-mono : ∀ b1 xs b2 ys → list≤ b1 xs b2 ys → ∀ n → (index b1 xs n) ≤ (index b2 ys n)
   index-mono b1 xs b2 ys xs≤ys = xs≤ys
 
-{-
-  index-strictly-mono : ∀ b1 xs b2 ys → merge-list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
-  index-strictly-mono b1 xs b2 ys = go xs ys
-    where
-      go : ∀ xs ys → merge-list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
-      go [] [] (lift b1<b2) =
-        inf-< (λ _ → inr b1<b2) (inc (0 , b1<b2))
-      go [] (y ∷ ys) xs<ys with cmp b1 y
-      ... | lt b1<y =
-        inf-< (λ { zero → inr b1<y ; (suc n) → index-mono b1 [] b2 ys xs<ys n }) (inc (0 , b1<y))
-      ... | eq b1≡y =
-        inf-< (λ { zero → inl b1≡y; (suc n) →  []<∞ys .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) ([]<∞ys .<-somewhere))
-        where
-          []<∞ys = go [] ys xs<ys
-      go (x ∷ xs) [] xs<ys with cmp x b2
-      ... | lt x<b2 =
-        inf-< (λ { zero → inr x<b2 ; (suc n) → index-mono b1 xs b2 [] xs<ys n }) (inc (0 , x<b2))
-      ... | eq x≡b2 =
-        inf-< (λ { zero → inl x≡b2; (suc n) →  xs<∞[] .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) (xs<∞[] .<-somewhere))
-        where
-          xs<∞[] = go xs [] xs<ys
-      go (x ∷ xs) (y ∷ ys) xs<ys with cmp x y
-      ... | lt x<y =
-        inf-< (λ { zero → inr x<y ; (suc n) → index-mono b1 xs b2 ys xs<ys n }) (inc (0 , x<y))
-      ... | eq x≡y =
-        inf-< (λ { zero → inl x≡y; (suc n) →  xs<∞ys .≤-everywhere n }) (∥-∥-map (λ p → (suc (fst p)) , (snd p)) (xs<∞ys .<-somewhere))
-        where
-          xs<∞ys = go xs ys xs<ys
--}
+  index-strictly-mono : ∀ b1 xs b2 ys → list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
+  index-strictly-mono b1 xs b2 ys (xs≤ys , xs≠ys) .≤-everywhere = xs≤ys
+  index-strictly-mono b1 xs b2 ys (xs≤ys , xs≠ys) .not-equal = xs≠ys
 
   into-preserves-⊗ : ∀ xs ys n → into (merge xs ys) n ≡ (into xs ⊗∞ into ys) n
   into-preserves-⊗ xs ys n =
@@ -831,7 +773,6 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displac
     mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} =
       slist<-left-invariant xs ys zs
 
-{- TODO
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
 
@@ -843,7 +784,6 @@ module _ {o r} {𝒟 : Displacement-algebra o r} (cmp : ∀ x y → Tri (Displac
     open Inf 𝒟
     open SupportList
 
-
   NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
   NearlyConstant⊆InfProd = to-displacement-subalgebra mk where
     mk : make-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
@@ -854,7 +794,6 @@ module _ {o r} {𝒟 : Displacement-algebra o r} (cmp : ∀ x y → Tri (Displac
     mk .make-displacement-subalgebra.strictly-mono xs ys =
       index-strictly-mono (xs .base) (xs .elts) (ys .base) (ys .elts)
     mk .make-displacement-subalgebra.inj {xs} {ys} p = into-inj xs ys (happly p)
--}
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -911,7 +850,6 @@ module _
     right-invariant→has-ordered-monoid (NearlyConstant 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
       merge-right-invariant xs ys zs xs≤ys
 
-{- TODO
 --------------------------------------------------------------------------------
 -- Joins
 
@@ -932,29 +870,28 @@ module NearlyConstJoins
 
   join-support : SupportList → SupportList → SupportList
   join-support xs ys .base = join (xs .base) (ys .base)
-  join-support xs ys .elts = compact (join (xs .base) (ys .base)) (bwd (join-list (xs .base) (xs .elts) (ys .base) (ys .elts)))
-  join-support xs ys .compacted = compact-is-compact (join (xs .base) (ys .base)) (bwd (join-list (xs .base) (xs .elts) (ys .base) (ys .elts)))
+  join-support xs ys .elts = compact (join (xs .base) (ys .base)) (join-list (xs .base) (xs .elts) (ys .base) (ys .elts))
+  join-support xs ys .compacted = compact-is-compact (join (xs .base) (ys .base)) (join-list (xs .base) (xs .elts) (ys .base) (ys .elts))
 
   join-list-joinl : ∀ b1 xs b2 ys → list≤ b1 xs (join b1 b2) (join-list b1 xs b2 ys)
-  join-list-joinl b1 [] b2 [] =
-    joinl
-  join-list-joinl b1 [] b2 (y ∷ ys) =
-    merge-list≤-step≤ b1 [] (join b1 b2) (join-list b1 [] b2 ys) joinl (join-list-joinl b1 [] b2 ys)
-  join-list-joinl b1 (x ∷ xs) b2 [] =
-    merge-list≤-step≤ b1 xs (join b1 b2) (join-list b1 xs b2 []) joinl (join-list-joinl b1 xs b2 [])
-  join-list-joinl b1 (x ∷ xs) b2 (y ∷ ys) =
-    merge-list≤-step≤ b1 xs (join b1 b2) (join-list b1 xs b2 ys) joinl (join-list-joinl b1 xs b2 ys)
+  join-list-joinl b1 [] b2 [] n = joinl
+  join-list-joinl b1 [] b2 (y ∷ ys) zero = joinl
+  join-list-joinl b1 [] b2 (y ∷ ys) (suc n) = join-list-joinl b1 [] b2 ys n
+  join-list-joinl b1 (x ∷ xs) b2 [] zero = joinl
+  join-list-joinl b1 (x ∷ xs) b2 [] (suc n) = join-list-joinl b1 xs b2 [] n
+  join-list-joinl b1 (x ∷ xs) b2 (y ∷ ys) zero = joinl
+  join-list-joinl b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = join-list-joinl b1 xs b2 ys n
 
-  join-list-joinr : ∀ b1 xs b2 ys → merge-list≤ b2 ys (join b1 b2) (join-list b1 xs b2 ys)
-  join-list-joinr b1 [] b2 [] =
-    joinr
-  join-list-joinr b1 [] b2 (y ∷ ys) =
-    merge-list≤-step≤ b2 ys (join b1 b2) (join-list b1 [] b2 ys) joinr (join-list-joinr b1 [] b2 ys)
-  join-list-joinr b1 (x ∷ xs) b2 [] =
-    merge-list≤-step≤ b2 [] (join b1 b2) (join-list b1 xs b2 []) joinr (join-list-joinr b1 xs b2 [])
-  join-list-joinr b1 (x ∷ xs) b2 (y ∷ ys) =
-    merge-list≤-step≤ b2 ys (join b1 b2) (join-list b1 xs b2 ys) joinr (join-list-joinr b1 xs b2 ys)
+  join-list-joinr : ∀ b1 xs b2 ys → list≤ b2 ys (join b1 b2) (join-list b1 xs b2 ys)
+  join-list-joinr b1 [] b2 [] n = joinr
+  join-list-joinr b1 [] b2 (y ∷ ys) zero = joinr
+  join-list-joinr b1 [] b2 (y ∷ ys) (suc n) = join-list-joinr b1 [] b2 ys n
+  join-list-joinr b1 (x ∷ xs) b2 [] zero = joinr
+  join-list-joinr b1 (x ∷ xs) b2 [] (suc n) = join-list-joinr b1 xs b2 [] n
+  join-list-joinr b1 (x ∷ xs) b2 (y ∷ ys) zero = joinr
+  join-list-joinr b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = join-list-joinr b1 xs b2 ys n
 
+{- TODO
   join-list-universal : ∀ b1 xs b2 ys b3 zs
                         → merge-list≤ b1 xs b3 zs
                         → merge-list≤ b2 ys b3 zs
