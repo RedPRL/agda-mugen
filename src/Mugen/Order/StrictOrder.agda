@@ -72,6 +72,10 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   has-is-partial-order .is-partial-order.≤-trans = ≤-trans
   has-is-partial-order .is-partial-order.≤-antisym = ≤-antisym
 
+  ≤+≮→= : ∀ {x y} → x ≤ y → ¬ (x < y) → x ≡ y
+  ≤+≮→= (inl x=y) x≮y = x=y
+  ≤+≮→= (inr x<y) x≮y = absurd (x≮y x<y)
+
 
 instance
   is-strict-order-hlevel : ∀ {o r} {A : Type o} {_<_ : A → A → Type r} {n}
