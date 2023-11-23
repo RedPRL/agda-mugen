@@ -1,4 +1,4 @@
-module Mugen.Axioms.LPO where
+module Mugen.Axioms.WLPO where
 
 open import Mugen.Prelude
 open import Mugen.Order.StrictOrder

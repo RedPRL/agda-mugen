@@ -84,8 +84,8 @@ module _ {o r} {A B : Strict-order o r} {b : ⌞ B ⌟} where
   ⋉-trans : ∀ (x y z : ⌞ A ⌟ × ⌞ B ⌟) → A ⋉ B [ b ][ x < y ] → A ⋉ B [ b ][ y < z ] → A ⋉ B [ b ][ x < z ]
   ⋉-trans x y z x<y y<z =
     ⋉-elim₂ (λ a1≡a2 b1<b2 a2≡a3 b2<b3 → biased (a1≡a2 ∙ a2≡a3) (B.<-trans b1<b2 b2<b3))
-            (λ a1≡a2 b1<b2 a2<a3 b2≤b b≤b3 → centred (A.≡-transl a1≡a2 a2<a3) (B.≤-trans (B.<→≤ b1<b2) b2≤b) b≤b3)
-            (λ a1<a2 b1≤b b≤b2 a2≡a3 b2<b3 → centred (A.≡-transr a1<a2 a2≡a3) b1≤b (B.≤-trans b≤b2 (B.<→≤ b2<b3)))
+            (λ a1≡a2 b1<b2 a2<a3 b2≤b b≤b3 → centred (A.≡+<→< a1≡a2 a2<a3) (B.≤-trans (B.<→≤ b1<b2) b2≤b) b≤b3)
+            (λ a1<a2 b1≤b b≤b2 a2≡a3 b2<b3 → centred (A.<+≡→< a1<a2 a2≡a3) b1≤b (B.≤-trans b≤b2 (B.<→≤ b2<b3)))
             (λ a1<a2 b1≤b b≤b2 a2<a3 b2≤b b≤b3 → centred (A.<-trans a1<a2 a2<a3) b1≤b b≤b3)
             (λ _ _ → trunc) x<y y<z
 

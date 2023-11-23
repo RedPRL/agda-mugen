@@ -8,7 +8,7 @@ open import Algebra.Semigroup
 
 open import Mugen.Prelude
 
-open import Mugen.Axioms.LPO
+open import Mugen.Axioms.WLPO
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Coimage
 open import Mugen.Algebra.Displacement.InfiniteProduct
@@ -69,9 +69,9 @@ module NearlyConst
   x ≡? y =
     tri-elim
       (λ _ → Dec (x ≡ y))
-      (λ x<y → no λ x≡y → 𝒟.<-not-equal x<y x≡y)
+      (λ x<y → no λ x≡y → 𝒟.<→≠ x<y x≡y)
       yes
-      (λ y<x → no λ x≡y → 𝒟.<-not-equal y<x (sym x≡y))
+      (λ y<x → no λ x≡y → 𝒟.<→≠ y<x (sym x≡y))
       (cmp x y)
 
   module _ (base :  ⌞ 𝒟 ⌟) where
@@ -562,7 +562,7 @@ module NearlyConst
   list<-is-prop b1 xs b2 ys = hlevel 1
 
   base<→list< : ∀ b1 xs b2 ys → xs ≡ ys → b1 < b2 → list< b1 xs b2 ys
-  base<→list< b1 [] b2 [] xs=ys b1<b2 = (λ n → inr b1<b2) , (λ p → 𝒟.<-not-equal b1<b2 (p 0))
+  base<→list< b1 [] b2 [] xs=ys b1<b2 = (λ n → inr b1<b2) , (λ p → 𝒟.<→≠ b1<b2 (p 0))
   base<→list< b1 [] b2 (_ ∷ _) xs=ys b1<b2 = absurd $ ∷≠[] (sym xs=ys)
   base<→list< b1 (_ ∷ _) b2 [] xs=ys b1<b2 = absurd $ ∷≠[] xs=ys
   base<→list< b1 (x ∷ xs) b2 (y ∷ ys) x∷xs=y∷ys b1<b2 =
@@ -712,8 +712,8 @@ module NearlyConst
   -- FIXME: can do without decidable equality!
   ⊗-injr : ∀ {b1 b2 b3} → (b1 ⊗ b2) ≡ (b1 ⊗ b3) → b2 ≡ b3
   ⊗-injr {b2 = b2} {b3 = b3} b1⊗b2=b1⊗b3 with cmp b2 b3
-  ... | lt b2<b3 = absurd $ 𝒟.<-not-equal (𝒟.left-invariant b2<b3) b1⊗b2=b1⊗b3
-  ... | gt b2>b3 = absurd $ 𝒟.<-not-equal (𝒟.left-invariant b2>b3) (sym b1⊗b2=b1⊗b3)
+  ... | lt b2<b3 = absurd $ 𝒟.<→≠ (𝒟.left-invariant b2<b3) b1⊗b2=b1⊗b3
+  ... | gt b2>b3 = absurd $ 𝒟.<→≠ (𝒟.left-invariant b2>b3) (sym b1⊗b2=b1⊗b3)
   ... | eq b2=b3 = b2=b3
 
   merge-list-inj : ∀ b1 xs b2 ys b3 zs
@@ -1041,8 +1041,8 @@ module NearlyConstJoins
             (non-strict→merge≤ xs zs xs≤zs)
             (non-strict→merge≤ ys zs ys≤zs)))
 
-  -- NOTE: 'into' preserves joins regardless of LPO, but the joins InfProd aren't /provably/
-  -- joins unless we have LPO, hence the extra module.
+  -- NOTE: 'into' preserves joins regardless of WLPO, but the joins InfProd aren't /provably/
+  -- joins unless we have WLPO, hence the extra module.
   into-preserves-join : ∀ xs ys n → into (join-support xs ys) n ≡ join (into xs n) (into ys n)
   into-preserves-join  xs ys n =
     into (join-support xs ys) n
@@ -1060,7 +1060,7 @@ module NearlyConstJoins
       go b1 (x ∷ xs) b2 (y ∷ ys) zero = refl
       go b1 (x ∷ xs) b2 (y ∷ ys) (suc n) = go b1 xs b2 ys n
 
-  module _ (𝒟-lpo : LPO 𝒟.strict-order _≡?_) where
+  module _ (𝒟-lpo : WLPO 𝒟.strict-order _≡?_) where
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-lpo
 
     nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟-joins)

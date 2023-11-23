@@ -63,14 +63,14 @@ module Lex {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
 
   lex<-trans : ∀ x y z → lex< x y → lex< y z → lex< x z
   lex<-trans x y z (fst< x1<y1) (fst< y1<z1) = fst< (𝒟₁.<-trans x1<y1 y1<z1)
-  lex<-trans x y z (fst< x1<y1) (fst≡ y1≡z1 _) = fst< (𝒟₁.≡-transr x1<y1 y1≡z1)
-  lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst< y1<z1) = fst< (𝒟₁.≡-transl x1≡y1 y1<z1)
+  lex<-trans x y z (fst< x1<y1) (fst≡ y1≡z1 _) = fst< (𝒟₁.<+≡→< x1<y1 y1≡z1)
+  lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst< y1<z1) = fst< (𝒟₁.≡+<→< x1≡y1 y1<z1)
   lex<-trans x y z (fst≡ x1≡y1 x2<y2) (fst≡ y1≡z1 y2<z2) = fst≡ (x1≡y1 ∙ y1≡z1) (𝒟₂.<-trans x2<y2 y2<z2)
 
   lex<-is-prop : ∀ x y → is-prop (lex< x y)
   lex<-is-prop x y (fst< x1<y1)       (fst< x1<y1′)        = ap lex<.fst< (𝒟₁.<-thin x1<y1 x1<y1′)
-  lex<-is-prop x y (fst< x1<y1)       (fst≡ x1≡y1 _)       = absurd (𝒟₁.<-irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
-  lex<-is-prop x y (fst≡ x1≡y1 _)     (fst< x1<y1)         = absurd (𝒟₁.<-irrefl (𝒟₁.≡-transr x1<y1 (sym x1≡y1)))
+  lex<-is-prop x y (fst< x1<y1)       (fst≡ x1≡y1 _)       = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
+  lex<-is-prop x y (fst≡ x1≡y1 _)     (fst< x1<y1)         = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
   lex<-is-prop x y (fst≡ x1≡y1 x2<y2) (fst≡ x1≡y1′ x2<y2′) = ap₂ lex<.fst≡ (𝒟₁.has-is-set _ _ x1≡y1 x1≡y1′) (𝒟₂.<-thin x2<y2 x2<y2′)
 
   --------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) with ≤₂? y1 y2
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | yes y1≤y2 = yes (fst≡ x1≡x2 y1≤y2)
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | no ¬y1≤y2 = no λ where
-    (fst< x1<x2) → absurd (𝒟₁.<-irrefl (𝒟₁.≡-transl (sym x1≡x2) x1<x2))
+    (fst< x1<x2) → absurd (𝒟₁.<-irrefl (𝒟₁.≡+<→< (sym x1≡x2) x1<x2))
     (fst≡ x1≡x2 y1≤y2) → ¬y1≤y2 y1≤y2
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inr x1<x2) = yes (fst< x1<x2)
   lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | no ¬x1≤x2 = no λ where
@@ -177,12 +177,12 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
       ... | no ¬x1≤x1∨y1       | _                  = absurd (¬x1≤x1∨y1 𝒟₁-joins.joinl)
       joins .has-joins.universal {x1 , x2} {y1 , y2} {z1 , z2} x≤z y≤z with x1 ≤₁? (𝒟₁-joins.join x1 y1) | y1 ≤₁? (𝒟₁-joins.join x1 y1) | to-lex≤ x≤z | to-lex≤ y≤z
       ... | yes (inr x1<x1∨y1) | yes (inr y1<x1∨y1) | x≤z              | y≤z = from-lex≤ (lex≤-both (𝒟₁-joins.universal (lex≤-fst x≤z) (lex≤-fst y≤z)) (𝒟₂-bottom.is-bottom z2))
-      ... | yes (inr x1<x1∨y1) | yes (inl y1≡x1∨y1) | x≤z              | fst< y1<z1 = from-lex≤ (fst< (𝒟₁.≡-transl (sym y1≡x1∨y1) y1<z1))
+      ... | yes (inr x1<x1∨y1) | yes (inl y1≡x1∨y1) | x≤z              | fst< y1<z1 = from-lex≤ (fst< (𝒟₁.≡+<→< (sym y1≡x1∨y1) y1<z1))
       ... | yes (inr x1<x1∨y1) | yes (inl y1≡x1∨y1) | x≤z              | fst≡ y1≡z1 y2≤z2 = from-lex≤ (fst≡ (sym y1≡x1∨y1 ∙ y1≡z1) y2≤z2)
-      ... | yes (inl x1≡x1∨y1) | yes (inr y1<x1∨y1) | fst< x1<z1       | y≤z = from-lex≤ (fst< (𝒟₁.≡-transl (sym x1≡x1∨y1) x1<z1))
+      ... | yes (inl x1≡x1∨y1) | yes (inr y1<x1∨y1) | fst< x1<z1       | y≤z = from-lex≤ (fst< (𝒟₁.≡+<→< (sym x1≡x1∨y1) x1<z1))
       ... | yes (inl x1≡x1∨y1) | yes (inr y1<x1∨y1) | fst≡ x1≡z1 x2≤z2 | y≤z = from-lex≤ (fst≡ (sym x1≡x1∨y1 ∙ x1≡z1) x2≤z2)
-      ... | yes (inl x1≡x1∨y1) | yes (inl y1≡x1∨y1) | fst< x1<z1       | y≤z = from-lex≤ (fst< (𝒟₁.≡-transl (sym x1≡x1∨y1) x1<z1))
-      ... | yes (inl x1≡x1∨y1) | yes (inl y1≡x1∨y1) | fst≡ x1≡z1 x2≤z2 | fst< y1<z1 = from-lex≤ (fst< (𝒟₁.≡-transl (sym y1≡x1∨y1) y1<z1))
+      ... | yes (inl x1≡x1∨y1) | yes (inl y1≡x1∨y1) | fst< x1<z1       | y≤z = from-lex≤ (fst< (𝒟₁.≡+<→< (sym x1≡x1∨y1) x1<z1))
+      ... | yes (inl x1≡x1∨y1) | yes (inl y1≡x1∨y1) | fst≡ x1≡z1 x2≤z2 | fst< y1<z1 = from-lex≤ (fst< (𝒟₁.≡+<→< (sym y1≡x1∨y1) y1<z1))
       ... | yes (inl x1≡x1∨y1) | yes (inl y1≡x1∨y1) | fst≡ x1≡z1 x2≤z2 | fst≡ y1≡z1 y2≤z2 = from-lex≤ (fst≡ (sym x1≡x1∨y1 ∙ x1≡z1) (𝒟₂-joins.universal x2≤z2 y2≤z2))
       ... | yes (inl _)        | no ¬y1≤x1∨y1       | x≤z              | y≤z = absurd (¬y1≤x1∨y1 𝒟₁-joins.joinr)
       ... | yes (inr _)        | no ¬y1≤x1∨y1       | x≤z              | y≤z = absurd (¬y1≤x1∨y1 𝒟₁-joins.joinr)

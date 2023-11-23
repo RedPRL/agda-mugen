@@ -4,7 +4,7 @@ open import Algebra.Magma
 open import Algebra.Monoid
 open import Algebra.Semigroup
 
-open import Mugen.Axioms.LPO
+open import Mugen.Axioms.WLPO
 open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
@@ -87,7 +87,7 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
   ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.≤-left-invariant (≤-everywhere g<h n)
   ⊗∞-left-invariant f g h g<h .not-equal p =
-    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-everywhere n) (λ gn<hn → 𝒟.<-not-equal (𝒟.left-invariant gn<hn) (p n))
+    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-everywhere n) (λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n))
 
 
 Inf : ∀ {o r} → Displacement-algebra o r → Strict-order o (o ⊔ r)
@@ -117,9 +117,8 @@ InfProd {o = o} {r = r} 𝒟 = to-displacement-algebra mk where
   mk .associative {x} {y} {z} = ⊗∞-associative x y z
   mk .left-invariant {x} {y} {z} = ⊗∞-left-invariant x y z
 
--- All of the following results require a form of the Limited Principle of Omniscience,
--- which states that if '∀ n. f n ≤ g n', then 'f ≡ g', or there is some 'k' where 'f k < g k'.
--- See Mugen.Axioms.LPO for a distillation of LPO into Markov's Principle + LEM
+-- All of the following results require a form of the Weak Limited Principle of Omniscience,
+-- which states that '∀ n. f n ≡ g n' is a decidable property.
 module InfProperties
   {o r}
   {𝒟 : Displacement-algebra o r}

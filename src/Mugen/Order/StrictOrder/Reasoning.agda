@@ -30,11 +30,11 @@ begin-≤ weak x y x≤y = x≤y
 step-< : ∀ x {y z} → y IsRelatedTo z → x < y → x IsRelatedTo z
 step-< x (done y) x<y = strong x y x<y
 step-< x (strong y z y<z) x<y = strong x z (<-trans x<y y<z)
-step-< x (weak y z y≤z) x<y = strong x z (≤-transr x<y y≤z)
+step-< x (weak y z y≤z) x<y = strong x z (<+≤→< x<y y≤z)
 
 step-≤ : ∀ x {y z} → y IsRelatedTo z → x ≤ y → x IsRelatedTo z
 step-≤ x (done y) x≤y = weak x y x≤y
-step-≤ x (strong y z y<z) x≤y = strong x z (≤-transl x≤y y<z)
+step-≤ x (strong y z y<z) x≤y = strong x z (≤+<→< x≤y y<z)
 step-≤ x (weak y z y≤z) x≤y = weak x z (≤-trans x≤y y≤z)
 
 step-≡ : ∀ x {y z} → y IsRelatedTo z → x ≡ y → x IsRelatedTo z
