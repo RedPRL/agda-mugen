@@ -57,13 +57,11 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   --------------------------------------------------------------------------------
   -- Ordering
 
-  -- NOTE: This is classically equivalent to the definition presented in the paper,
-  -- but less annoying to work with constructively.
   record _inf<_ (f g : Nat → ⌞ 𝒟 ⌟) : Type (o ⊔ r) where
     constructor inf-<
     field
       ≤-everywhere : ∀ n →  f n 𝒟.≤ g n
-      <-somewhere  : ∃[ n ∈ Nat ] (f n 𝒟.< g n)
+      not-equal    : ¬ ∀ (n : Nat) → f n ≡ g n
 
   open _inf<_ public
 
@@ -72,22 +70,24 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   inf≤-everywhere (inr f<g) n = ≤-everywhere f<g n
 
   inf<-irrefl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → f inf< f → ⊥
-  inf<-irrefl f f<f = ∥-∥-rec (hlevel 1) (λ { (_ , fn<fn) → 𝒟.<-irrefl fn<fn }) (<-somewhere f<f)
+  inf<-irrefl f f<f = not-equal f<f λ _ → refl
 
   inf<-trans : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → f inf< g → g inf< h → f inf< h
   inf<-trans f g h f<g g<h .≤-everywhere n = 𝒟.≤-trans (≤-everywhere f<g n) (≤-everywhere g<h n)
-  inf<-trans f g h f<g g<h .<-somewhere = ∥-∥-map (λ { (n , fn<gn) → n , 𝒟.≤-transr fn<gn (≤-everywhere g<h n) }) (<-somewhere f<g)
+  inf<-trans f g h f<g g<h .not-equal f=h =
+    g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-everywhere n) $ subst (𝒟._≤ _) (f=h n) (f<g .≤-everywhere n)
 
-  inf<-is-prop : ∀ f g  → is-prop (f inf< g)
+  inf<-is-prop : ∀ f g → is-prop (f inf< g)
   inf<-is-prop f g f<g f<g′ i .≤-everywhere n = 𝒟.≤-thin (≤-everywhere f<g n) (≤-everywhere f<g′ n) i
-  inf<-is-prop f g f<g f<g′ i .<-somewhere = squash (<-somewhere f<g) (<-somewhere f<g′) i
+  inf<-is-prop f g f<g f<g′ i .not-equal = hlevel 1 (f<g .not-equal) (f<g′ .not-equal) i
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
   ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
   ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.left-invariant-≤ (≤-everywhere g<h n)
-  ⊗∞-left-invariant f g h g<h .<-somewhere = ∥-∥-map (λ { (n , gn<hn) → n , 𝒟.left-invariant gn<hn }) (<-somewhere g<h)
+  ⊗∞-left-invariant f g h g<h .not-equal p =
+    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-everywhere n) (λ gn<hn → 𝒟.<-not-equal (𝒟.left-invariant gn<hn) (p n))
 
 
 Inf : ∀ {o r} → Displacement-algebra o r → Strict-order o (o ⊔ r)
@@ -124,14 +124,14 @@ module InfProperties
   {o r}
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-lpo : LPO 𝒟.strict-order _≡?_)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟) (𝒟-wlpo : WLPO 𝒟.strict-order _≡?_)
   where
   private
     open Inf 𝒟
     module 𝒟∞ = Displacement-algebra (InfProd 𝒟)
 
-    lpo : ∀ {f g} → (∀ n → f n 𝒟.≤ g n) → f 𝒟∞.≤ g
-    lpo p = ⊎-mapr (λ lt → Inf.inf-< p lt) (𝒟-lpo p)
+    wlpo : ∀ {f g} → (∀ n → f n 𝒟.≤ g n) → f 𝒟∞.≤ g
+    wlpo p = Dec-rec (λ f=g → inl $ funext f=g) (λ neq → inr $ Inf.inf-< p neq) (𝒟-wlpo p)
 
   --------------------------------------------------------------------------------
   -- Ordered Monoid
@@ -145,7 +145,7 @@ module InfProperties
       open is-ordered-monoid 𝒟-om
 
       ⊗∞-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f ⊗∞ h) 𝒟∞.≤ (g ⊗∞ h)
-      ⊗∞-right-invariant f≤g = lpo (λ n → right-invariant (inf≤-everywhere f≤g n))
+      ⊗∞-right-invariant f≤g = wlpo (λ n → right-invariant (inf≤-everywhere f≤g n))
 
   --------------------------------------------------------------------------------
   -- Joins
@@ -157,9 +157,9 @@ module InfProperties
 
       joins : has-joins (InfProd 𝒟)
       joins .has-joins.join f g n = join (f n) (g n)
-      joins .has-joins.joinl = lpo λ _ → joinl
-      joins .has-joins.joinr = lpo λ _ → joinr
-      joins .has-joins.universal f≤h g≤h = lpo λ n → universal (inf≤-everywhere f≤h n) (inf≤-everywhere g≤h n)
+      joins .has-joins.joinl = wlpo λ _ → joinl
+      joins .has-joins.joinr = wlpo λ _ → joinr
+      joins .has-joins.universal f≤h g≤h = wlpo λ n → universal (inf≤-everywhere f≤h n) (inf≤-everywhere g≤h n)
 
   --------------------------------------------------------------------------------
   -- Bottom
@@ -171,4 +171,4 @@ module InfProperties
 
       bottom : has-bottom (InfProd 𝒟)
       bottom .has-bottom.bot _ = bot
-      bottom .has-bottom.is-bottom f = lpo λ n → is-bottom (f n)
+      bottom .has-bottom.is-bottom f = wlpo λ n → is-bottom (f n)

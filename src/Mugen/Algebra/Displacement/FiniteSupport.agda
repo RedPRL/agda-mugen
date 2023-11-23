@@ -81,7 +81,7 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
   -- Order
 
   _merge-fin<_ : FinSupportList → FinSupportList → Type (o ⊔ r)
-  _merge-fin<_ xs ys = (xs .support) merge< (ys .support)
+  _merge-fin<_ xs ys = (xs .support) slist< (ys .support)
 
 
 --------------------------------------------------------------------------------
@@ -96,11 +96,11 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displac
     mk-strict : make-strict-order (o ⊔ r) FinSupportList
     mk-strict .make-strict-order._<_ = _merge-fin<_
     mk-strict .make-strict-order.<-irrefl {xs} =
-      merge-list<-irrefl (base xs) (list xs)
+      list<-irrefl (base xs) (elts xs)
     mk-strict .make-strict-order.<-trans {xs} {ys} {zs} =
-      merge-list<-trans (base xs) (list xs) (base ys) (list ys) (base zs) (list zs)
+      list<-trans (base xs) (elts xs) (base ys) (elts ys) (base zs) (elts zs)
     mk-strict .make-strict-order.<-thin {xs} {ys} =
-      merge-list<-is-prop (base xs) (list xs) (base ys) (list ys)
+      list<-is-prop (base xs) (elts xs) (base ys) (elts ys)
     mk-strict .make-strict-order.has-is-set = FinSupportList-is-set
 
     mk : make-displacement-algebra (to-strict-order mk-strict)
@@ -113,7 +113,7 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displac
     mk .make-displacement-algebra.associative {xs} {ys} {zs} =
       fin-support-list-path (merge-assoc (xs .support) (ys .support) (zs .support))
     mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} =
-      merge-left-invariant (support xs) (support ys) (support zs)
+      slist<-left-invariant (support xs) (support ys) (support zs)
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
@@ -136,11 +136,13 @@ module _
     mk .make-displacement-subalgebra.strictly-mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
+{- TODO
   FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (InfProd 𝒟)
   FinSupport⊆InfProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
       (NearlyConstant⊆InfProd cmp)
+-}
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
