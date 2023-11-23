@@ -2,6 +2,8 @@
 
 This is a formalization of the displacement algebras, their properties, and part of meta-theoretic analysis found in our POPL 2023 paper [“An Order-Theoretic Analysis of Universe Polymorphism”.](https://favonia.org/files/mugen.pdf) The accompanying OCaml implementation is at <https://github.com/RedPRL/mugen/>.
 
+🚧 This repository is under major rewrites and cleanups. See version 0.1.0 for the code that matches the POPL 2023 paper.
+
 ## Mechanized Results
 
 ### Displacement Algebras
