@@ -20,34 +20,26 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   <-asym : ∀ {x y} → x < y → y < x → ⊥
   <-asym x<y y<x = <-irrefl (<-trans x<y y<x)
 
-  _≤_ : A → A → Type (o ⊔ r)
-  x ≤ y = non-strict _<_ x y
+  ≡+<→< : ∀ {x y z} → x ≡ y → y < z → x < z
+  ≡+<→< x≡y y<z = subst (λ ϕ → ϕ < _) (sym x≡y) y<z
+
+  <+≡→< : ∀ {x y z} → x < y → y ≡ z → x < z
+  <+≡→< x<y y≡z = subst (λ ϕ → _ < ϕ) y≡z x<y
+
+  <→≠ : ∀ {x y} → x < y → x ≡ y → ⊥
+  <→≠ x<y x≡y = <-irrefl $ subst (λ ϕ → ϕ < _) x≡y x<y
 
   instance
     <-hlevel : ∀ {x y} {n} → H-Level (x < y) (suc n)
     <-hlevel = prop-instance <-thin
 
-  ≡-transl : ∀ {x y z} → x ≡ y → y < z → x < z
-  ≡-transl x≡y y<z = subst (λ ϕ → ϕ < _) (sym x≡y) y<z
-
-  ≡-transr : ∀ {x y z} → x < y → y ≡ z → x < z
-  ≡-transr x<y y≡z = subst (λ ϕ → _ < ϕ) y≡z x<y
-
-  <-not-equal : ∀ {x y} → x < y → x ≡ y → ⊥
-  <-not-equal x<y x≡y = <-irrefl $ subst (λ ϕ → ϕ < _) x≡y x<y
-
-  ≤-transl : ∀ {x y z} → x ≤ y → y < z → x < z
-  ≤-transl (inl x≡y) y<z = ≡-transl x≡y y<z
-  ≤-transl (inr x<y) y<z = <-trans x<y y<z
-
-  ≤-transr : ∀ {x y z} → x < y → y ≤ z → x < z
-  ≤-transr x<y (inl y≡z) = ≡-transr x<y y≡z
-  ≤-transr x<y (inr y<z) = <-trans x<y y<z
+  _≤_ : A → A → Type (o ⊔ r)
+  x ≤ y = non-strict _<_ x y
 
   ≤-trans : ∀ {x y z} → x ≤ y → y ≤ z → x ≤ z
   ≤-trans (inl p) (inl q) = inl (p ∙ q)
-  ≤-trans (inl p) (inr y<z) = inr (≡-transl p y<z)
-  ≤-trans (inr x<y) (inl q) = inr (≡-transr x<y q)
+  ≤-trans (inl p) (inr y<z) = inr (≡+<→< p y<z)
+  ≤-trans (inr x<y) (inl q) = inr (<+≡→< x<y q)
   ≤-trans (inr x<y) (inr y<z) = inr (<-trans x<y y<z)
 
   ≤-antisym : ∀ {x y} → x ≤ y → y ≤ x → x ≡ y
@@ -64,7 +56,7 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   ≤-thin : ∀ {x y} → is-prop (x ≤ y)
   ≤-thin =
     disjoint-⊎-is-prop (has-is-set _ _) <-thin
-      (λ (p , q) → <-irrefl (≡-transl (sym p) q))
+      (λ (p , q) → <→≠ q p)
 
   has-is-partial-order : is-partial-order _≤_
   has-is-partial-order .is-partial-order.≤-thin = ≤-thin
@@ -72,9 +64,21 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   has-is-partial-order .is-partial-order.≤-trans = ≤-trans
   has-is-partial-order .is-partial-order.≤-antisym = ≤-antisym
 
+  ≤+<→< : ∀ {x y z} → x ≤ y → y < z → x < z
+  ≤+<→< (inl x≡y) y<z = ≡+<→< x≡y y<z
+  ≤+<→< (inr x<y) y<z = <-trans x<y y<z
+
+  <+≤→< : ∀ {x y z} → x < y → y ≤ z → x < z
+  <+≤→< x<y (inl y≡z) = <+≡→< x<y y≡z
+  <+≤→< x<y (inr y<z) = <-trans x<y y<z
+
   ≤+≮→= : ∀ {x y} → x ≤ y → ¬ (x < y) → x ≡ y
   ≤+≮→= (inl x=y) x≮y = x=y
   ≤+≮→= (inr x<y) x≮y = absurd (x≮y x<y)
+
+  ≤+≠→< : ∀ {x y} → x ≤ y → ¬ (x ≡ y) → x < y
+  ≤+≠→< (inl x=y) x≠y = absurd (x≠y x=y)
+  ≤+≠→< (inr x<y) x≠y = x<y
 
 
 instance

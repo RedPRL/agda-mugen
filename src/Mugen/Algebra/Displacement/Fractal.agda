@@ -68,15 +68,15 @@ module _
   <ᶠ-trans : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs < ys ] → fractal[ ys < zs ] → fractal[ xs < zs ]
   <ᶠ-trans [ x ] [ y ] [ z ] (single< x<y) (single< y<z) = single< (𝒟.<-trans x<y y<z)
   <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (head< y<z) = head< (𝒟.<-trans x<y y<z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (tail< y≡z ys<zs) = head< (𝒟.≡-transr x<y y≡z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (head< y<z) = head< (𝒟.≡-transl x≡y y<z)
+  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (tail< y≡z ys<zs) = head< (𝒟.<+≡→< x<y y≡z)
+  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (head< y<z) = head< (𝒟.≡+<→< x≡y y<z)
   <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (tail< y≡z ys<zs) = tail< (x≡y ∙ y≡z) (<ᶠ-trans xs ys zs xs<ys ys<zs)
 
   <ᶠ-is-prop : ∀ (xs ys : List⁺ ⌞ 𝒟 ⌟) → is-prop (fractal[ xs < ys ])
   <ᶠ-is-prop [ x ] [ y ] (single< x<y) (single< x<y') = ap single< (𝒟.<-thin x<y x<y')
   <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (head< x<y') = ap head< (𝒟.<-thin x<y x<y')
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (tail< x≡y xs<ys) = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (head< x<y) = absurd (𝒟.<-irrefl (𝒟.≡-transl (sym x≡y) x<y))
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (tail< x≡y xs<ys) = absurd (𝒟.<-irrefl (𝒟.≡+<→< (sym x≡y) x<y))
+  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (head< x<y) = absurd (𝒟.<-irrefl (𝒟.≡+<→< (sym x≡y) x<y))
   <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (tail< x≡y' xs<ys') = ap₂ tail< (𝒟.has-is-set x y x≡y x≡y') (<ᶠ-is-prop xs ys xs<ys xs<ys')
 
   --------------------------------------------------------------------------------

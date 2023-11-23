@@ -19,7 +19,7 @@ import Mugen.Algebra.Displacement.Opposite
 import Mugen.Algebra.Displacement.Prefix
 import Mugen.Algebra.Displacement.Product
 import Mugen.Algebra.OrderedMonoid
-import Mugen.Axioms.LPO
+import Mugen.Axioms.WLPO
 import Mugen.Cat.Endomorphisms
 import Mugen.Cat.HierarchyTheory
 import Mugen.Cat.HierarchyTheory.Properties

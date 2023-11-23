@@ -90,7 +90,7 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
   endo-<-trans : ∀ {σ δ τ} → endo[ σ < δ ] → endo[ δ < τ ] → endo[ σ < τ ]
   endo-<-trans σ<δ δ<τ .endo-≤ α = H⟨Δ⟩.≤-trans (σ<δ .endo-≤ α) (δ<τ .endo-≤ α)
   endo-<-trans σ<δ δ<τ .endo-< =
-    ∥-∥-map₂ (λ lt₁ lt₂ → fst lt₂ , H⟨Δ⟩.≤-transl (σ<δ .endo-≤ (fst lt₂)) (snd lt₂))
+    ∥-∥-map₂ (λ lt₁ lt₂ → fst lt₂ , H⟨Δ⟩.≤+<→< (σ<δ .endo-≤ (fst lt₂)) (snd lt₂))
       (σ<δ .endo-<)
       (δ<τ .endo-<)
 
