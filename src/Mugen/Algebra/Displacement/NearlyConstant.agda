@@ -724,7 +724,7 @@ module NearlyConst
   index-mono b1 xs b2 ys xs≤ys = xs≤ys
 
   index-strictly-mono : ∀ b1 xs b2 ys → list< b1 xs b2 ys → (index b1 xs) inf< (index b2 ys)
-  index-strictly-mono b1 xs b2 ys (xs≤ys , xs≠ys) .≤-everywhere = xs≤ys
+  index-strictly-mono b1 xs b2 ys (xs≤ys , xs≠ys) .≤-pointwise = xs≤ys
   index-strictly-mono b1 xs b2 ys (xs≤ys , xs≠ys) .not-equal = xs≠ys
 
   into-preserves-⊗ : ∀ xs ys n → into (merge xs ys) n ≡ (into xs ⊗∞ into ys) n

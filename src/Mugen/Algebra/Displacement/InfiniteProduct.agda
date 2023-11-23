@@ -60,34 +60,34 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   record _inf<_ (f g : Nat → ⌞ 𝒟 ⌟) : Type (o ⊔ r) where
     constructor inf-<
     field
-      ≤-everywhere : ∀ n →  f n 𝒟.≤ g n
-      not-equal    : ¬ ∀ (n : Nat) → f n ≡ g n
+      ≤-pointwise : ∀ n →  f n 𝒟.≤ g n
+      not-equal   : ¬ ∀ (n : Nat) → f n ≡ g n
 
   open _inf<_ public
 
-  inf≤-everywhere : ∀ {f g} → non-strict _inf<_ f g → ∀ n → f n 𝒟.≤ g n
-  inf≤-everywhere (inl f≡g) n = inl (happly f≡g n)
-  inf≤-everywhere (inr f<g) n = ≤-everywhere f<g n
+  inf≤-pointwise : ∀ {f g} → non-strict _inf<_ f g → ∀ n → f n 𝒟.≤ g n
+  inf≤-pointwise (inl f≡g) n = inl (happly f≡g n)
+  inf≤-pointwise (inr f<g) n = ≤-pointwise f<g n
 
   inf<-irrefl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → f inf< f → ⊥
   inf<-irrefl f f<f = not-equal f<f λ _ → refl
 
   inf<-trans : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → f inf< g → g inf< h → f inf< h
-  inf<-trans f g h f<g g<h .≤-everywhere n = 𝒟.≤-trans (≤-everywhere f<g n) (≤-everywhere g<h n)
+  inf<-trans f g h f<g g<h .≤-pointwise n = 𝒟.≤-trans (≤-pointwise f<g n) (≤-pointwise g<h n)
   inf<-trans f g h f<g g<h .not-equal f=h =
-    g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-everywhere n) $ subst (𝒟._≤ _) (f=h n) (f<g .≤-everywhere n)
+    g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-pointwise n) $ subst (𝒟._≤ _) (f=h n) (f<g .≤-pointwise n)
 
   inf<-is-prop : ∀ f g → is-prop (f inf< g)
-  inf<-is-prop f g f<g f<g′ i .≤-everywhere n = 𝒟.≤-thin (≤-everywhere f<g n) (≤-everywhere f<g′ n) i
+  inf<-is-prop f g f<g f<g′ i .≤-pointwise n = 𝒟.≤-thin (≤-pointwise f<g n) (≤-pointwise f<g′ n) i
   inf<-is-prop f g f<g f<g′ i .not-equal = hlevel 1 (f<g .not-equal) (f<g′ .not-equal) i
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
   ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
-  ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.≤-left-invariant (≤-everywhere g<h n)
+  ⊗∞-left-invariant f g h g<h .≤-pointwise n = 𝒟.≤-left-invariant (≤-pointwise g<h n)
   ⊗∞-left-invariant f g h g<h .not-equal p =
-    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-everywhere n) (λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n))
+    g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-pointwise n) (λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n))
 
 
 Inf : ∀ {o r} → Displacement-algebra o r → Strict-order o (o ⊔ r)
@@ -144,7 +144,7 @@ module InfProperties
       open is-ordered-monoid 𝒟-om
 
       ⊗∞-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f ⊗∞ h) 𝒟∞.≤ (g ⊗∞ h)
-      ⊗∞-right-invariant f≤g = wlpo (λ n → right-invariant (inf≤-everywhere f≤g n))
+      ⊗∞-right-invariant f≤g = wlpo (λ n → right-invariant (inf≤-pointwise f≤g n))
 
   --------------------------------------------------------------------------------
   -- Joins
@@ -158,7 +158,7 @@ module InfProperties
       joins .has-joins.join f g n = join (f n) (g n)
       joins .has-joins.joinl = wlpo λ _ → joinl
       joins .has-joins.joinr = wlpo λ _ → joinr
-      joins .has-joins.universal f≤h g≤h = wlpo λ n → universal (inf≤-everywhere f≤h n) (inf≤-everywhere g≤h n)
+      joins .has-joins.universal f≤h g≤h = wlpo λ n → universal (inf≤-pointwise f≤h n) (inf≤-pointwise g≤h n)
 
   --------------------------------------------------------------------------------
   -- Bottom
