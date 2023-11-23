@@ -693,14 +693,14 @@ module NearlyConst
   list≤-left-invariant : ∀ b1 xs b2 ys b3 zs
     → list≤ b2 ys b3 zs
     → list≤ (b1 ⊗ b2) (merge-list b1 xs b2 ys) (b1 ⊗ b3) (merge-list b1 xs b3 zs)
-  list≤-left-invariant b1 [] b2 [] b3 [] ys≤zs n = 𝒟.left-invariant-≤ (ys≤zs n)
-  list≤-left-invariant b1 [] b2 [] b3 (_ ∷ _) ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 [] b2 (_ ∷ _) b3 [] ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 [] b2 (_ ∷ _) b3 (_ ∷ _) ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 (_ ∷ _) b2 [] b3 [] ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 (_ ∷ _) b2 [] b3 (_ ∷ _) ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 (_ ∷ _) b2 (_ ∷ _) b3 [] ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
-  list≤-left-invariant b1 (_ ∷ _) b2 (_ ∷ _) b3 (_ ∷ _) ys≤zs zero = 𝒟.left-invariant-≤ (ys≤zs zero)
+  list≤-left-invariant b1 [] b2 [] b3 [] ys≤zs n = 𝒟.≤-left-invariant (ys≤zs n)
+  list≤-left-invariant b1 [] b2 [] b3 (_ ∷ _) ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 [] b2 (_ ∷ _) b3 [] ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 [] b2 (_ ∷ _) b3 (_ ∷ _) ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 (_ ∷ _) b2 [] b3 [] ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 (_ ∷ _) b2 [] b3 (_ ∷ _) ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 (_ ∷ _) b2 (_ ∷ _) b3 [] ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
+  list≤-left-invariant b1 (_ ∷ _) b2 (_ ∷ _) b3 (_ ∷ _) ys≤zs zero = 𝒟.≤-left-invariant (ys≤zs zero)
   list≤-left-invariant b1 [] b2 [] b3 (_ ∷ zs) ys≤zs (suc n) = list≤-left-invariant b1 [] b2 [] b3 zs (ys≤zs ⊙ suc) n
   list≤-left-invariant b1 [] b2 (_ ∷ ys) b3 [] ys≤zs (suc n) = list≤-left-invariant b1 [] b2 ys b3 [] (ys≤zs ⊙ suc) n
   list≤-left-invariant b1 [] b2 (_ ∷ ys) b3 (_ ∷ zs) ys≤zs (suc n) = list≤-left-invariant b1 [] b2 ys b3 zs (ys≤zs ⊙ suc) n

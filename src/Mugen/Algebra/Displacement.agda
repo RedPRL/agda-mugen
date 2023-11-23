@@ -34,9 +34,9 @@ record is-displacement-algebra
 
   open is-monoid has-is-monoid hiding (has-is-set) public
 
-  left-invariant-≤ : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
-  left-invariant-≤ {x = x} (inl p) = inl (ap (x ⊗_) p)
-  left-invariant-≤ (inr y<z) = inr (left-invariant y<z)
+  ≤-left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
+  ≤-left-invariant {x = x} (inl p) = inl (ap (x ⊗_) p)
+  ≤-left-invariant (inr y<z) = inr (left-invariant y<z)
 
 record Displacement-algebra-on
   {o r : Level} (A : Strict-order o r)
@@ -207,7 +207,7 @@ module _
     om : is-ordered-monoid A.poset ε _⊗_
     om .is-ordered-monoid.has-is-monoid = D.has-is-monoid
     om .is-ordered-monoid.invariant w≤y x≤z =
-      A.≤-trans (≤-invariantr w≤y) (D.left-invariant-≤ x≤z)
+      A.≤-trans (≤-invariantr w≤y) (D.≤-left-invariant x≤z)
 
 --------------------------------------------------------------------------------
 -- Augmentations of Displacement Algebras

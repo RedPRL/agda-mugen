@@ -85,7 +85,7 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   -- Left Invariance
 
   ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
-  ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.left-invariant-≤ (≤-everywhere g<h n)
+  ⊗∞-left-invariant f g h g<h .≤-everywhere n = 𝒟.≤-left-invariant (≤-everywhere g<h n)
   ⊗∞-left-invariant f g h g<h .not-equal p =
     g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-everywhere n) (λ gn<hn → 𝒟.<-not-equal (𝒟.left-invariant gn<hn) (p n))
 
