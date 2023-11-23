@@ -7,7 +7,7 @@ module Mugen.Order.StrictOrder where
 -- Strict Orders
 
 non-strict : ∀ {o r} {A : Type o} (R : A → A → Type r) → A → A → Type (o ⊔ r)
-non-strict R x y = x ≡ y ⊎ (R x y)
+non-strict R x y = (x ≡ y) ⊎ (R x y)
 
 record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o ⊔ r) where
   no-eta-equality
