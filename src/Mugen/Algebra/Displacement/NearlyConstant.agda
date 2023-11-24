@@ -68,9 +68,6 @@ module NearlyConst
   raw-path p q i .elts = p i
   raw-path p q i .base = q i
 
-  _raw∷_ : ⌞ 𝒟 ⌟ → RawList → RawList
-  x raw∷ (raw xs b) = raw (x ∷ xs) b
-
   private unquoteDecl raw-eqv = declare-record-iso raw-eqv (quote RawList)
 
   RawList-is-set : is-set RawList
@@ -80,6 +77,8 @@ module NearlyConst
 
   -- Operations and properties for raw support lists
   module Raw where
+    _raw∷_ : ⌞ 𝒟 ⌟ → RawList → RawList
+    x raw∷ (raw xs b) = raw (x ∷ xs) b
 
     -- Indexing function that turns a list into a map 'Nat → ⌞ 𝒟 ⌟'
     index : RawList → (Nat → ⌞ 𝒟 ⌟)
@@ -219,8 +218,8 @@ module NearlyConst
     --------------------------------------------------------------------------------
     -- Order
 
-    _<_ : RawList → RawList → Type (o ⊔ r)
-    xs < ys = index xs inf< index ys
+    _raw<_ : RawList → RawList → Type (o ⊔ r)
+    xs raw< ys = index xs inf< index ys
 
     index= : RawList → RawList → Type o
     index= xs ys = (n : Nat) → index xs n ≡ index ys n
@@ -307,11 +306,11 @@ module NearlyConst
   empty .list = raw [] 𝒟.ε
   empty .has-is-compact = lift tt
 
-  _<_ : SupportList → SupportList → Type (o ⊔ r)
-  xs < ys = xs .list Raw.< ys .list
+  _supp<_ : SupportList → SupportList → Type (o ⊔ r)
+  xs supp< ys = xs .list Raw.raw< ys .list
 
-  _≤_ : SupportList → SupportList → Type (o ⊔ r)
-  _≤_ = non-strict _<_
+  _supp≤_ : SupportList → SupportList → Type (o ⊔ r)
+  _supp≤_ = non-strict _supp<_
 
   index : SupportList → (Nat → ⌞ 𝒟 ⌟)
   index xs = Raw.index (xs .list)
@@ -337,12 +336,12 @@ module NearlyConst
       Raw.index-compacted-inj (xs .list) (ys .list) (xs .has-is-compact) (ys .has-is-compact) p
 
   abstract
-    ≤→≤-pointwise : ∀ {xs ys} → xs ≤ ys → (∀ n → index xs n 𝒟.≤ index ys n)
-    ≤→≤-pointwise (inl xs=ys) n = inl $ ap (λ xs → index xs n) xs=ys
-    ≤→≤-pointwise (inr xs<ys) n = xs<ys .≤-pointwise n
+    supp≤→≤-pointwise : ∀ {xs ys} → xs supp≤ ys → (∀ n → index xs n 𝒟.≤ index ys n)
+    supp≤→≤-pointwise (inl xs=ys) n = inl $ ap (λ xs → index xs n) xs=ys
+    supp≤→≤-pointwise (inr xs<ys) n = xs<ys .≤-pointwise n
 
-    ≤-pointwise→≤ : ∀ {xs ys} → (∀ n → index xs n 𝒟.≤ index ys n) → xs ≤ ys
-    ≤-pointwise→≤ {xs} {ys} pointwise with Raw.index=? (xs .list) (ys .list)
+    ≤-pointwise→supp≤ : ∀ {xs ys} → (∀ n → index xs n 𝒟.≤ index ys n) → xs supp≤ ys
+    ≤-pointwise→supp≤ {xs} {ys} pointwise with Raw.index=? (xs .list) (ys .list)
     ... | no  xs≠ys = inr $ inf-< pointwise xs≠ys
     ... | yes xs=ys = inl $ index-inj xs=ys
 
@@ -357,7 +356,7 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
   NearlyConstant : Displacement-algebra o (o ⊔ r)
   NearlyConstant = to-displacement-algebra mk where
     mk-strict : make-strict-order (o ⊔ r) SupportList
-    mk-strict .make-strict-order._<_ = _<_
+    mk-strict .make-strict-order._<_ = _supp<_
     mk-strict .make-strict-order.<-irrefl = inf<-irrefl
     mk-strict .make-strict-order.<-trans = inf<-trans
     mk-strict .make-strict-order.<-thin = inf<-is-prop
@@ -415,13 +414,13 @@ module _
   open NearlyConst 𝒟 _≡?_
   open is-ordered-monoid 𝒟-ordered-monoid
 
-  ≤-right-invariant : ∀ {xs ys zs} → xs ≤ ys → merge xs zs ≤ merge ys zs
-  ≤-right-invariant {xs} {ys} {zs} xs≤ys = ≤-pointwise→≤ λ n →
+  supp≤-right-invariant : ∀ {xs ys zs} → xs supp≤ ys → merge xs zs supp≤ merge ys zs
+  supp≤-right-invariant {xs} {ys} {zs} xs≤ys = ≤-pointwise→supp≤ λ n →
     coe1→0 (λ i → index-merge xs zs n i 𝒟.≤ index-merge ys zs n i) $
-    right-invariant (≤→≤-pointwise xs≤ys n)
+    right-invariant (supp≤→≤-pointwise xs≤ys n)
 
   nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 _≡?_)
-  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) ≤-right-invariant
+  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) supp≤-right-invariant
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -442,13 +441,13 @@ module NearlyConstJoins
   nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-joins .has-joins.join = join
   nearly-constant-has-joins .has-joins.joinl {xs} {ys} =
-    ≤-pointwise→≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
+    ≤-pointwise→supp≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
   nearly-constant-has-joins .has-joins.joinr {xs} {ys} =
-    ≤-pointwise→≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinr (sym $ index-merge-with 𝒥.join xs ys n)
+    ≤-pointwise→supp≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinr (sym $ index-merge-with 𝒥.join xs ys n)
   nearly-constant-has-joins .has-joins.universal {xs} {ys} {zs} xs≤zs ys≤zs =
-    ≤-pointwise→≤ λ n → 𝒟.≡+≤→≤
+    ≤-pointwise→supp≤ λ n → 𝒟.≡+≤→≤
       (index-merge-with 𝒥.join xs ys n)
-      (𝒥.universal (≤→≤-pointwise xs≤zs n) (≤→≤-pointwise ys≤zs n))
+      (𝒥.universal (supp≤→≤-pointwise xs≤zs n) (supp≤→≤-pointwise ys≤zs n))
 
   -- NOTE: 'index' preserves joins regardless of WLPO, but the joins in InfProd aren't /provably/
   -- joins unless we have WLPO, hence the extra module below.
@@ -477,7 +476,7 @@ module _
 
   nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-bottom .has-bottom.bot = support-list (raw [] bot) (lift tt)
-  nearly-constant-has-bottom .has-bottom.is-bottom xs = ≤-pointwise→≤ λ n → is-bottom _
+  nearly-constant-has-bottom .has-bottom.is-bottom xs = ≤-pointwise→supp≤ λ n → is-bottom _
 
   module _ (𝒟-wlpo : WLPO 𝒟.strict-order _≡?_) where
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-wlpo
