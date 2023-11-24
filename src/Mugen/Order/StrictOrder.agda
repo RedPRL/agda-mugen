@@ -72,6 +72,12 @@ record is-strict-order {o r} {A : Type o} (_<_ : A → A → Type r) : Type (o �
   <+≤→< x<y (inl y≡z) = <+≡→< x<y y≡z
   <+≤→< x<y (inr y<z) = <-trans x<y y<z
 
+  ≤+≡→≤ : ∀ {x y z} → x ≤ y → y ≡ z → x ≤ z
+  ≤+≡→≤ x≤y y≡z = subst (λ ϕ → _ ≤ ϕ) y≡z x≤y
+
+  ≡+≤→≤ : ∀ {x y z} → x ≡ y → y ≤ z → x ≤ z
+  ≡+≤→≤ x≡y y≤z = subst (λ ϕ → ϕ ≤ _) (sym x≡y) y≤z
+
   ≤+≮→= : ∀ {x y} → x ≤ y → ¬ (x < y) → x ≡ y
   ≤+≮→= (inl x=y) x≮y = x=y
   ≤+≮→= (inr x<y) x≮y = absurd (x≮y x<y)

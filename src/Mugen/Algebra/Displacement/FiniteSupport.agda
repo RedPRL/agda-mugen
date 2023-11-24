@@ -30,8 +30,8 @@ open import Mugen.Data.List
 module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
   private
     module 𝒟 = Displacement-algebra 𝒟
-    open 𝒟 using (ε; _⊗_; _<_; _≤_)
-  open NearlyConst 𝒟 cmp public
+    open 𝒟 using (ε; _⊗_)
+    module 𝒩 = NearlyConst 𝒟 cmp
 
   --------------------------------------------------------------------------------
   -- Finite Support Lists
@@ -42,9 +42,9 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
   record FinSupportList : Type o where
     no-eta-equality
     field
-      support : SupportList
+      support : 𝒩.SupportList
 
-    open SupportList support public
+    open 𝒩.SupportList support public
 
     field
       is-ε : base ≡ ε
@@ -55,34 +55,30 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
   fin-support-list-path : ∀ {xs ys} → xs .support ≡ ys .support → xs ≡ ys
   fin-support-list-path p i .support = p i
   fin-support-list-path {xs = xs} {ys = ys} p i .is-ε =
-    is-set→squarep (λ _ _ → 𝒟.has-is-set) (ap SupportList.base p) (xs .is-ε) (ys .is-ε) refl i
+    is-set→squarep (λ _ _ → 𝒟.has-is-set) (ap 𝒩.SupportList.base p) (xs .is-ε) (ys .is-ε) refl i
 
   private unquoteDecl eqv = declare-record-iso eqv (quote FinSupportList)
 
   FinSupportList-is-set : is-set FinSupportList
   FinSupportList-is-set =
     is-hlevel≃ 2 (Iso→Equiv eqv) $
-      Σ-is-hlevel 2 SupportList-is-set λ support →
-        is-hlevel-suc 2 𝒟.has-is-set (SupportList.base support) ε
+      Σ-is-hlevel 2 𝒩.SupportList-is-set λ support →
+        is-hlevel-suc 2 𝒟.has-is-set (𝒩.SupportList.base support) ε
 
   merge-fin : FinSupportList → FinSupportList → FinSupportList
-  merge-fin xs ys .FinSupportList.support = merge (xs .support) (ys .support)
-  merge-fin xs ys .FinSupportList.is-ε = ap₂ _⊗_ (xs .is-ε) (ys .is-ε) ∙ 𝒟.idl
+  merge-fin xs ys .FinSupportList.support = 𝒩.merge (xs .support) (ys .support)
+  merge-fin xs ys .FinSupportList.is-ε =
+    𝒩.base-merge (xs .support) (ys .support) ∙ ap₂ _⊗_ (xs .is-ε) (ys .is-ε) ∙ 𝒟.idl
 
   empty-fin : FinSupportList
-  empty-fin .support = empty
+  empty-fin .support = 𝒩.empty
   empty-fin .is-ε = refl
-
-  --------------------------------------------------------------------------------
-  -- Algebra
-
 
   --------------------------------------------------------------------------------
   -- Order
 
-  _merge-fin<_ : FinSupportList → FinSupportList → Type (o ⊔ r)
-  _merge-fin<_ xs ys = (xs .support) slist< (ys .support)
-
+  _<_ : FinSupportList → FinSupportList → Type (o ⊔ r)
+  _<_ xs ys = (xs .support) 𝒩.< (ys .support)
 
 --------------------------------------------------------------------------------
 -- Displacement Algebra
@@ -90,30 +86,28 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
 module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
   open FinSupport 𝒟 cmp
   open FinSupportList
+  private module 𝒩𝒟 = Displacement-algebra (NearlyConstant 𝒟 cmp)
 
   FiniteSupport : Displacement-algebra o (o ⊔ r)
   FiniteSupport = to-displacement-algebra mk where
     mk-strict : make-strict-order (o ⊔ r) FinSupportList
-    mk-strict .make-strict-order._<_ = _merge-fin<_
+    mk-strict .make-strict-order._<_ = _<_
     mk-strict .make-strict-order.<-irrefl {xs} =
-      list<-irrefl (base xs) (elts xs)
+      𝒩𝒟.<-irrefl {xs .support}
     mk-strict .make-strict-order.<-trans {xs} {ys} {zs} =
-      list<-trans (base xs) (elts xs) (base ys) (elts ys) (base zs) (elts zs)
+      𝒩𝒟.<-trans {xs .support} {ys .support} {zs .support}
     mk-strict .make-strict-order.<-thin {xs} {ys} =
-      list<-is-prop (base xs) (elts xs) (base ys) (elts ys)
+      𝒩𝒟.<-thin {xs .support} {ys .support}
     mk-strict .make-strict-order.has-is-set = FinSupportList-is-set
 
     mk : make-displacement-algebra (to-strict-order mk-strict)
     mk .make-displacement-algebra.ε = empty-fin
     mk .make-displacement-algebra._⊗_ = merge-fin
-    mk .make-displacement-algebra.idl {xs} =
-      fin-support-list-path (merge-idl (xs .support))
-    mk .make-displacement-algebra.idr {xs} =
-      fin-support-list-path (merge-idr (xs .support))
-    mk .make-displacement-algebra.associative {xs} {ys} {zs} =
-      fin-support-list-path (merge-assoc (xs .support) (ys .support) (zs .support))
+    mk .make-displacement-algebra.idl = fin-support-list-path 𝒩𝒟.idl
+    mk .make-displacement-algebra.idr = fin-support-list-path 𝒩𝒟.idr
+    mk .make-displacement-algebra.associative = fin-support-list-path 𝒩𝒟.associative
     mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} =
-      slist<-left-invariant (support xs) (support ys) (support zs)
+      𝒩𝒟.left-invariant {xs .support} {ys .support} {zs .support}
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
@@ -125,24 +119,21 @@ module _
   (cmp : ∀ x y → Tri 𝒟._<_ x y)
   where
   open FinSupport 𝒟 cmp
-  open FinSupportList
 
   FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (NearlyConstant 𝒟 cmp)
   FinSupport⊆NearlyConstant = to-displacement-subalgebra mk where
     mk : make-displacement-subalgebra _ _
-    mk .make-displacement-subalgebra.into = support
+    mk .make-displacement-subalgebra.into = FinSupportList.support
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ _ _ = refl
     mk .make-displacement-subalgebra.strictly-mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-{- TODO
   FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (InfProd 𝒟)
   FinSupport⊆InfProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
       (NearlyConstant⊆InfProd cmp)
--}
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -155,10 +146,7 @@ module _
   (cmp : ∀ x y → Tri 𝒟._<_ x y)
   where
   open FinSupport 𝒟 cmp
-  open FinSupportList
-  open NearlyConst 𝒟 cmp
-  open is-ordered-monoid 𝒟-ordered-monoid
 
   fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 cmp)
   fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
-    ⊎-mapl fin-support-list-path (merge-right-invariant 𝒟-ordered-monoid cmp (support xs) (support ys) (support zs) (⊎-mapl (ap support) xs≤ys))
+    ⊎-mapl fin-support-list-path (≤-right-invariant 𝒟-ordered-monoid cmp (⊎-mapl (ap FinSupportList.support) xs≤ys))
