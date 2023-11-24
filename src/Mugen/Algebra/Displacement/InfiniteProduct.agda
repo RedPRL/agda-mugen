@@ -30,14 +30,14 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   ε∞ : Nat → ⌞ 𝒟 ⌟
   ε∞ _ = ε
 
-  ⊗∞-associative : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → (f ⊗∞ (g ⊗∞ h)) ≡ ((f ⊗∞ g) ⊗∞ h)
-  ⊗∞-associative f g h = funext λ x → 𝒟.associative
+  ⊗∞-associative : ∀ {f g h : Nat → ⌞ 𝒟 ⌟} → (f ⊗∞ (g ⊗∞ h)) ≡ ((f ⊗∞ g) ⊗∞ h)
+  ⊗∞-associative = funext λ x → 𝒟.associative
 
-  ⊗∞-idl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → (ε∞ ⊗∞ f) ≡ f
-  ⊗∞-idl f = funext λ x → 𝒟.idl
+  ⊗∞-idl : ∀ {f : Nat → ⌞ 𝒟 ⌟} → (ε∞ ⊗∞ f) ≡ f
+  ⊗∞-idl = funext λ x → 𝒟.idl
 
-  ⊗∞-idr : ∀ (f : Nat → ⌞ 𝒟 ⌟) → (f ⊗∞ ε∞) ≡ f
-  ⊗∞-idr f = funext λ x → 𝒟.idr
+  ⊗∞-idr : ∀ {f : Nat → ⌞ 𝒟 ⌟} → (f ⊗∞ ε∞) ≡ f
+  ⊗∞-idr = funext λ x → 𝒟.idr
 
   --------------------------------------------------------------------------------
   -- Algebra
@@ -47,12 +47,12 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
 
   ⊗∞-is-semigroup : is-semigroup _⊗∞_
   ⊗∞-is-semigroup .has-is-magma = ⊗∞-is-magma
-  ⊗∞-is-semigroup .associative {f} {g} {h} = ⊗∞-associative f g h
+  ⊗∞-is-semigroup .associative = ⊗∞-associative
 
   ⊗∞-is-monoid : is-monoid ε∞ _⊗∞_
   ⊗∞-is-monoid .has-is-semigroup = ⊗∞-is-semigroup
-  ⊗∞-is-monoid .idl {f} = ⊗∞-idl f
-  ⊗∞-is-monoid .idr {f} = ⊗∞-idr f
+  ⊗∞-is-monoid .idl = ⊗∞-idl
+  ⊗∞-is-monoid .idr = ⊗∞-idr
 
   --------------------------------------------------------------------------------
   -- Ordering
@@ -69,24 +69,24 @@ module Inf {o r} (𝒟 : Displacement-algebra o r) where
   inf≤-pointwise (inl f≡g) n = inl (happly f≡g n)
   inf≤-pointwise (inr f<g) n = f<g .≤-pointwise n
 
-  inf<-irrefl : ∀ (f : Nat → ⌞ 𝒟 ⌟) → f inf< f → ⊥
-  inf<-irrefl f f<f = not-equal f<f λ _ → refl
+  inf<-irrefl : ∀ {f : Nat → ⌞ 𝒟 ⌟} → f inf< f → ⊥
+  inf<-irrefl f<f = f<f .not-equal λ _ → refl
 
-  inf<-trans : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → f inf< g → g inf< h → f inf< h
-  inf<-trans f g h f<g g<h .≤-pointwise n = 𝒟.≤-trans (f<g .≤-pointwise n) (g<h .≤-pointwise n)
-  inf<-trans f g h f<g g<h .not-equal f=h =
+  inf<-trans : ∀ {f g h} → f inf< g → g inf< h → f inf< h
+  inf<-trans f<g g<h .≤-pointwise n = 𝒟.≤-trans (f<g .≤-pointwise n) (g<h .≤-pointwise n)
+  inf<-trans f<g g<h .not-equal f=h =
     g<h .not-equal λ n → 𝒟.≤-antisym (g<h .≤-pointwise n) $ 𝒟.≡+≤→≤ (sym $ f=h n) (f<g .≤-pointwise n)
 
-  inf<-is-prop : ∀ f g → is-prop (f inf< g)
-  inf<-is-prop f g f<g f<g′ i .≤-pointwise n = 𝒟.≤-thin (≤-pointwise f<g n) (≤-pointwise f<g′ n) i
-  inf<-is-prop f g f<g f<g′ i .not-equal = hlevel 1 (f<g .not-equal) (f<g′ .not-equal) i
+  inf<-is-prop : ∀ {f g} → is-prop (f inf< g)
+  inf<-is-prop f<g f<g′ i .≤-pointwise n = 𝒟.≤-thin (≤-pointwise f<g n) (≤-pointwise f<g′ n) i
+  inf<-is-prop f<g f<g′ i .not-equal = hlevel 1 (f<g .not-equal) (f<g′ .not-equal) i
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ⊗∞-left-invariant : ∀ (f g h : Nat → ⌞ 𝒟 ⌟) → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
-  ⊗∞-left-invariant f g h g<h .≤-pointwise n = 𝒟.≤-left-invariant (≤-pointwise g<h n)
-  ⊗∞-left-invariant f g h g<h .not-equal p =
+  ⊗∞-left-invariant : ∀ {f g h : Nat → ⌞ 𝒟 ⌟} → g inf< h → (f ⊗∞ g) inf< (f ⊗∞ h)
+  ⊗∞-left-invariant g<h .≤-pointwise n = 𝒟.≤-left-invariant (≤-pointwise g<h n)
+  ⊗∞-left-invariant g<h .not-equal p =
     g<h .not-equal λ n → 𝒟.≤+≮→= (g<h .≤-pointwise n) λ gn<hn → 𝒟.<→≠ (𝒟.left-invariant gn<hn) (p n)
 
 
@@ -98,9 +98,9 @@ Inf {o = o} {r = r} 𝒟 = to-strict-order mk where
 
   mk : make-strict-order (o ⊔ r) (Nat → ⌞ 𝒟 ⌟)
   mk ._<_ = _inf<_
-  mk .<-irrefl {x} = inf<-irrefl x
-  mk .<-trans {x} {y} {z} = inf<-trans x y z
-  mk .<-thin {x} {y} = inf<-is-prop x y
+  mk .<-irrefl = inf<-irrefl
+  mk .<-trans = inf<-trans
+  mk .<-thin = inf<-is-prop
   mk .has-is-set = Π-is-hlevel 2 λ _ → 𝒟.has-is-set
 
 InfProd : ∀ {o r} → Displacement-algebra o r → Displacement-algebra o (o ⊔ r)
@@ -112,10 +112,10 @@ InfProd {o = o} {r = r} 𝒟 = to-displacement-algebra mk where
   mk : make-displacement-algebra (Inf 𝒟)
   mk .ε = ε∞
   mk ._⊗_ = _⊗∞_
-  mk .idl {x} = ⊗∞-idl x
-  mk .idr {x} = ⊗∞-idr x
-  mk .associative {x} {y} {z} = ⊗∞-associative x y z
-  mk .left-invariant {x} {y} {z} = ⊗∞-left-invariant x y z
+  mk .idl = ⊗∞-idl
+  mk .idr = ⊗∞-idr
+  mk .associative = ⊗∞-associative
+  mk .left-invariant = ⊗∞-left-invariant
 
 -- All of the following results require a form of the Weak Limited Principle of Omniscience,
 -- which states that '∀ n. f n ≡ g n' is a decidable property.
