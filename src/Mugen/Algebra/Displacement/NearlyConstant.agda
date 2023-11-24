@@ -45,18 +45,10 @@ module NearlyConst
   {o r}
   (𝒟 : Displacement-algebra o r)
   (let module 𝒟 = Displacement-algebra 𝒟)
-  (cmp : ∀ x y → Tri 𝒟._<_ x y) where
-
-  private
-    open 𝒟 using (ε; _⊗_)
-    open Inf 𝒟
-
-    instance
-      HLevel-< : ∀ {x y} {n} → H-Level (x 𝒟.< y) (suc n)
-      HLevel-< = prop-instance 𝒟.<-thin
-
-      HLevel-≤ : ∀ {x y} {n} → H-Level (x 𝒟.≤ y) (suc n)
-      HLevel-≤ = prop-instance 𝒟.≤-thin
+  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  where
+  open 𝒟 using (ε; _⊗_)
+  open Inf 𝒟
 
   _≡?_ : Discrete ⌞ 𝒟 ⌟
   x ≡? y =
