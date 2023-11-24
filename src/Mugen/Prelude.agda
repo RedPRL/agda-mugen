@@ -61,3 +61,13 @@ x |> f = f x
 
 over : ∀ {ℓ} {A : Type ℓ} {x y : A} {f : A → A} → (∀ x → f x ≡ x) → f x ≡ f y → x ≡ y
 over {x = x} {y = y} p q =  sym (p x) ·· q ·· p y
+
+--------------------------------------------------------------------------------
+-- This lemma should probably be put into 1lab
+identity-system-hlevel
+  : ∀ {ℓ ℓ'} {A : Type ℓ} n {R : A → A → Type ℓ'} {r : ∀ x → R x x}
+  → is-identity-system R r
+  → is-hlevel A (suc n)
+  → ∀ {x y : A} → is-hlevel (R x y) n
+identity-system-hlevel n ids hl {x} {y} =
+  is-hlevel≃ n (identity-system-gives-path ids) (Path-is-hlevel' n hl x y)

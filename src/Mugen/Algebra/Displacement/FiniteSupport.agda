@@ -150,3 +150,27 @@ module _
   fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 cmp)
   fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
     ⊎-mapl fin-support-list-path (≤-right-invariant 𝒟-ordered-monoid cmp (⊎-mapl (ap FinSupportList.support) xs≤ys))
+
+--------------------------------------------------------------------------------
+-- Extensionality based on 'finite-support-list' and eventually 'index-inj'
+-- from NearlyConst.
+
+module _ {o r}
+  {𝒟 : Displacement-algebra o r}
+  (let module 𝒟 = Displacement-algebra 𝒟)
+  {cmp : ∀ x y → Tri 𝒟._<_ x y}
+  where
+  module 𝒩 = NearlyConst 𝒟 cmp
+  open FinSupport 𝒟 cmp
+  open FinSupportList
+
+  Extensional-FinSupportList : ∀ {ℓr} ⦃ s : Extensional 𝒩.SupportList ℓr ⦄ → Extensional FinSupportList ℓr
+  Extensional-FinSupportList ⦃ s ⦄ .Pathᵉ xs ys = s .Pathᵉ (xs .support) (ys .support)
+  Extensional-FinSupportList ⦃ s ⦄ .reflᵉ xs = s .reflᵉ (xs .support)
+  Extensional-FinSupportList ⦃ s ⦄ .idsᵉ .to-path p = fin-support-list-path $ s .idsᵉ .to-path p
+  Extensional-FinSupportList ⦃ s ⦄ .idsᵉ .to-path-over p =
+    is-prop→pathp (λ _ → identity-system-hlevel 1 (s .idsᵉ) 𝒩.SupportList-is-set) _ p
+
+  instance
+    extensionality-fin-support-list : ∀ {ℓr} ⦃ s : Extensional ⌞ 𝒟 ⌟ ℓr ⦄ → Extensionality FinSupportList
+    extensionality-fin-support-list = record { lemma = quote Extensional-FinSupportList }

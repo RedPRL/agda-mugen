@@ -509,16 +509,6 @@ module _
 --------------------------------------------------------------------------------
 -- Extensionality based on 'index-inj'
 
--- this lemma should probably be put into 1lab
-private
-  identity-system-hlevel
-    : ∀ {ℓ ℓ'} {A : Type ℓ} n {R : A → A → Type ℓ'} {r : ∀ x → R x x}
-    → is-identity-system R r
-    → is-hlevel A (suc n)
-    → ∀ {x y : A} → is-hlevel (R x y) n
-  identity-system-hlevel n ids hl {x} {y} =
-    is-hlevel≃ n (identity-system-gives-path ids) (Path-is-hlevel' n hl x y)
-
 -- 1lab's or Agda's instance search somehow does not seem to deal with
 -- explicit arguments, so we re-parametrize things with implicit '𝒟' and 'cmp'.
 module _ {o r}
