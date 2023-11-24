@@ -223,31 +223,6 @@ strictly-monotone-∘ f g .strict-mono p =
   f .strict-mono (g .strict-mono p)
 
 --------------------------------------------------------------------------------
--- Decidability
-
-data Tri {o r} {A : Type o} (_<_ : A → A → Type r) (x y : A) : Type (o ⊔ r) where
-  lt : x < y → Tri _<_ x y
-  eq : x ≡ y → Tri _<_ x y
-  gt : y < x → Tri _<_ x y
-
-module _ {o r} {A : Type o} {_<_ : A → A → Type r} where
-
-
-  tri-elim : ∀ {ℓ x y} (P : Tri _<_ x y → Type ℓ)
-             → ((p : x < y) → P (lt p))
-             → ((p : x ≡ y) → P (eq p))
-             → ((p : y < x) → P (gt p))
-             → (t : Tri _<_ x y) → P t
-  tri-elim P plt peq pgt (lt x) = plt x
-  tri-elim P plt peq pgt (eq x) = peq x
-  tri-elim P plt peq pgt (gt x) = pgt x
-
-  tri-rec : ∀ {ℓ x y} {R : Type ℓ} → R → R → R → Tri _<_ x y → R
-  tri-rec rlt req rgt (lt x) = rlt
-  tri-rec rlt req rgt (eq x) = req
-  tri-rec rlt req rgt (gt x) = rgt
-
---------------------------------------------------------------------------------
 -- Builders
 
 record make-strict-order {o} (r : Level) (A : Type o) : Type (o ⊔ lsuc r) where

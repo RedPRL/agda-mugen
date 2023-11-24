@@ -27,11 +27,10 @@ open import Mugen.Data.List
 -- These are a special case of the Nearly Constant functions where the base is always ε
 -- and are implemented as such.
 
-module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
+module FinSupport {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
   private
     module 𝒟 = Displacement-algebra 𝒟
-    open 𝒟 using (ε; _⊗_)
-    module 𝒩 = NearlyConst 𝒟 cmp
+    module 𝒩 = NearlyConst 𝒟 _≡?_
 
   --------------------------------------------------------------------------------
   -- Finite Support Lists
@@ -47,7 +46,7 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
     open 𝒩.SupportList support public
 
     field
-      is-ε : base ≡ ε
+      is-ε : base ≡ 𝒟.ε
 
   open FinSupportList
 
@@ -63,12 +62,12 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
   FinSupportList-is-set =
     is-hlevel≃ 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 𝒩.SupportList-is-set λ support →
-        is-hlevel-suc 2 𝒟.has-is-set (𝒩.SupportList.base support) ε
+        is-hlevel-suc 2 𝒟.has-is-set (𝒩.SupportList.base support) 𝒟.ε
 
   merge-fin : FinSupportList → FinSupportList → FinSupportList
   merge-fin xs ys .FinSupportList.support = 𝒩.merge (xs .support) (ys .support)
   merge-fin xs ys .FinSupportList.is-ε =
-    𝒩.base-merge (xs .support) (ys .support) ∙ ap₂ _⊗_ (xs .is-ε) (ys .is-ε) ∙ 𝒟.idl
+    𝒩.base-merge (xs .support) (ys .support) ∙ ap₂ 𝒟._⊗_ (xs .is-ε) (ys .is-ε) ∙ 𝒟.idl
 
   empty-fin : FinSupportList
   empty-fin .support = 𝒩.empty
@@ -83,10 +82,10 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri
 --------------------------------------------------------------------------------
 -- Displacement Algebra
 
-module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
-  open FinSupport 𝒟 cmp
+module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
+  open FinSupport 𝒟 _≡?_
   open FinSupportList
-  private module 𝒩𝒟 = Displacement-algebra (NearlyConstant 𝒟 cmp)
+  private module 𝒩𝒟 = Displacement-algebra (NearlyConstant 𝒟 _≡?_)
 
   FiniteSupport : Displacement-algebra o (o ⊔ r)
   FiniteSupport = to-displacement-algebra mk where
@@ -116,11 +115,11 @@ module _
   {o r}
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
-  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open FinSupport 𝒟 cmp
+  open FinSupport 𝒟 _≡?_
 
-  FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (NearlyConstant 𝒟 cmp)
+  FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (NearlyConstant 𝒟 _≡?_)
   FinSupport⊆NearlyConstant = to-displacement-subalgebra mk where
     mk : make-displacement-subalgebra _ _
     mk .make-displacement-subalgebra.into = FinSupportList.support
@@ -129,11 +128,11 @@ module _
     mk .make-displacement-subalgebra.strictly-mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-  FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 cmp) (InfProd 𝒟)
+  FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (InfProd 𝒟)
   FinSupport⊆InfProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
-      (NearlyConstant⊆InfProd cmp)
+      (NearlyConstant⊆InfProd _≡?_)
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -143,13 +142,13 @@ module _
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
   (𝒟-ordered-monoid : has-ordered-monoid 𝒟)
-  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open FinSupport 𝒟 cmp
+  open FinSupport 𝒟 _≡?_
 
-  fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 cmp)
-  fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 cmp) λ {xs} {ys} {zs} xs≤ys →
-    ⊎-mapl fin-support-list-path (≤-right-invariant 𝒟-ordered-monoid cmp (⊎-mapl (ap FinSupportList.support) xs≤ys))
+  fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 _≡?_)
+  fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 _≡?_) λ {xs} {ys} {zs} xs≤ys →
+    ⊎-mapl fin-support-list-path (≤-right-invariant 𝒟-ordered-monoid _≡?_ (⊎-mapl (ap FinSupportList.support) xs≤ys))
 
 --------------------------------------------------------------------------------
 -- Extensionality based on 'finite-support-list' and eventually 'index-inj'
@@ -158,10 +157,10 @@ module _
 module _ {o r}
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
-  {cmp : ∀ x y → Tri 𝒟._<_ x y}
+  {_≡?_ : Discrete ⌞ 𝒟 ⌟}
   where
-  module 𝒩 = NearlyConst 𝒟 cmp
-  open FinSupport 𝒟 cmp
+  module 𝒩 = NearlyConst 𝒟 _≡?_
+  open FinSupport 𝒟 _≡?_
   open FinSupportList
 
   Extensional-FinSupportList : ∀ {ℓr} ⦃ s : Extensional 𝒩.SupportList ℓr ⦄ → Extensional FinSupportList ℓr

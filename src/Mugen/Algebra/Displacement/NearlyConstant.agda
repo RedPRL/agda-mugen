@@ -44,20 +44,10 @@ open import Mugen.Data.List
 module NearlyConst
   {o r}
   (𝒟 : Displacement-algebra o r)
-  (let module 𝒟 = Displacement-algebra 𝒟)
-  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open 𝒟 using (ε; _⊗_)
+  private module 𝒟 = Displacement-algebra 𝒟
   open Inf 𝒟
-
-  _≡?_ : Discrete ⌞ 𝒟 ⌟
-  x ≡? y =
-    tri-elim
-      (λ _ → Dec (x ≡ y))
-      (λ x<y → no λ x≡y → 𝒟.<→≠ x<y x≡y)
-      yes
-      (λ y<x → no λ x≡y → 𝒟.<→≠ y<x (sym x≡y))
-      (cmp x y)
 
   --------------------------------------------------------------------------------
   -- Raw Support Lists
@@ -310,11 +300,11 @@ module NearlyConst
   merge-with f xs ys .has-is-compact = Raw.compact-is-compact $ Raw.merge-with f (xs .list) (ys .list)
 
   merge : SupportList → SupportList → SupportList
-  merge = merge-with _⊗_
+  merge = merge-with 𝒟._⊗_
 
   -- The empty SupportList
   empty : SupportList
-  empty .list = raw [] ε
+  empty .list = raw [] 𝒟.ε
   empty .has-is-compact = lift tt
 
   _<_ : SupportList → SupportList → Type (o ⊔ r)
@@ -332,14 +322,14 @@ module NearlyConst
       Raw.index-compact (Raw.merge-with f (xs .list) (ys .list)) n
       ∙ Raw.index-merge-with f (xs .list) (ys .list) n
 
-    index-merge : ∀ xs ys n → index (merge xs ys) n ≡ index xs n ⊗ index ys n
-    index-merge = index-merge-with _⊗_
+    index-merge : ∀ xs ys n → index (merge xs ys) n ≡ (index xs n 𝒟.⊗ index ys n)
+    index-merge = index-merge-with 𝒟._⊗_
 
     base-merge-with : ∀ f xs ys → merge-with f xs ys .base ≡ f (xs .base) (ys .base)
     base-merge-with f xs ys = Raw.base-compact (Raw.merge-with f (xs .list) (ys .list))
 
-    base-merge : ∀ xs ys → merge xs ys .base ≡ xs .base ⊗ ys .base
-    base-merge = base-merge-with _⊗_
+    base-merge : ∀ xs ys → merge xs ys .base ≡ (xs .base 𝒟.⊗ ys .base)
+    base-merge = base-merge-with 𝒟._⊗_
 
   abstract
     index-inj : ∀ {xs ys} → ((n : Nat) → index xs n ≡ index ys n) → xs ≡ ys
@@ -359,10 +349,10 @@ module NearlyConst
 --------------------------------------------------------------------------------
 -- Bundled Instances
 
-module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
+module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
   private module 𝒟 = Displacement-algebra 𝒟
   open Inf 𝒟
-  open NearlyConst 𝒟 cmp
+  open NearlyConst 𝒟 _≡?_
 
   NearlyConstant : Displacement-algebra o (o ⊔ r)
   NearlyConstant = to-displacement-algebra mk where
@@ -400,12 +390,12 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (cmp : ∀ x y → Tri (Displac
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
 
-module _ {o r} {𝒟 : Displacement-algebra o r} (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) where
-  open NearlyConst 𝒟 cmp
+module _ {o r} {𝒟 : Displacement-algebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
+  open NearlyConst 𝒟 _≡?_
 
-  NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
+  NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (InfProd 𝒟)
   NearlyConstant⊆InfProd = to-displacement-subalgebra mk where
-    mk : make-displacement-subalgebra (NearlyConstant 𝒟 cmp) (InfProd 𝒟)
+    mk : make-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (InfProd 𝒟)
     mk .make-displacement-subalgebra.into = index
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ xs ys = funext (index-merge xs ys)
@@ -418,11 +408,11 @@ module _ {o r} {𝒟 : Displacement-algebra o r} (cmp : ∀ x y → Tri (Displac
 module _
   {o r}
   {𝒟 : Displacement-algebra o r}
-  (let module 𝒟 = Displacement-algebra 𝒟)
   (𝒟-ordered-monoid : has-ordered-monoid 𝒟)
-  (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open NearlyConst 𝒟 cmp
+  private module 𝒟 = Displacement-algebra 𝒟
+  open NearlyConst 𝒟 _≡?_
   open is-ordered-monoid 𝒟-ordered-monoid
 
   ≤-right-invariant : ∀ {xs ys zs} → xs ≤ ys → merge xs zs ≤ merge ys zs
@@ -430,8 +420,8 @@ module _
     coe1→0 (λ i → index-merge xs zs n i 𝒟.≤ index-merge ys zs n i) $
     right-invariant (≤→≤-pointwise xs≤ys n)
 
-  nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 cmp)
-  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 cmp) ≤-right-invariant
+  nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 _≡?_)
+  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) ≤-right-invariant
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -439,16 +429,17 @@ module _
 module NearlyConstJoins
   {o r}
   {𝒟 : Displacement-algebra o r}
-  (let module 𝒟 = Displacement-algebra 𝒟)
-  (𝒟-joins : has-joins 𝒟) (cmp : ∀ x y → Tri 𝒟._<_ x y)
+  (𝒟-joins : has-joins 𝒟)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open NearlyConst 𝒟 cmp
+  open NearlyConst 𝒟 _≡?_
+  private module 𝒟 = Displacement-algebra 𝒟
   private module 𝒥 = has-joins 𝒟-joins
 
   join : SupportList → SupportList → SupportList
   join = merge-with 𝒥.join
 
-  nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 cmp)
+  nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-joins .has-joins.join = join
   nearly-constant-has-joins .has-joins.joinl {xs} {ys} =
     ≤-pointwise→≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
@@ -468,7 +459,7 @@ module NearlyConstJoins
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-wlpo
 
     nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟-joins)
-    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd cmp
+    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
     nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (index-preserves-join x y)
 
 --------------------------------------------------------------------------------
@@ -477,17 +468,14 @@ module NearlyConstJoins
 module _
   {o r}
   {𝒟 : Displacement-algebra o r}
-  (let module 𝒟 = Displacement-algebra 𝒟)
   (𝒟-bottom : has-bottom 𝒟)
-  (cmp : ∀ x y → Tri (Displacement-algebra._<_ 𝒟) x y) (b : ⌞ 𝒟 ⌟)
+  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
-  open 𝒟 using (ε; _⊗_; _<_; _≤_)
-  open NearlyConst 𝒟 cmp
-  open Inf 𝒟
-  open SupportList
+  private module 𝒟 = Displacement-algebra 𝒟
+  open NearlyConst 𝒟 _≡?_
   open has-bottom 𝒟-bottom
 
-  nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 cmp)
+  nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-bottom .has-bottom.bot = support-list (raw [] bot) (lift tt)
   nearly-constant-has-bottom .has-bottom.is-bottom xs = ≤-pointwise→≤ λ n → is-bottom _
 
@@ -495,20 +483,21 @@ module _
     open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-wlpo
 
     nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟-bottom)
-    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd cmp
+    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
     nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
 
 --------------------------------------------------------------------------------
 -- Extensionality based on 'index-inj'
 
--- 1lab's or Agda's instance search somehow does not seem to deal with
--- explicit arguments, so we re-parametrize things with implicit '𝒟' and 'cmp'.
+-- FIXME: Need to check the accuracy of the following statement again:
+-- 1lab's or Agda's instance search somehow does not seem to deal with explicit arguments?
+-- So we re-parametrize things with implicit '𝒟' and '_≡?_'.
 module _ {o r}
   {𝒟 : Displacement-algebra o r}
-  (let module 𝒟 = Displacement-algebra 𝒟)
-  {cmp : ∀ x y → Tri 𝒟._<_ x y}
+  {_≡?_ : Discrete ⌞ 𝒟 ⌟}
   where
-  open NearlyConst 𝒟 cmp
+  private module 𝒟 = Displacement-algebra 𝒟
+  open NearlyConst 𝒟 _≡?_
 
   Extensional-SupportList : ∀ {ℓr} ⦃ s : Extensional ⌞ 𝒟 ⌟ ℓr ⦄ → Extensional SupportList ℓr
   Extensional-SupportList ⦃ s ⦄ .Pathᵉ xs ys =
