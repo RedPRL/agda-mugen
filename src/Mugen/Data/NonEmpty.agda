@@ -17,9 +17,10 @@ head : List⁺ A → A
 head [ x ] = x
 head (x ∷ xs) = x
 
-tail : List⁺ A → List⁺ A
-tail [ x ] = [ x ]
-tail (x ∷ xs) = xs
+private
+  tail : List⁺ A → List⁺ A
+  tail [ x ] = [ x ]
+  tail (x ∷ xs) = xs
 
 []-inj : ∀ {x y : A} → [ x ] ≡ [ y ] → x ≡ y
 []-inj p = ap head p
