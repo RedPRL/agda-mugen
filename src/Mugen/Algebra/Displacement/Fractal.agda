@@ -27,8 +27,7 @@ module _
   _⊗ᶠ_ : List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟
   [ x ] ⊗ᶠ [ y ] = [ x ⊗ y ]
   [ x ] ⊗ᶠ (y ∷ ys) = (x ⊗ y) ∷ ys
-  (x ∷ xs) ⊗ᶠ [ y ] = (x ⊗ y) ∷ xs
-  (x ∷ xs) ⊗ᶠ (y ∷ ys) = (x ⊗ y) ∷ (xs ⊗ᶠ ys)
+  (x ∷ xs) ⊗ᶠ ys = x ∷ (xs ⊗ᶠ ys)
 
   εᶠ : List⁺ ⌞ 𝒟 ⌟
   εᶠ = [ ε ]
@@ -36,12 +35,8 @@ module _
   ⊗ᶠ-associative : (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → (xs ⊗ᶠ (ys ⊗ᶠ zs)) ≡ ((xs ⊗ᶠ ys) ⊗ᶠ zs)
   ⊗ᶠ-associative [ x ] [ y ] [ z ] = ap [_] 𝒟.associative
   ⊗ᶠ-associative [ x ] [ y ] (z ∷ zs) = ap (_∷ zs) 𝒟.associative
-  ⊗ᶠ-associative [ x ] (y ∷ ys) [ z ] = ap (_∷ ys) 𝒟.associative
-  ⊗ᶠ-associative [ x ] (y ∷ ys) (z ∷ zs) = ap (_∷ (ys ⊗ᶠ zs)) 𝒟.associative
-  ⊗ᶠ-associative (x ∷ xs) [ y ] [ z ] = ap (_∷ xs) 𝒟.associative
-  ⊗ᶠ-associative (x ∷ xs) [ y ] (z ∷ zs) = ap (_∷ (xs ⊗ᶠ zs)) 𝒟.associative
-  ⊗ᶠ-associative (x ∷ xs) (y ∷ ys) [ z ] = ap (_∷ (xs ⊗ᶠ ys)) 𝒟.associative
-  ⊗ᶠ-associative (x ∷ xs) (y ∷ ys) (z ∷ zs) = ap₂ _∷_ 𝒟.associative (⊗ᶠ-associative xs ys zs)
+  ⊗ᶠ-associative [ x ] (y ∷ ys) zs = refl
+  ⊗ᶠ-associative (x ∷ xs) ys zs = ap (x ∷_) $ ⊗ᶠ-associative xs ys zs
 
   ⊗ᶠ-idl : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → (εᶠ ⊗ᶠ xs) ≡ xs
   ⊗ᶠ-idl [ x ] = ap [_] 𝒟.idl
@@ -49,7 +44,7 @@ module _
 
   ⊗ᶠ-idr : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → (xs ⊗ᶠ εᶠ) ≡ xs
   ⊗ᶠ-idr [ x ] = ap [_] 𝒟.idr
-  ⊗ᶠ-idr (x ∷ xs) = ap (_∷ xs) 𝒟.idr
+  ⊗ᶠ-idr (x ∷ xs) = ap (x ∷_) $ ⊗ᶠ-idr xs
 
   --------------------------------------------------------------------------------
   -- Order
@@ -86,9 +81,7 @@ module _
   ⊗ᶠ-left-invariant [ x ] [ y ] [ z ] (single< y<z) = single< (𝒟.left-invariant y<z)
   ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (head< y<z) = head< (𝒟.left-invariant y<z)
   ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (tail< p ys<zs) = tail< (ap (x ⊗_) p) ys<zs
-  ⊗ᶠ-left-invariant (x ∷ xs) [ y ] [ z ] (single< y<z) = head< (𝒟.left-invariant y<z)
-  ⊗ᶠ-left-invariant (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< y<z) = head< (𝒟.left-invariant y<z)
-  ⊗ᶠ-left-invariant (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< p ys<zs) = tail< (ap (x ⊗_) p) (⊗ᶠ-left-invariant xs ys zs ys<zs)
+  ⊗ᶠ-left-invariant (x ∷ xs) ys zs ys<zs = tail< refl $ ⊗ᶠ-left-invariant xs ys zs ys<zs
 
   --------------------------------------------------------------------------------
   -- Displacement Algebra
