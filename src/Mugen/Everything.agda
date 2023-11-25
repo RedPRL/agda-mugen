@@ -4,7 +4,6 @@
 
 module Mugen.Everything where
 import Mugen.Algebra.Displacement
-import Mugen.Algebra.Displacement.Coimage
 import Mugen.Algebra.Displacement.Constant
 import Mugen.Algebra.Displacement.Endomorphism
 import Mugen.Algebra.Displacement.FiniteSupport
@@ -24,7 +23,6 @@ import Mugen.Cat.Endomorphisms
 import Mugen.Cat.HierarchyTheory
 import Mugen.Cat.HierarchyTheory.Properties
 import Mugen.Cat.StrictOrders
-import Mugen.Data.Coimage
 import Mugen.Data.Int
 import Mugen.Data.List
 import Mugen.Data.Nat
@@ -37,6 +35,5 @@ import Mugen.Order.Poset
 import Mugen.Order.Prefix
 import Mugen.Order.Singleton
 import Mugen.Order.StrictOrder
-import Mugen.Order.StrictOrder.Coimage
 import Mugen.Order.StrictOrder.Reasoning
 import Mugen.Prelude

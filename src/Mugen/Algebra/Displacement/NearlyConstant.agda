@@ -10,7 +10,6 @@ open import Mugen.Prelude
 
 open import Mugen.Axioms.WLPO
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.Coimage
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.OrderedMonoid
 open import Mugen.Order.StrictOrder

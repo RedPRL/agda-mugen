@@ -9,7 +9,6 @@ open import Algebra.Semigroup
 open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.Coimage
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.Displacement.NearlyConstant
 open import Mugen.Algebra.OrderedMonoid
