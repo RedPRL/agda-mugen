@@ -92,10 +92,10 @@ module _ {o r} {H : Hierarchy-theory o r} where
 
   -- NOTE: We can't use any fancy reasoning combinators in this proof, as it really
   -- upsets the unifier, as it will fail to unify the homomorphism proofs...
-  free-algebra-path : ∀ {X Y} {f g : Algebra-hom (Strict-orders o r) H Free⟨ X ⟩ Free⟨ Y ⟩}
-                                         → f .morphism ∘ H.unit.η _ ≡ (g .morphism ∘ H.unit.η _)
-                                         → f ≡ g
-  free-algebra-path {f = f} {g = g} p = Algebra-hom-path _ $
+  free-algebra-hom-path : ∀ {X Y} {f g : Algebra-hom (Strict-orders o r) H Free⟨ X ⟩ Free⟨ Y ⟩}
+    → f .morphism ∘ H.unit.η _ ≡ (g .morphism ∘ H.unit.η _)
+    → f ≡ g
+  free-algebra-hom-path {f = f} {g = g} p = Algebra-hom-path _ $
     f .morphism                                           ≡⟨ intror H.left-ident ⟩
     f .morphism ∘ H.mult.η _ ∘ H.M₁ (H.unit.η _)          ≡⟨ assoc (f .morphism) (H.mult.η _) (H.M₁ (H.unit.η _)) ⟩
     (f .morphism ∘ H.mult.η _) ∘ H.M₁ (H.unit.η _)        ≡⟨ ap (_∘ H.M₁ (H.unit.η _)) (f .commutes) ⟩

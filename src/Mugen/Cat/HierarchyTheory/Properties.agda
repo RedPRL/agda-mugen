@@ -274,7 +274,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Strict-order o r) (Ψ : Set (lsu
 
   T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
   T-faithful pt H-preserves-monos {x} {y} {σ} {δ} p =
-    free-algebra-path $ H-preserves-monos ι₁-hom ι₁-monic _ _ $
+    free-algebra-hom-path $ H-preserves-monos ι₁-hom ι₁-monic _ _ $
     ext λ α →
     σ̅ σ # (ι₁ α)                                    ≡˘⟨ H.right-ident #ₚ _ ⟩
     H.mult.η _ # (H.unit.η _ # (σ̅ σ #  (ι₁ α)))     ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (σ̅ σ) #ₚ _) ⟩
