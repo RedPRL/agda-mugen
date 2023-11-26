@@ -158,7 +158,6 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Strict-order o r) (Ψ : Set (lsu
       functor .Functor.F₁ σ .morphism .strict-mono {α , d1} {β , d2} =
         ⋉-elim (λ α≡β d1<d2 → biased α≡β (𝒟.left-invariant d1<d2))
                (λ α<β d1≤id id≤d2 → absurd (Lift.lower α<β))
-               (λ _ → Fᴹᴰ⟨Ψ⟩.<-thin)
       functor .Functor.F₁ σ .commutes = trivial!
       functor .Functor.F-id = ext λ (α , d) →
         refl , λ β →

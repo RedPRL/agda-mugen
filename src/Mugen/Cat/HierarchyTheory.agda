@@ -41,7 +41,7 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
   M .F₁ f .strict-mono x<y =
     ⋉-elim (λ a1≡a2 b1<b2 → biased (ap (f .hom) a1≡a2) b1<b2)
            (λ a1<a2 b1≤b b≤b2 → centred (f .strict-mono a1<a2) b1≤b b≤b2)
-           (λ _ → trunc) x<y
+           x<y
   M .F-id = trivial!
   M .F-∘ f g = trivial!
 
@@ -62,9 +62,8 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
                       biased α≡β (≤+<→< d1⊗d2≤d1 (<+≤→< d1<e1 e1≤e1⊗e2)))
                     (λ α<β d1≤ε ε≤e1 →
                       centred α<β (≤-trans d1⊗d2≤d1 d1≤ε) (≤-trans ε≤e1 e1≤e1⊗e2))
-                      (λ _ → trunc)
                     α<β)
-           (λ _ → trunc) l<l'
+           l<l'
   mult .is-natural L L' f = trivial!
 
   ht : Hierarchy-theory o o
