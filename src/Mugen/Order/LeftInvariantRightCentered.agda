@@ -75,8 +75,8 @@ module _ {o r} {A B : Strict-order o r} {b : ⌞ B ⌟} where
     centred (A.<-thin a1<a2 a1<a2′ i) (B.≤-thin ≤b ≤b′ i) (B.≤-thin b≤ b≤′ i)
 
 
-_⋉_[_] : ∀ {o} → (A B : Strict-order o o) → ⌞ B ⌟ → Strict-order o o
-A ⋉ B [ b ] = to-strict-order order where
+LeftInvariantRightCentered : ∀ {o} → (A B : Strict-order o o) → ⌞ B ⌟ → Strict-order o o
+LeftInvariantRightCentered A B b = to-strict-order order where
   module A = Strict-order A
   module B = Strict-order B
 
@@ -86,3 +86,5 @@ A ⋉ B [ b ] = to-strict-order order where
   order .make-strict-order.<-trans {x} {y} {z} = ⋉-trans x y z
   order .make-strict-order.<-thin = ⋉-thin _ _
   order .make-strict-order.has-is-set = ×-is-hlevel 2 A.has-is-set B.has-is-set
+
+syntax LeftInvariantRightCentered A B b = A ⋉[ b ] B

@@ -36,7 +36,7 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
   open Displacement-algebra 𝒟
 
   M : Functor (Strict-orders o o) (Strict-orders o o)
-  M .F₀ L = L ⋉ strict-order [ ε ]
+  M .F₀ L = L ⋉[ ε ] strict-order
   M .F₁ f .hom (l , d) = (f .hom l) , d
   M .F₁ f .strict-mono x<y =
     ⋉-elim (λ a1≡a2 b1<b2 → biased (ap (f .hom) a1≡a2) b1<b2)
