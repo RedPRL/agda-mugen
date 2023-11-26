@@ -20,52 +20,15 @@ module _ {o r} {A B : Strict-order o r} {b : ⌞ B ⌟} where
     module A = Strict-order A
     module B = Strict-order B
 
-  ⋉-elim
-    : ∀ {ℓ}
-    → {x y : ⌞ A ⌟ × ⌞ B ⌟}
-    → {P : A ⋉[ b ] B [ x < y ] → Type ℓ}
-    → ((a1≡a2 : fst x ≡ fst y) → (b1<b2 : snd x B.< snd y) → P (biased a1≡a2 b1<b2))
-    → ((a1<a2 : fst x A.< fst y) → (b1≤b : snd x B.≤ b) → (b≤b2 : b B.≤ snd y) → P (centred a1<a2 b1≤b b≤b2))
-    → (pf : A ⋉[ b ] B [ x < y ]) → P pf
-  ⋉-elim pbiased pcentered (biased a1≡a2 b1<b2) = pbiased a1≡a2 b1<b2
-  ⋉-elim pbiased pcentered (centred a1<a2 b1≤b b≤b2) = pcentered a1<a2 b1≤b b≤b2
-
-  ⋉-elim₂
-    : ∀ {ℓ}
-    → {w x y z : ⌞ A ⌟ × ⌞ B ⌟}
-    {P : A ⋉[ b ] B [ w < x ] → A ⋉[ b ] B [ y < z ] → Type ℓ}
-    → (∀ (a1≡a2 : fst w ≡ fst x) → (b1<b2 : snd w B.< snd x)
-       → (a3≡a4 : fst y ≡ fst z) → (b3<b4 : snd y B.< snd z)
-       → P (biased a1≡a2 b1<b2) (biased a3≡a4 b3<b4))
-    → (∀ (a1≡a2 : fst w ≡ fst x) → (b1<b2 : snd w B.< snd x)
-       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z)
-       → P (biased a1≡a2 b1<b2) (centred a3<a4 b3≤b b≤b4))
-    → (∀ (a1<a2 : fst w A.< fst x) → (b1≤b : snd w B.≤ b) → (b≤b2 : b B.≤ snd x)
-       → (a3≡a4 : fst y ≡ fst z) → (b3<b4 : snd y B.< snd z)
-       → P (centred a1<a2 b1≤b b≤b2) (biased a3≡a4 b3<b4))
-    → (∀ (a1<a2 : fst w A.< fst x) → (b1≤b : snd w B.≤ b) → (b≤b2 : b B.≤ snd x)
-       → (a3<a4 : fst y A.< fst z) → (b3≤b : snd y B.≤ b) → (b≤b4 : b B.≤ snd z)
-       → P (centred a1<a2 b1≤b b≤b2) (centred a3<a4 b3≤b b≤b4))
-    → ∀ p q → P p q
-  ⋉-elim₂ {P = P} pbb pbc pcb pcc p q = go p q
-    where
-      go : ∀ p q → P p q
-      go (biased a1≡a2 b1<b2) (biased a3≡a4 b3<b4) = pbb a1≡a2 b1<b2 a3≡a4 b3<b4
-      go (biased a1≡a2 b1<b2) (centred a3<a4 b3≤b b≤b4) = pbc a1≡a2 b1<b2 a3<a4 b3≤b b≤b4
-      go (centred a1<a2 b1≤b b≤b2) (biased a3≡a4 b3<b4) = pcb a1<a2 b1≤b b≤b2 a3≡a4 b3<b4
-      go (centred a1<a2 b1≤b b≤b2) (centred a3<a4 b3≤b b≤b4) = pcc a1<a2 b1≤b b≤b2 a3<a4 b3≤b b≤b4
-
   ⋉-irrefl : ∀ (x : ⌞ A ⌟ × ⌞ B ⌟) → A ⋉[ b ] B [ x < x ] → ⊥
-  ⋉-irrefl (a , b1) = ⋉-elim (λ a1≡a2 b1<b1 → B.<-irrefl b1<b1)
-                             (λ a<a b1≤b b≤b2 → A.<-irrefl a<a)
+  ⋉-irrefl (a , b1) (biased a1≡a2 b1<b1) = B.<-irrefl b1<b1
+  ⋉-irrefl (a , b1) (centred a<a b1≤b b≤b2) = A.<-irrefl a<a
 
   ⋉-trans : ∀ (x y z : ⌞ A ⌟ × ⌞ B ⌟) → A ⋉[ b ] B [ x < y ] → A ⋉[ b ] B [ y < z ] → A ⋉[ b ] B [ x < z ]
-  ⋉-trans x y z x<y y<z =
-    ⋉-elim₂ (λ a1≡a2 b1<b2 a2≡a3 b2<b3 → biased (a1≡a2 ∙ a2≡a3) (B.<-trans b1<b2 b2<b3))
-            (λ a1≡a2 b1<b2 a2<a3 b2≤b b≤b3 → centred (A.≡+<→< a1≡a2 a2<a3) (B.≤-trans (B.<→≤ b1<b2) b2≤b) b≤b3)
-            (λ a1<a2 b1≤b b≤b2 a2≡a3 b2<b3 → centred (A.<+≡→< a1<a2 a2≡a3) b1≤b (B.≤-trans b≤b2 (B.<→≤ b2<b3)))
-            (λ a1<a2 b1≤b b≤b2 a2<a3 b2≤b b≤b3 → centred (A.<-trans a1<a2 a2<a3) b1≤b b≤b3)
-            x<y y<z
+  ⋉-trans x y z (biased a1≡a2 b1<b2) (biased a2≡a3 b2<b3) = biased (a1≡a2 ∙ a2≡a3) (B.<-trans b1<b2 b2<b3)
+  ⋉-trans x y z (biased a1≡a2 b1<b2) (centred a2<a3 b2≤b b≤b3) = centred (A.≡+<→< a1≡a2 a2<a3) (B.≤-trans (B.<→≤ b1<b2) b2≤b) b≤b3
+  ⋉-trans x y z (centred a1<a2 b1≤b b≤b2) (biased a2≡a3 b2<b3) = centred (A.<+≡→< a1<a2 a2≡a3) b1≤b (B.≤-trans b≤b2 (B.<→≤ b2<b3))
+  ⋉-trans x y z (centred a1<a2 b1≤b b≤b2) (centred a2<a3 b2≤b b≤b3) = centred (A.<-trans a1<a2 a2<a3) b1≤b b≤b3
 
   ⋉-thin : ∀ (x y : ⌞ A ⌟ × ⌞ B ⌟) → is-prop (A ⋉[ b ] B [ x < y ])
   ⋉-thin x y (biased _ _) (biased _ _) = ap₂ biased (A.has-is-set _ _ _ _) (B.<-thin _ _)

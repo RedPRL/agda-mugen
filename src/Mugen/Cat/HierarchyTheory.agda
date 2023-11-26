@@ -38,10 +38,8 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
   M : Functor (Strict-orders o o) (Strict-orders o o)
   M .F₀ L = L ⋉[ ε ] strict-order
   M .F₁ f .hom (l , d) = (f .hom l) , d
-  M .F₁ f .strict-mono x<y =
-    ⋉-elim (λ a1≡a2 b1<b2 → biased (ap (f .hom) a1≡a2) b1<b2)
-           (λ a1<a2 b1≤b b≤b2 → centred (f .strict-mono a1<a2) b1≤b b≤b2)
-           x<y
+  M .F₁ f .strict-mono (biased a1≡a2 b1<b2) = biased (ap (f .hom) a1≡a2) b1<b2
+  M .F₁ f .strict-mono (centred a1<a2 b1≤b b≤b2) = centred (f .strict-mono a1<a2) b1≤b b≤b2
   M .F-id = trivial!
   M .F-∘ f g = trivial!
 
@@ -52,18 +50,20 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
 
   mult : M F∘ M => M
   mult .η L .hom ((l , x) , y) = l , (x ⊗ y)
-  mult .η L .strict-mono {(α , d1) , d2} {(β , e1) , e2} l<l' =
-    ⋉-elim (λ α≡β d2<e2 → biased (ap fst α≡β) (≡+<→< (ap (λ ϕ → snd ϕ ⊗ d2) α≡β) (left-invariant d2<e2)))
-           (λ α<β d2≤ε ε≤e2 →
-             let d1⊗d2≤d1 = ≤-trans (≤-left-invariant d2≤ε) (inl idr)
-                 e1≤e1⊗e2 = ≤-trans (inl (sym idr)) (≤-left-invariant ε≤e2)
-             in
-             ⋉-elim (λ α≡β d1<e1 →
-                      biased α≡β (≤+<→< d1⊗d2≤d1 (<+≤→< d1<e1 e1≤e1⊗e2)))
-                    (λ α<β d1≤ε ε≤e1 →
-                      centred α<β (≤-trans d1⊗d2≤d1 d1≤ε) (≤-trans ε≤e1 e1≤e1⊗e2))
-                    α<β)
-           l<l'
+  mult .η L .strict-mono {_ , d2} (biased α≡β d2<e2) =
+    biased (ap fst α≡β) (≡+<→< (ap (λ ϕ → snd ϕ ⊗ d2) α≡β) (left-invariant d2<e2))
+  mult .η L .strict-mono {(α , d1) , d2} {(β , e1) , e2} (centred (biased α≡β d1<e1) d2≤ε ε≤e2) =
+    let
+      d1⊗d2≤d1 = ≤-trans {d1 ⊗ d2} {d1 ⊗ ε} {d1} (≤-left-invariant d2≤ε) (inl idr)
+      e1≤e1⊗e2 = ≤-trans {e1} {e1 ⊗ ε} {e1 ⊗ e2} (inl (sym idr)) (≤-left-invariant ε≤e2)
+    in
+    biased α≡β (≤+<→< d1⊗d2≤d1 (<+≤→< d1<e1 e1≤e1⊗e2))
+  mult .η L .strict-mono {(α , d1) , d2} {(β , e1) , e2} (centred (centred α<β d1≤ε ε≤e1) d2≤ε ε≤e2) =
+    let
+      d1⊗d2≤d1 = ≤-trans {d1 ⊗ d2} {d1 ⊗ ε} {d1} (≤-left-invariant d2≤ε) (inl idr)
+      e1≤e1⊗e2 = ≤-trans {e1} {e1 ⊗ ε} {e1 ⊗ e2} (inl (sym idr)) (≤-left-invariant ε≤e2)
+    in
+    centred α<β (≤-trans d1⊗d2≤d1 d1≤ε) (≤-trans ε≤e1 e1≤e1⊗e2)
   mult .is-natural L L' f = trivial!
 
   ht : Hierarchy-theory o o
