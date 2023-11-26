@@ -113,18 +113,6 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
     open Product 𝒟₁ 𝒟₂
     open Lex 𝒟₁ 𝒟₂
 
-  lex≤? : (∀ x1 y1 → Dec (x1 𝒟₁.≤ y1)) → (∀ x2 y2 → Dec (x2 𝒟₂.≤ y2)) → ∀ x y → Dec (lex≤ x y)
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) with ≤₁? x1 x2
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) with ≤₂? y1 y2
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | yes y1≤y2 = yes (fst≡ x1≡x2 y1≤y2)
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inl x1≡x2) | no ¬y1≤y2 = no λ where
-    (fst< x1<x2) → absurd (𝒟₁.<-irrefl (𝒟₁.≡+<→< (sym x1≡x2) x1<x2))
-    (fst≡ x1≡x2 y1≤y2) → ¬y1≤y2 y1≤y2
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | yes (inr x1<x2) = yes (fst< x1<x2)
-  lex≤? ≤₁? ≤₂? (x1 , y1) (x2 , y2) | no ¬x1≤x2 = no λ where
-    (fst< x1<x2) → ¬x1≤x2 (inr x1<x2)
-    (fst≡ x1≡x2 _) → ¬x1≤x2 (inl (x1≡x2))
-
   --------------------------------------------------------------------------------
   -- Ordered Monoids
 
@@ -142,9 +130,9 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
   --------------------------------------------------------------------------------
   -- Joins
 
-  lex-has-joins : (∀ x1 y1 → Dec (x1 𝒟₁.≤ y1)) → (∀ x2 y2 → Dec (x2 𝒟₂.≤ y2))
+  lex-has-joins : (∀ x1 y1 → Dec (x1 𝒟₁.≤ y1))
                 → has-joins 𝒟₁ → has-joins 𝒟₂ → has-bottom 𝒟₂ → has-joins (Lex 𝒟₁ 𝒟₂)
-  lex-has-joins _≤₁?_ _≤₂?_ 𝒟₁-joins 𝒟₂-joins 𝒟₂-bottom = joins
+  lex-has-joins _≤₁?_ 𝒟₁-joins 𝒟₂-joins 𝒟₂-bottom = joins
     where
       module 𝒟₁-joins = has-joins 𝒟₁-joins
       module 𝒟₂-joins = has-joins 𝒟₂-joins
