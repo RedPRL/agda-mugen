@@ -27,19 +27,11 @@ NonPositive+ = Nat+ ^opᵈ
 non-positive-+-has-joins : has-joins NonPositive+
 non-positive-+-has-joins .has-joins.join = min
 non-positive-+-has-joins .has-joins.joinl {x} {y} =
-  from-op≤ Nat< $
-  ≤-strengthen (min x y) x $
   min-≤l x y
 non-positive-+-has-joins .has-joins.joinr {x} {y} =
-  from-op≤ Nat< $
-  ≤-strengthen (min x y) y $
   min-≤r x y
 non-positive-+-has-joins .has-joins.universal {x} {y} {z} z≤x z≤y =
-  from-op≤ Nat< $
-  ≤-strengthen z (min x y) $
-  min-is-glb x y z
-    (Equiv.from ≤≃non-strict (to-op≤ Nat< z≤x))
-    (Equiv.from ≤≃non-strict (to-op≤ Nat< z≤y))
+  min-is-glb x y z z≤x z≤y
 
 --------------------------------------------------------------------------------
 -- Subalgebra
@@ -50,7 +42,7 @@ NonPositive+⊆Int+ = to-displacement-subalgebra subalg where
   subalg .make-displacement-subalgebra.into x = - x
   subalg .make-displacement-subalgebra.pres-ε = refl
   subalg .make-displacement-subalgebra.pres-⊗ = +ℤ-negate
-  subalg .make-displacement-subalgebra.strictly-mono x y = negate-anti-mono y x
+  subalg .make-displacement-subalgebra.mono x y = negate-anti-mono y x
   subalg .make-displacement-subalgebra.inj = negate-inj _ _
 
 NonPositive-is-subsemilattice : is-displacement-subsemilattice non-positive-+-has-joins Int+-has-joins

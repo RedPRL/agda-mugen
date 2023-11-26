@@ -5,7 +5,7 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude hiding (Const)
-open import Mugen.Order.StrictOrder
+open import Mugen.Order.Poset
 open import Mugen.Order.Coproduct
 
 open import Mugen.Algebra.Displacement
@@ -21,13 +21,13 @@ open import Mugen.Algebra.OrderedMonoid
 -- 'b' act upon 'a'.
 
 module Constant
-  {o r} {A : Strict-order o r} {B : Displacement-algebra o r}
+  {o r} {A : Poset o r} {B : Displacement-algebra o r}
   (α : Right-displacement-action A B) where
   private
-    module A = Strict-order A
+    module A = Poset A
     module B = Displacement-algebra B
     module α = Right-displacement-action α
-    open Strict-order-coproduct A B.strict-order
+    open Poset-coproduct A B.poset
 
   _⊗α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟
   _ ⊗α inl a = inl a
@@ -56,46 +56,54 @@ module Constant
   --
   -- This uses the coproduct of strict orders, so we can re-use proofs from there.
 
-  _≤α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type (o ⊔ r)
+  _≤α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type r
   x ≤α y = x ⊕≤ y
 
-  _<α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type r
-  x <α y = x ⊕< y
+  _<α_ : ⌞ A ⌟ ⊎ ⌞ B ⌟ → ⌞ A ⌟ ⊎ ⌞ B ⌟ → Type (o ⊔ r)
+  _<α_ = strict _≤α_
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y <α z → (x ⊗α y) <α (x ⊗α z)
-  ⊗α-left-invariant _ (inl y) (inl z) y<z = y<z
-  ⊗α-left-invariant (inl x) (inr y) (inr z) y<z = α.invariant x y z y<z
-  ⊗α-left-invariant (inr x) (inr y) (inr z) y<z = B.left-invariant y<z
+  ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y ≤α z → (x ⊗α y) ≤α (x ⊗α z)
+  ⊗α-left-invariant _ (inl y) (inl z) y≤z = y≤z
+  ⊗α-left-invariant (inl x) (inr y) (inr z) y≤z = α.≤-invariant x y z y≤z
+  ⊗α-left-invariant (inr x) (inr y) (inr z) y≤z = B.≤-left-invariant y≤z
+
+  ⊗α-injr-on-≤α : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y ≤α z → (x ⊗α y) ≡ (x ⊗α z) → y ≡ z
+  ⊗α-injr-on-≤α _ (inl y) (inl z) _ p = p
+  ⊗α-injr-on-≤α (inl x) (inr y) (inr z) y≤z p =
+    ap inr $ α.≤-implies-inj x y z y≤z (inl-inj p)
+  ⊗α-injr-on-≤α (inr x) (inr y) (inr z) y≤z p =
+    ap inr $ B.injr-on-≤ y≤z (inr-inj p)
 
 Const
-  : ∀ {o r} {A : Strict-order o r} {B : Displacement-algebra o r}
+  : ∀ {o r} {A : Poset o r} {B : Displacement-algebra o r}
   → Right-displacement-action A B
   → Displacement-algebra o r
 Const {A = A} {B = B} α = to-displacement-algebra mk where
-  module A = Strict-order A
+  module A = Poset A
   module B = Displacement-algebra B
   open Constant α
   open make-displacement-algebra
 
-  mk : make-displacement-algebra (A ⊕ B.strict-order)
+  mk : make-displacement-algebra (A ⊕ B.poset)
   mk .ε = εα
   mk ._⊗_ = _⊗α_
   mk .idl {x} = ⊗α-idl x
   mk .idr {x} = ⊗α-idr x
   mk .associative {x} {y} {z} = ⊗α-associative x y z
-  mk .left-invariant {x} {y} {z} = ⊗α-left-invariant x y z
+  mk .≤-left-invariant {x} {y} {z} = ⊗α-left-invariant x y z
+  mk .injr-on-≤ {x} {y} {z} = ⊗α-injr-on-≤α x y z
 
 module ConstantProperties
   {o r}
-  {A : Strict-order o r} {B : Displacement-algebra o r}
+  {A : Poset o r} {B : Displacement-algebra o r}
   (α : Right-displacement-action A B) where
   private
-    module A = Strict-order A
+    module A = Poset A
     module B = Displacement-algebra B
-    open Strict-order-coproduct A B.strict-order
+    open Poset-coproduct A B.poset
     open B using (ε; _⊗_)
 
   --------------------------------------------------------------------------------
@@ -106,13 +114,13 @@ module ConstantProperties
     → (∀ {x y : ⌞ A ⌟} {z : ⌞ B ⌟} → x A.≤ y → ⟦ α ⟧ʳ x z A.≤ ⟦ α ⟧ʳ y z)
     → has-ordered-monoid (Const α)
   ⊗α-is-ordered-monoid B-ordered-monoid α-right-invariant =
-    right-invariant→has-ordered-monoid (Const α) λ x≤y →
-      from-⊕≤ _ _ (⊗α-right-invariant _ _ _ (to-⊕≤ _ _ x≤y))
+    right-invariant→has-ordered-monoid (Const α) λ {x} {y} {z} x≤y →
+      ≤α-right-invariant x y z x≤y
     where
       open Constant α
       module B-ordered-monoid = is-ordered-monoid (B-ordered-monoid)
 
-      ⊗α-right-invariant : ∀ x y z → x ≤α y → (x ⊗α z) ≤α (y ⊗α z)
-      ⊗α-right-invariant _ _ (inl z) x≤y = inl refl
-      ⊗α-right-invariant (inl x) (inl y) (inr z) x≤y = α-right-invariant x≤y
-      ⊗α-right-invariant (inr x) (inr y) (inr z) x≤y = B-ordered-monoid.right-invariant x≤y
+      ≤α-right-invariant : ∀ x y z → x ≤α y → (x ⊗α z) ≤α (y ⊗α z)
+      ≤α-right-invariant x y (inl z) x≤y = ⊕≤-refl (inl z)
+      ≤α-right-invariant (inl x) (inl y) (inr z) x≤y = α-right-invariant x≤y
+      ≤α-right-invariant (inr x) (inr y) (inr z) x≤y = B-ordered-monoid.right-invariant x≤y

@@ -18,7 +18,6 @@ import Mugen.Algebra.Displacement.Opposite
 import Mugen.Algebra.Displacement.Prefix
 import Mugen.Algebra.Displacement.Product
 import Mugen.Algebra.OrderedMonoid
-import Mugen.Axioms.WLPO
 import Mugen.Cat.Endomorphisms
 import Mugen.Cat.HierarchyTheory
 import Mugen.Cat.HierarchyTheory.Properties
@@ -33,7 +32,6 @@ import Mugen.Order.LeftInvariantRightCentered
 import Mugen.Order.Opposite
 import Mugen.Order.Poset
 import Mugen.Order.Prefix
+import Mugen.Order.Reasoning
 import Mugen.Order.Singleton
-import Mugen.Order.StrictOrder
-import Mugen.Order.StrictOrder.Reasoning
 import Mugen.Prelude

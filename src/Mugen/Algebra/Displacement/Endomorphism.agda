@@ -11,9 +11,9 @@ open import Mugen.Prelude
 open import Mugen.Data.NonEmpty
 
 open import Mugen.Algebra.Displacement
-open import Mugen.Cat.StrictOrders
-open import Mugen.Order.StrictOrder
 open import Mugen.Order.Poset
+open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.HierarchyTheory
 
 --------------------------------------------------------------------------------
 -- Endomorphism Displacements
@@ -35,13 +35,13 @@ instance
   Funlike-algebra-hom ⦃ fl ⦄ .Funlike.bu = Underlying-Σ ⦃ ua = Funlike.bu fl ⦄
   Funlike-algebra-hom ⦃ fl ⦄ .Funlike._#_ f x = f .morphism # x
 
-module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
+module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
 
   open Monad H renaming (M₀ to H₀; M₁ to H₁)
   open Cat (Eilenberg-Moore (Strict-orders o r) H)
 
   private
-    module H⟨Δ⟩ = Strict-order (H₀ Δ)
+    module H⟨Δ⟩ = Poset (H₀ Δ)
     Fᴴ⟨Δ⟩ : Algebra (Strict-orders o r) H
     Fᴴ⟨Δ⟩ = Functor.F₀ (Free (Strict-orders o r) H) Δ
     {-# INLINE Fᴴ⟨Δ⟩ #-}
@@ -54,17 +54,14 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
   --------------------------------------------------------------------------------
   -- Algebra
 
-  _⊗_ : Endomorphism → Endomorphism → Endomorphism
-  _⊗_ = _∘_
-
-  endo-is-magma : is-magma _⊗_
+  endo-is-magma : is-magma _∘_
   endo-is-magma .has-is-set = Hom-set Fᴴ⟨Δ⟩ Fᴴ⟨Δ⟩
 
-  endo-is-semigroup : is-semigroup _⊗_
+  endo-is-semigroup : is-semigroup _∘_
   endo-is-semigroup .has-is-magma = endo-is-magma
   endo-is-semigroup .associative {f} {g} {h} = assoc f g h
 
-  endo-is-monoid : is-monoid id _⊗_
+  endo-is-monoid : is-monoid id _∘_
   endo-is-monoid .has-is-semigroup = endo-is-semigroup
   endo-is-monoid .⊗-idl {f} = idl f
   endo-is-monoid .⊗-idr {f} = idr f
@@ -72,69 +69,59 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Strict-order o r) where
   --------------------------------------------------------------------------------
   -- Order
 
-  -- HACK: We could make this live in a lower universe level, but then we can't construct a hierarchy theory from it without an annoying lift.
-  record endo[_<_] (σ δ : Endomorphism) : Type (lsuc o ⊔ lsuc r) where
-    constructor mk-endo-<
-    field
-      endo-≤ : ∀ (α : ⌞ Δ ⌟) → σ # (unit.η Δ # α) H⟨Δ⟩.≤ δ # (unit.η Δ # α)
-      endo-< : ∃[ α ∈ ⌞ Δ ⌟ ] (σ # (unit.η Δ # α) H⟨Δ⟩.< (δ # (unit.η Δ # α)))
+  -- Favonia: the following "HACK" note was left when we were using records
+  -- to define 'endo[_≤_]'. The accuracy of the note should be checked again.
+  -- > HACK: We could make this live in a lower universe level,
+  -- > but then we can't construct a hierarchy theory from it without an annoying lift.
+  endo[_≤_] : ∀ (σ δ : Endomorphism) → Type (lsuc o ⊔ lsuc r)
+  endo[_≤_] σ δ = Lift _ ((α : ⌞ Δ ⌟) → σ # (unit.η Δ # α) H⟨Δ⟩.≤ δ # (unit.η Δ # α))
 
-  open endo[_<_]
+  endo[_<_] : ∀ (σ δ : Endomorphism) → Type (lsuc o ⊔ lsuc r)
+  endo[_<_] = strict endo[_≤_]
 
-  endo-<-irrefl : ∀ {σ} → endo[ σ < σ ] → ⊥
-  endo-<-irrefl σ<σ =
-    ∥-∥-elim (λ _ → hlevel 1)
-      (λ lt → H⟨Δ⟩.<-irrefl (snd lt))
-      (σ<σ .endo-<)
+  endo≤-thin : ∀ σ δ → is-prop endo[ σ ≤ δ ]
+  endo≤-thin σ δ = hlevel!
 
-  endo-<-trans : ∀ {σ δ τ} → endo[ σ < δ ] → endo[ δ < τ ] → endo[ σ < τ ]
-  endo-<-trans σ<δ δ<τ .endo-≤ α = H⟨Δ⟩.≤-trans (σ<δ .endo-≤ α) (δ<τ .endo-≤ α)
-  endo-<-trans σ<δ δ<τ .endo-< =
-    ∥-∥-map₂ (λ lt₁ lt₂ → fst lt₂ , H⟨Δ⟩.≤+<→< (σ<δ .endo-≤ (fst lt₂)) (snd lt₂))
-      (σ<δ .endo-<)
-      (δ<τ .endo-<)
+  endo≤-refl : ∀ σ → endo[ σ ≤ σ ]
+  endo≤-refl σ = lift λ _ → H⟨Δ⟩.≤-refl
 
-  private unquoteDecl eqv = declare-record-iso eqv (quote endo[_<_])
+  endo≤-trans : ∀ σ δ τ → endo[ σ ≤ δ ] → endo[ δ ≤ τ ] → endo[ σ ≤ τ ]
+  endo≤-trans σ δ τ (lift σ≤δ) (lift δ≤τ) = lift λ α → H⟨Δ⟩.≤-trans (σ≤δ α) (δ≤τ α)
 
-  instance
-    endo-<-hlevel : ∀ {σ δ} {n} → H-Level endo[ σ < δ ] (suc n)
-    endo-<-hlevel = prop-instance λ f →
-      let instance
-        H⟨Δ⟩-≤-hlevel : ∀ {x y} {n} → H-Level (x H⟨Δ⟩.≤ y) (suc n)
-        H⟨Δ⟩-≤-hlevel = prop-instance H⟨Δ⟩.≤-thin
-      in Iso→is-hlevel 1 eqv (hlevel 1) f
+  endo≤-antisym : ∀ σ δ → endo[ σ ≤ δ ] → endo[ δ ≤ σ ] → σ ≡ δ
+  endo≤-antisym σ δ (lift σ≤δ) (lift δ≤σ) = free-algebra-hom-path $ ext λ α →
+    H⟨Δ⟩.≤-antisym (σ≤δ α) (δ≤σ α)
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ∘-left-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ < τ ] → endo[ σ ∘ δ < σ ∘ τ ]
-  ∘-left-invariant σ δ τ δ<τ = ∘-lt
-    where
-      module σ = Strictly-monotone (σ .morphism)
+  ∘-left-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → endo[ σ ∘ δ ≤ σ ∘ τ ]
+  ∘-left-invariant σ δ τ δ≤τ = lift λ α → σ .morphism .Strictly-monotone.mono (δ≤τ .Lift.lower α)
 
-      ∘-lt : endo[ σ ∘ δ < σ ∘ τ ]
-      ∘-lt .endo-≤ α = σ.mono (δ<τ .endo-≤ α)
-      ∘-lt .endo-< = ∥-∥-map (λ lt → lt .fst , σ.strict-mono (lt .snd)) (δ<τ .endo-<)
+  ∘-injr-on-≤ : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → σ ∘ δ ≡ σ ∘ τ → δ ≡ τ
+  ∘-injr-on-≤ σ δ τ (lift δ≤τ) p = free-algebra-hom-path $ ext λ α →
+    σ .morphism .Strictly-monotone.inj-on-related (δ≤τ α) (ap (_# (unit.η Δ # α)) p)
 
   --------------------------------------------------------------------------------
   -- Bundles
   --
   -- We do this with copatterns for performance reasons.
 
-  Endo< : Strict-order (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
-  Endo< .Strict-order.Ob = Endomorphism
-  Endo< .Strict-order.strict-order-on .Strict-order-on._<_ = endo[_<_]
-  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-irrefl = endo-<-irrefl
-  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-trans = endo-<-trans
-  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.<-thin = hlevel!
-  Endo< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order .is-strict-order.has-is-set = Hom-set _ _
+  Endo≤ : Poset (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
+  Endo≤ .Poset.Ob = Endomorphism
+  Endo≤ .Poset.poset-on .Poset-on._≤_ = endo[_≤_]
+  Endo≤ .Poset.poset-on .Poset-on.has-is-poset .is-partial-order.≤-thin {σ} {δ} = endo≤-thin σ δ
+  Endo≤ .Poset.poset-on .Poset-on.has-is-poset .is-partial-order.≤-refl {σ} = endo≤-refl σ
+  Endo≤ .Poset.poset-on .Poset-on.has-is-poset .is-partial-order.≤-trans {σ} {δ} {τ} = endo≤-trans σ δ τ
+  Endo≤ .Poset.poset-on .Poset-on.has-is-poset .is-partial-order.≤-antisym {σ} {δ} = endo≤-antisym σ δ
 
   Endo∘ : Displacement-algebra (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
-  Endo∘ .Displacement-algebra.strict-order = Endo<
+  Endo∘ .Displacement-algebra.poset = Endo≤
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.ε = id
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on._⊗_ = _∘_
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .has-is-semigroup .has-is-magma .has-is-set = hlevel!
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .has-is-semigroup .associative = assoc _ _ _
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idl = idl _
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idr = idr _
-  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.left-invariant = ∘-left-invariant _ _ _
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.≤-left-invariant {σ} {δ} {τ} = ∘-left-invariant σ δ τ
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.injr-on-≤ = ∘-injr-on-≤ _ _ _

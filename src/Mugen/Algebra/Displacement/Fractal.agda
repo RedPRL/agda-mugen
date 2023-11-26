@@ -5,10 +5,9 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
-open import Mugen.Data.NonEmpty
-
 open import Mugen.Algebra.Displacement
-open import Mugen.Order.StrictOrder
+open import Mugen.Data.NonEmpty
+open import Mugen.Order.Poset
 
 --------------------------------------------------------------------------------
 -- Fractal Displacements
@@ -49,56 +48,66 @@ module _
   --------------------------------------------------------------------------------
   -- Order
 
-  data fractal[_<_] : List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟ → Type (o ⊔ r) where
-    single< : ∀ {x y} → x 𝒟.< y → fractal[ [ x ] < [ y ] ]
-    head<   : ∀ {x xs y ys} → x 𝒟.< y → fractal[ x ∷ xs < y ∷ ys ]
-    -- Annoying hack to work around --without-K
-    tail<   : ∀ {x xs y ys} → x ≡ y → fractal[ xs < ys ] → fractal[ x ∷ xs < y ∷ ys ]
+  data fractal[_≤_] : List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟ → Type (o ⊔ r) where
+    single≤ : ∀ {x y} → x 𝒟.≤ y → fractal[ [ x ] ≤ [ y ] ]
+    tail≤   : ∀ {x xs y ys} → x 𝒟.≤ y → (x ≡ y → fractal[ xs ≤ ys ]) → fractal[ x ∷ xs ≤ y ∷ ys ]
 
-  <ᶠ-irrefl : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs < xs ] → ⊥
-  <ᶠ-irrefl [ x ] (single< x<x) = 𝒟.<-irrefl x<x
-  <ᶠ-irrefl (x ∷ xs) (head< x<x) = 𝒟.<-irrefl x<x
-  <ᶠ-irrefl (x ∷ xs) (tail< p xs<xs) = <ᶠ-irrefl xs xs<xs
+  ≤ᶠ-refl : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs ≤ xs ]
+  ≤ᶠ-refl [ x ] = single≤ 𝒟.≤-refl
+  ≤ᶠ-refl (x ∷ xs) = tail≤ 𝒟.≤-refl λ _ → ≤ᶠ-refl xs
 
-  <ᶠ-trans : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs < ys ] → fractal[ ys < zs ] → fractal[ xs < zs ]
-  <ᶠ-trans [ x ] [ y ] [ z ] (single< x<y) (single< y<z) = single< (𝒟.<-trans x<y y<z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (head< y<z) = head< (𝒟.<-trans x<y y<z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (head< x<y) (tail< y≡z ys<zs) = head< (𝒟.<+≡→< x<y y≡z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (head< y<z) = head< (𝒟.≡+<→< x≡y y<z)
-  <ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail< x≡y xs<ys) (tail< y≡z ys<zs) = tail< (x≡y ∙ y≡z) (<ᶠ-trans xs ys zs xs<ys ys<zs)
+  ≤ᶠ-trans : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs ≤ ys ] → fractal[ ys ≤ zs ] → fractal[ xs ≤ zs ]
+  ≤ᶠ-trans [ x ] [ y ] [ z ] (single≤ x≤y) (single≤ y≤z) = single≤ (𝒟.≤-trans x≤y y≤z)
+  ≤ᶠ-trans (x ∷ xs) (y ∷ ys) (z ∷ zs) (tail≤ x≤y xs≤ys) (tail≤ y≤z ys≤zs) =
+    tail≤ (𝒟.≤-trans x≤y y≤z) λ x=z →
+    ≤ᶠ-trans xs ys zs (xs≤ys (𝒟.≤-antisym'-l x≤y y≤z x=z)) (ys≤zs (𝒟.≤-antisym'-r x≤y y≤z x=z))
 
-  <ᶠ-is-prop : ∀ (xs ys : List⁺ ⌞ 𝒟 ⌟) → is-prop (fractal[ xs < ys ])
-  <ᶠ-is-prop [ x ] [ y ] (single< x<y) (single< x<y') = ap single< (𝒟.<-thin x<y x<y')
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (head< x<y') = ap head< (𝒟.<-thin x<y x<y')
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (head< x<y) (tail< x≡y xs<ys) = absurd (𝒟.<-irrefl (𝒟.≡+<→< (sym x≡y) x<y))
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (head< x<y) = absurd (𝒟.<-irrefl (𝒟.≡+<→< (sym x≡y) x<y))
-  <ᶠ-is-prop (x ∷ xs) (y ∷ ys) (tail< x≡y xs<ys) (tail< x≡y' xs<ys') = ap₂ tail< (𝒟.has-is-set x y x≡y x≡y') (<ᶠ-is-prop xs ys xs<ys xs<ys')
+  ≤ᶠ-antisym : ∀ (xs ys : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs ≤ ys ] → fractal[ ys ≤ xs ] → xs ≡ ys
+  ≤ᶠ-antisym [ x ] [ y ] (single≤ x≤y) (single≤ y≤x) = ap [_] $ 𝒟.≤-antisym x≤y y≤x
+  ≤ᶠ-antisym (x ∷ xs) (y ∷ ys) (tail≤ x≤y xs≤ys) (tail≤ y≤x ys≤xs) =
+    let x=y = 𝒟.≤-antisym x≤y y≤x in ap₂ _∷_ x=y $ ≤ᶠ-antisym xs ys (xs≤ys x=y) (ys≤xs (sym x=y))
+
+  ≤ᶠ-thin : ∀ (xs ys : List⁺ ⌞ 𝒟 ⌟) → is-prop (fractal[ xs ≤ ys ])
+  ≤ᶠ-thin [ x ] [ y ] (single≤ x≤y) (single≤ x≤y') = ap single≤ (𝒟.≤-thin x≤y x≤y')
+  ≤ᶠ-thin (x ∷ xs) (y ∷ ys) (tail≤ x≤y xs≤ys) (tail≤ x≤y' xs≤ys') = ap₂ tail≤ (𝒟.≤-thin x≤y x≤y') $
+    funext λ p → ≤ᶠ-thin xs ys (xs≤ys p) (xs≤ys' p)
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ⊗ᶠ-left-invariant : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ ys < zs ] → fractal[ xs ⊗ᶠ ys < xs ⊗ᶠ zs ]
-  ⊗ᶠ-left-invariant [ x ] [ y ] [ z ] (single< y<z) = single< (𝒟.left-invariant y<z)
-  ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (head< y<z) = head< (𝒟.left-invariant y<z)
-  ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (tail< p ys<zs) = tail< (ap (x ⊗_) p) ys<zs
-  ⊗ᶠ-left-invariant (x ∷ xs) ys zs ys<zs = tail< refl $ ⊗ᶠ-left-invariant xs ys zs ys<zs
+  ⊗ᶠ-left-invariant : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ ys ≤ zs ] → fractal[ xs ⊗ᶠ ys ≤ xs ⊗ᶠ zs ]
+  ⊗ᶠ-left-invariant [ x ] [ y ] [ z ] (single≤ y≤z) =
+    single≤ (𝒟.≤-left-invariant y≤z)
+  ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (tail≤ y≤z ys≤zs) =
+    tail≤ (𝒟.≤-left-invariant y≤z) λ xy=xz → ys≤zs (𝒟.injr-on-≤ y≤z xy=xz)
+  ⊗ᶠ-left-invariant (x ∷ xs) ys zs ys≤zs =
+    tail≤ 𝒟.≤-refl λ _ → ⊗ᶠ-left-invariant xs ys zs ys≤zs
+
+  ⊗ᶠ-injr-on-≤ : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ ys ≤ zs ] → xs ⊗ᶠ ys ≡ xs ⊗ᶠ zs → ys ≡ zs
+  ⊗ᶠ-injr-on-≤ [ x ] [ y ] [ z ] (single≤ y≤z) p =
+    ap [_] $ 𝒟.injr-on-≤ y≤z $ []-inj p
+  ⊗ᶠ-injr-on-≤ [ x ] (y ∷ ys) (z ∷ zs) (tail≤ y≤z _) p =
+    ap₂ _∷_ (𝒟.injr-on-≤ y≤z (∷-head-inj p)) (∷-tail-inj p)
+  ⊗ᶠ-injr-on-≤ (x ∷ xs) ys zs ys≤zs p =
+    ⊗ᶠ-injr-on-≤ xs ys zs ys≤zs (∷-tail-inj p)
 
   --------------------------------------------------------------------------------
   -- Displacement Algebra
 
   Fractal : Displacement-algebra o (o ⊔ r)
   Fractal = to-displacement-algebra mk where
-    mk-strict : make-strict-order (o ⊔ r) (List⁺ ⌞ 𝒟 ⌟)
-    mk-strict .make-strict-order._<_ = fractal[_<_]
-    mk-strict .make-strict-order.<-irrefl = <ᶠ-irrefl _
-    mk-strict .make-strict-order.<-trans = <ᶠ-trans _ _ _
-    mk-strict .make-strict-order.<-thin = <ᶠ-is-prop _ _
-    mk-strict .make-strict-order.has-is-set = List⁺-is-hlevel 0 𝒟.has-is-set
+    mk-poset : make-poset (o ⊔ r) (List⁺ ⌞ 𝒟 ⌟)
+    mk-poset .make-poset._≤_ = fractal[_≤_]
+    mk-poset .make-poset.≤-thin = ≤ᶠ-thin _ _
+    mk-poset .make-poset.≤-refl = ≤ᶠ-refl _
+    mk-poset .make-poset.≤-trans = ≤ᶠ-trans _ _ _
+    mk-poset .make-poset.≤-antisym = ≤ᶠ-antisym _ _
 
-    mk : make-displacement-algebra (to-strict-order mk-strict)
+    mk : make-displacement-algebra (to-poset mk-poset)
     mk .make-displacement-algebra.ε = εᶠ
     mk .make-displacement-algebra._⊗_ = _⊗ᶠ_
     mk .make-displacement-algebra.idl = ⊗ᶠ-idl _
     mk .make-displacement-algebra.idr = ⊗ᶠ-idr  _
     mk .make-displacement-algebra.associative = ⊗ᶠ-associative _ _ _
-    mk .make-displacement-algebra.left-invariant = ⊗ᶠ-left-invariant _ _ _
+    mk .make-displacement-algebra.≤-left-invariant = ⊗ᶠ-left-invariant _ _ _
+    mk .make-displacement-algebra.injr-on-≤ = ⊗ᶠ-injr-on-≤ _ _ _

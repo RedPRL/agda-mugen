@@ -6,7 +6,6 @@ open import Algebra.Semigroup
 
 open import Mugen.Prelude
 open import Mugen.Order.Poset
-open import Mugen.Order.StrictOrder
 
 import Mugen.Data.Nat as Nat
 
@@ -19,9 +18,8 @@ private variable
 -- Ordered Monoids
 -- We define these as structures on posets.
 
-record is-ordered-monoid
-  {o r} (A : Poset o r)
-  (ε : ⌞ A ⌟) (_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟)
+record is-ordered-monoid {o r}
+  (A : Poset o r) (ε : ⌞ A ⌟) (_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟)
   : Type (o ⊔ r)
   where
   no-eta-equality
@@ -63,14 +61,13 @@ instance
 -- Ordered Monoid Actions
 
 record is-right-ordered-monoid-action
-  {o r o′ r′}
-  (A : Strict-order o r)
-  (B : Ordered-monoid o′ r′) (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
+  {o r o′ r′} (A : Poset o r) (B : Ordered-monoid o′ r′)
+  (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
   : Type (o ⊔ r ⊔ o′ ⊔ r′)
   where
   no-eta-equality
   private
-    module A = Strict-order A
+    module A = Poset A
     module B = Ordered-monoid B
   field
     identity : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
@@ -78,8 +75,7 @@ record is-right-ordered-monoid-action
     invariant : ∀ (a b : ⌞ A ⌟) (x : ⌞ B ⌟) → a A.≤ b → α a x A.≤ α b x
 
 record Right-ordered-monoid-action
-  {o o' r r'}
-  (A : Strict-order o r) (B : Ordered-monoid o' r')
+  {o o' r r'} (A : Poset o r) (B : Ordered-monoid o' r')
   : Type (o ⊔ o' ⊔ r ⊔ r')
   where
   no-eta-equality

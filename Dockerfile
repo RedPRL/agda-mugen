@@ -4,7 +4,7 @@
 
 ARG GHC_VERSION=9.4.7
 ARG AGDA_VERSION=5c8116227e2d9120267aed43f0e545a65d9c2fe2
-ARG ONELAB_VERSION=3f461009858d64a93d5d2b687ecf02504b9848a7
+ARG ONELAB_VERSION=a84319a523d866afc828535ce669ed114fbb5fd1
 
 ####################################################################################################
 # Stage 1: building everything except agda-mugen

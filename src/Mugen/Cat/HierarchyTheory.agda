@@ -4,13 +4,12 @@ open import Cat.Diagram.Monad
 import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
-
 open import Mugen.Algebra.Displacement
-open import Mugen.Order.StrictOrder
-
 open import Mugen.Cat.StrictOrders
-
 open import Mugen.Order.LeftInvariantRightCentered
+open import Mugen.Order.Poset
+
+import Mugen.Order.Reasoning
 
 open Strictly-monotone
 open Functor
@@ -34,36 +33,71 @@ Hierarchy-theory o r = Monad (Strict-orders o r)
 ℳ : ∀ {o} → Displacement-algebra o o → Hierarchy-theory o o
 ℳ {o = o} 𝒟 = ht where
   open Displacement-algebra 𝒟
+  open Mugen.Order.Reasoning poset
 
   M : Functor (Strict-orders o o) (Strict-orders o o)
-  M .F₀ L = L ⋉[ ε ] strict-order
+  M .F₀ L = L ⋉[ ε ] poset
   M .F₁ f .hom (l , d) = (f .hom l) , d
-  M .F₁ f .strict-mono (biased a1≡a2 b1<b2) = biased (ap (f .hom) a1≡a2) b1<b2
-  M .F₁ f .strict-mono (centred a1<a2 b1≤b b≤b2) = centred (f .strict-mono a1<a2) b1≤b b≤b2
+  M .F₁ {L} {N} f .mono {l1 , d1} {l2 , d2} = ∥-∥-map λ where
+    (biased l1=l2 d1≤d2) → biased (ap (f .hom) l1=l2) d1≤d2
+    (centred l1≤l2 d1≤ε ε≤d2) → centred (f .mono l1≤l2) d1≤ε ε≤d2
+  M .F₁ {L} {N} f .inj-on-related {l1 , d1} {l2 , d2} =
+    ∥-∥-rec (Π-is-hlevel 1 λ _ → Poset.has-is-set (M .F₀ L) _ _) λ where
+      (biased l1=l2 _) p → ap₂ _,_ l1=l2 (ap snd p)
+      (centred l1≤l2 _ _) p → ap₂ _,_ (f .inj-on-related l1≤l2 (ap fst p)) (ap snd p)
   M .F-id = trivial!
   M .F-∘ f g = trivial!
 
   unit : Id => M
   unit .η L .hom l = l , ε
-  unit .η L .strict-mono l<l' = centred l<l' (inl refl) (inl refl)
+  unit .η L .mono l1≤l2 = inc (centred l1≤l2 ≤-refl ≤-refl)
+  unit .η L .inj-on-related _ p = ap fst p
   unit .is-natural L L' f = trivial!
 
   mult : M F∘ M => M
   mult .η L .hom ((l , x) , y) = l , (x ⊗ y)
-  mult .η L .strict-mono {_ , d2} (biased α≡β d2<e2) =
-    biased (ap fst α≡β) (≡+<→< (ap (λ ϕ → snd ϕ ⊗ d2) α≡β) (left-invariant d2<e2))
-  mult .η L .strict-mono {(α , d1) , d2} {(β , e1) , e2} (centred (biased α≡β d1<e1) d2≤ε ε≤e2) =
-    let
-      d1⊗d2≤d1 = ≤-trans {d1 ⊗ d2} {d1 ⊗ ε} {d1} (≤-left-invariant d2≤ε) (inl idr)
-      e1≤e1⊗e2 = ≤-trans {e1} {e1 ⊗ ε} {e1 ⊗ e2} (inl (sym idr)) (≤-left-invariant ε≤e2)
-    in
-    biased α≡β (≤+<→< d1⊗d2≤d1 (<+≤→< d1<e1 e1≤e1⊗e2))
-  mult .η L .strict-mono {(α , d1) , d2} {(β , e1) , e2} (centred (centred α<β d1≤ε ε≤e1) d2≤ε ε≤e2) =
-    let
-      d1⊗d2≤d1 = ≤-trans {d1 ⊗ d2} {d1 ⊗ ε} {d1} (≤-left-invariant d2≤ε) (inl idr)
-      e1≤e1⊗e2 = ≤-trans {e1} {e1 ⊗ ε} {e1 ⊗ e2} (inl (sym idr)) (≤-left-invariant ε≤e2)
-    in
-    centred α<β (≤-trans d1⊗d2≤d1 d1≤ε) (≤-trans ε≤e1 e1≤e1⊗e2)
+  mult .η L .mono {(a1 , d1) , e1} {(a2 , d2) , e2} =
+    ∥-∥-rec squash lemma where
+      lemma : (M .F₀ L) ⋉[ ε ] poset [ ((a1 , d1) , e1) raw≤ ((a2 , d2) , e2) ]
+        → L ⋉[ ε ] poset [ (a1 , (d1 ⊗ e1)) ≤ (a2 , (d2 ⊗ e2)) ]
+      lemma (biased ad1=ad2 e1≤e2) =
+        inc (biased (ap fst ad1=ad2) (=+≤→≤ (ap (_⊗ e1) (ap snd ad1=ad2)) (≤-left-invariant e1≤e2)))
+      lemma (centred ad1≤ad2 e1≤ε ε≤e2) = ∥-∥-map lemma₂ ad1≤ad2 where
+        d1⊗e1≤d1 : (d1 ⊗ e1) ≤ d1
+        d1⊗e1≤d1 = ≤+=→≤ (≤-left-invariant e1≤ε) idr
+
+        d2≤d2⊗e2 : d2 ≤ (d2 ⊗ e2)
+        d2≤d2⊗e2 = =+≤→≤ (sym idr) (≤-left-invariant ε≤e2)
+
+        lemma₂ : L ⋉[ ε ] poset [ (a1 , d1) raw≤ (a2 , d2) ]
+          → L ⋉[ ε ] poset [ (a1 , (d1 ⊗ e1)) raw≤ (a2 , (d2 ⊗ e2)) ]
+        lemma₂ (biased a1=a2 d1≤d2) = biased a1=a2 (≤-trans d1⊗e1≤d1 (≤-trans d1≤d2 d2≤d2⊗e2))
+        lemma₂ (centred a1≤a2 d1≤ε ε≤d2) = centred a1≤a2 (≤-trans d1⊗e1≤d1 d1≤ε) (≤-trans ε≤d2 d2≤d2⊗e2)
+  mult .η L .inj-on-related {(a1 , d1) , e1} {(a2 , d2) , e2} =
+    ∥-∥-rec (Π-is-hlevel 1 λ _ → Poset.has-is-set (M .F₀ (M .F₀ L)) _ _) lemma where
+      lemma : (M .F₀ L) ⋉[ ε ] poset [ ((a1 , d1) , e1) raw≤ ((a2 , d2) , e2) ]
+        → (a1 , (d1 ⊗ e1)) ≡ (a2 , (d2 ⊗ e2))
+        → ((a1 , d1) , e1) ≡ ((a2 , d2) , e2)
+      lemma (biased ad1=ad2 e1≤e2) p i =
+        ad1=ad2 i , injr-on-≤ e1≤e2 (ap snd p ∙ ap (_⊗ e2) (sym $ ap snd ad1=ad2)) i
+      lemma (centred ad1≤ad2 e1≤ε ε≤e2) p i = (a1=a2 i , d1=d2 i) , e1=e2 i where
+        a1=a2 : a1 ≡ a2
+        a1=a2 = ap fst p
+
+        d2≤d1 : d2 ≤ d1
+        d2≤d1 =
+          d2      ≐⟨ sym idr ⟩
+          d2 ⊗ ε  ≤⟨ ≤-left-invariant ε≤e2 ⟩
+          d2 ⊗ e2 ≐⟨ sym $ ap snd p ⟩
+          d1 ⊗ e1 ≤⟨ ≤-left-invariant e1≤ε ⟩
+          d1 ⊗ ε  ≐⟨ idr ⟩
+          d1      ≤∎
+
+        d1=d2 : d1 ≡ d2
+        d1=d2 = ≤-antisym (⋉-snd-invariant ad1≤ad2) d2≤d1
+
+        e1=e2 : e1 ≡ e2
+        e1=e2 = injr-on-≤ (≤-trans e1≤ε ε≤e2) $ ap snd p ∙ ap (_⊗ e2) (sym d1=d2)
   mult .is-natural L L' f = trivial!
 
   ht : Hierarchy-theory o o
@@ -84,7 +118,7 @@ module _ {o r} {H : Hierarchy-theory o r} where
   private
     module H = Monad H
 
-    Free⟨_⟩ : Strict-order o r → Algebra (Strict-orders o r) H
+    Free⟨_⟩ : Poset o r → Algebra (Strict-orders o r) H
     Free⟨_⟩ = Functor.F₀ (Free (Strict-orders o r) H)
 
     open Cat (Strict-orders o r)

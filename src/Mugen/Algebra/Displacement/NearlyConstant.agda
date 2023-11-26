@@ -7,12 +7,10 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
-
-open import Mugen.Axioms.WLPO
+open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.OrderedMonoid
-open import Mugen.Order.StrictOrder
 
 open import Mugen.Data.List
 
@@ -217,8 +215,8 @@ module NearlyConst
     --------------------------------------------------------------------------------
     -- Order
 
-    _raw<_ : RawList → RawList → Type (o ⊔ r)
-    xs raw< ys = index xs inf< index ys
+    _raw≤_ : RawList → RawList → Type r
+    xs raw≤ ys = index xs inf≤ index ys
 
     index= : RawList → RawList → Type o
     index= xs ys = (n : Nat) → index xs n ≡ index ys n
@@ -305,11 +303,8 @@ module NearlyConst
   empty .list = raw [] 𝒟.ε
   empty .has-is-compact = lift tt
 
-  _supp<_ : SupportList → SupportList → Type (o ⊔ r)
-  xs supp< ys = xs .list Raw.raw< ys .list
-
-  _supp≤_ : SupportList → SupportList → Type (o ⊔ r)
-  _supp≤_ = non-strict _supp<_
+  _supp≤_ : SupportList → SupportList → Type r
+  xs supp≤ ys = xs .list Raw.raw≤ ys .list
 
   index : SupportList → (Nat → ⌞ 𝒟 ⌟)
   index xs = Raw.index (xs .list)
@@ -330,19 +325,23 @@ module NearlyConst
     base-merge = base-merge-with 𝒟._⊗_
 
   abstract
-    index-inj : ∀ {xs ys} → ((n : Nat) → index xs n ≡ index ys n) → xs ≡ ys
-    index-inj {xs} {ys} p = support-list-path $
+    supp-ext : ∀ {xs ys} → ((n : Nat) → index xs n ≡ index ys n) → xs ≡ ys
+    supp-ext {xs} {ys} p = support-list-path $
       Raw.index-compacted-inj (xs .list) (ys .list) (xs .has-is-compact) (ys .has-is-compact) p
 
-  abstract
-    supp≤→≤-pointwise : ∀ {xs ys} → xs supp≤ ys → (∀ n → index xs n 𝒟.≤ index ys n)
-    supp≤→≤-pointwise (inl xs=ys) n = inl $ ap (λ xs → index xs n) xs=ys
-    supp≤→≤-pointwise (inr xs<ys) n = xs<ys .≤-pointwise n
+    index-inj : ∀ {xs ys} → index xs ≡ index ys → xs ≡ ys
+    index-inj p = supp-ext (happly p)
 
-    ≤-pointwise→supp≤ : ∀ {xs ys} → (∀ n → index xs n 𝒟.≤ index ys n) → xs supp≤ ys
-    ≤-pointwise→supp≤ {xs} {ys} pointwise with Raw.index=? (xs .list) (ys .list)
-    ... | no  xs≠ys = inr $ inf-< pointwise xs≠ys
-    ... | yes xs=ys = inl $ index-inj xs=ys
+  -- XXX this will be replaced by the Immortal specification builders
+  merge-left-invariant : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys supp≤ merge xs zs
+  merge-left-invariant {xs} {ys} {zs} ys≤zs =
+    coe1→0 (λ i → (λ n → index-merge xs ys n i) inf≤ (λ n → index-merge xs zs n i)) $
+    ⊗∞-left-invariant ys≤zs
+
+  -- XXX this will be replaced by the Immortal specification builders
+  merge-injr-on-≤ : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys ≡ merge xs zs → ys ≡ zs
+  merge-injr-on-≤ {xs} {ys} {zs} ys≤zs p = supp-ext λ n → 𝒟.injr-on-≤ (ys≤zs n) $
+    coe0→1 (λ i → index-merge xs ys n i ≡ index-merge xs zs n i) (ap (λ xs → index xs n) p)
 
 --------------------------------------------------------------------------------
 -- Bundled Instances
@@ -352,23 +351,25 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
   open Inf 𝒟
   open NearlyConst 𝒟 _≡?_
 
-  NearlyConstant : Displacement-algebra o (o ⊔ r)
+  NearlyConstant : Displacement-algebra o r
   NearlyConstant = to-displacement-algebra mk where
-    mk-strict : make-strict-order (o ⊔ r) SupportList
-    mk-strict .make-strict-order._<_ = _supp<_
-    mk-strict .make-strict-order.<-irrefl = inf<-irrefl
-    mk-strict .make-strict-order.<-trans = inf<-trans
-    mk-strict .make-strict-order.<-thin = inf<-is-prop
-    mk-strict .make-strict-order.has-is-set = SupportList-is-set
+    open make-poset
+    mk-poset : make-poset r SupportList
+    mk-poset ._≤_ = _supp≤_
+    mk-poset .≤-refl = inf≤-refl
+    mk-poset .≤-trans = inf≤-trans
+    mk-poset .≤-thin = inf≤-thin
+    mk-poset .≤-antisym p q = index-inj $ inf≤-antisym p q
 
-    mk : make-displacement-algebra (to-strict-order mk-strict)
-    mk .make-displacement-algebra.ε = empty
-    mk .make-displacement-algebra._⊗_ = merge
-    mk .make-displacement-algebra.idl {xs} = index-inj λ n →
+    open make-displacement-algebra
+    mk : make-displacement-algebra (to-poset mk-poset)
+    mk .ε = empty
+    mk ._⊗_ = merge
+    mk .idl {xs} = supp-ext λ n →
       index-merge empty xs n ∙ 𝒟.idl
-    mk .make-displacement-algebra.idr {xs} = index-inj λ n →
+    mk .idr {xs} = supp-ext λ n →
       index-merge xs empty n ∙ 𝒟.idr
-    mk .make-displacement-algebra.associative {xs} {ys} {zs} = index-inj λ n →
+    mk .associative {xs} {ys} {zs} = supp-ext λ n →
       index (merge xs (merge ys zs)) n
         ≡⟨ index-merge xs (merge ys zs) n ⟩
       (index xs n 𝒟.⊗ index (merge ys zs) n)
@@ -381,9 +382,8 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
         ≡˘⟨ index-merge (merge xs ys) zs n ⟩
       index (merge (merge xs ys) zs) n
         ∎
-    mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} ys<zs =
-      coe1→0 (λ i → (λ n → index-merge xs ys n i) inf< (λ n → index-merge xs zs n i)) $
-      ⊗∞-left-invariant ys<zs
+    mk .≤-left-invariant {xs} {ys} {zs} = merge-left-invariant {xs = xs} {ys} {zs}
+    mk .injr-on-≤ = merge-injr-on-≤
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
@@ -397,8 +397,8 @@ module _ {o r} {𝒟 : Displacement-algebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟
     mk .make-displacement-subalgebra.into = index
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ xs ys = funext (index-merge xs ys)
-    mk .make-displacement-subalgebra.strictly-mono xs ys xs<ys = xs<ys
-    mk .make-displacement-subalgebra.inj p = index-inj (happly p)
+    mk .make-displacement-subalgebra.mono xs ys xs≤ys = xs≤ys
+    mk .make-displacement-subalgebra.inj = index-inj
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -414,12 +414,13 @@ module _
   open is-ordered-monoid 𝒟-ordered-monoid
 
   supp≤-right-invariant : ∀ {xs ys zs} → xs supp≤ ys → merge xs zs supp≤ merge ys zs
-  supp≤-right-invariant {xs} {ys} {zs} xs≤ys = ≤-pointwise→supp≤ λ n →
+  supp≤-right-invariant {xs} {ys} {zs} xs≤ys n =
     coe1→0 (λ i → index-merge xs zs n i 𝒟.≤ index-merge ys zs n i) $
-    right-invariant (supp≤→≤-pointwise xs≤ys n)
+    right-invariant (xs≤ys n)
 
   nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 _≡?_)
-  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) supp≤-right-invariant
+  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) $ λ {xs} {ys} {zs} →
+    supp≤-right-invariant {xs} {ys} {zs}
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -439,26 +440,21 @@ module NearlyConstJoins
 
   nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-joins .has-joins.join = join
-  nearly-constant-has-joins .has-joins.joinl {xs} {ys} =
-    ≤-pointwise→supp≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
-  nearly-constant-has-joins .has-joins.joinr {xs} {ys} =
-    ≤-pointwise→supp≤ λ n → 𝒟.≤+≡→≤ 𝒥.joinr (sym $ index-merge-with 𝒥.join xs ys n)
-  nearly-constant-has-joins .has-joins.universal {xs} {ys} {zs} xs≤zs ys≤zs =
-    ≤-pointwise→supp≤ λ n → 𝒟.≡+≤→≤
+  nearly-constant-has-joins .has-joins.joinl {xs} {ys} n =
+    𝒟.≤+=→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
+  nearly-constant-has-joins .has-joins.joinr {xs} {ys} n =
+    𝒟.≤+=→≤ 𝒥.joinr (sym $ index-merge-with 𝒥.join xs ys n)
+  nearly-constant-has-joins .has-joins.universal {xs} {ys} {zs} xs≤zs ys≤zs n =
+    𝒟.=+≤→≤
       (index-merge-with 𝒥.join xs ys n)
-      (𝒥.universal (supp≤→≤-pointwise xs≤zs n) (supp≤→≤-pointwise ys≤zs n))
+      (𝒥.universal (xs≤zs n) (ys≤zs n))
 
-  -- NOTE: 'index' preserves joins regardless of WLPO, but the joins in InfProd aren't /provably/
-  -- joins unless we have WLPO, hence the extra module below.
   index-preserves-join : ∀ xs ys n → index (join xs ys) n ≡ 𝒥.join (index xs n) (index ys n)
   index-preserves-join = index-merge-with 𝒥.join
 
-  module _ (𝒟-wlpo : WLPO 𝒟.strict-order _≡?_) where
-    open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-wlpo
-
-    nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟-joins)
-    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
-    nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (index-preserves-join x y)
+  nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟 𝒟-joins)
+  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
+  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (index-preserves-join x y)
 
 --------------------------------------------------------------------------------
 -- Bottoms
@@ -475,17 +471,14 @@ module _
 
   nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-bottom .has-bottom.bot = support-list (raw [] bot) (lift tt)
-  nearly-constant-has-bottom .has-bottom.is-bottom xs = ≤-pointwise→supp≤ λ n → is-bottom _
+  nearly-constant-has-bottom .has-bottom.is-bottom xs n = is-bottom _
 
-  module _ (𝒟-wlpo : WLPO 𝒟.strict-order _≡?_) where
-    open InfProperties {𝒟 = 𝒟} _≡?_ 𝒟-wlpo
-
-    nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟-bottom)
-    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
-    nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
+  nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟 𝒟-bottom)
+  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
+  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
 
 --------------------------------------------------------------------------------
--- Extensionality based on 'index-inj'
+-- Extensionality based on 'index-ext'
 
 -- FIXME: Need to check the accuracy of the following statement again:
 -- 1lab's or Agda's instance search somehow does not seem to deal with explicit arguments?
@@ -503,7 +496,7 @@ module _ {o r}
   Extensional-SupportList ⦃ s ⦄ .reflᵉ xs =
     λ n → s .reflᵉ (index xs n)
   Extensional-SupportList ⦃ s ⦄ .idsᵉ .to-path p =
-    index-inj λ n → s .idsᵉ .to-path (p n)
+    supp-ext λ n → s .idsᵉ .to-path (p n)
   Extensional-SupportList ⦃ s ⦄ .idsᵉ .to-path-over p =
     is-prop→pathp (λ _ → Π-is-hlevel 1 λ n → identity-system-hlevel 1 (s .idsᵉ) 𝒟.has-is-set) _ p
 
