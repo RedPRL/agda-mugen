@@ -19,7 +19,7 @@ open import Mugen.Algebra.OrderedMonoid
 -- Section 3.3.5
 --
 -- Finitely supported functions over some displacement algebra '𝒟' are
--- functions 'f : Nat → 𝒟' that differ from 'const ε' in only a finite number of positions.
+-- functions 'f : Nat → 𝒟' that differ from the unit 'ε' in only a finite number of positions.
 -- These are a special case of the Nearly Constant functions where the base is always ε
 -- and are implemented as such.
 

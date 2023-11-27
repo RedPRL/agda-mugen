@@ -10,31 +10,30 @@ open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.OrderedMonoid
 
 --------------------------------------------------------------------------------
--- Functional Displacement
--- XXX New Section: ???
+-- Product of Indexed Displacements
 --
--- The infinite product of a displacement algebra '𝒟' consists
--- of functions 'A → 𝒟'. Multiplication is performed pointwise,
+-- The product of indexed displacement algebras consists
+-- of functions '(a : I) → 𝒟 a'. Multiplication is performed pointwise,
 -- and ordering is given by 'f ≤ g' if '∀ n. f n ≤ g n'.
 
-module Ind {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
+module Ind {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   private
-    module 𝒟 {a : A} = Displacement-algebra (𝒟 a)
+    module 𝒟 {a : I} = Displacement-algebra (𝒟 a)
     open 𝒟 using (ε; _⊗_)
 
   _fun⊗_ : (∀ a → ⌞ 𝒟 a ⌟) → (∀ a → ⌞ 𝒟 a ⌟) → (∀ a → ⌞ 𝒟 a ⌟)
   f fun⊗ g = λ a → f a ⊗ g a
 
-  funε : (a : A) → ⌞ 𝒟 a ⌟
+  funε : (a : I) → ⌞ 𝒟 a ⌟
   funε _ = ε
 
-  fun⊗-associative : ∀ {f g h : (a : A) → ⌞ 𝒟 a ⌟} → (f fun⊗ (g fun⊗ h)) ≡ ((f fun⊗ g) fun⊗ h)
+  fun⊗-associative : ∀ {f g h : (a : I) → ⌞ 𝒟 a ⌟} → (f fun⊗ (g fun⊗ h)) ≡ ((f fun⊗ g) fun⊗ h)
   fun⊗-associative = funext λ x → 𝒟.associative
 
-  fun⊗-idl : ∀ {f : (a : A) → ⌞ 𝒟 a ⌟} → (funε fun⊗ f) ≡ f
+  fun⊗-idl : ∀ {f : (a : I) → ⌞ 𝒟 a ⌟} → (funε fun⊗ f) ≡ f
   fun⊗-idl = funext λ x → 𝒟.idl
 
-  fun⊗-idr : ∀ {f : (a : A) → ⌞ 𝒟 a ⌟} → (f fun⊗ funε) ≡ f
+  fun⊗-idr : ∀ {f : (a : I) → ⌞ 𝒟 a ⌟} → (f fun⊗ funε) ≡ f
   fun⊗-idr = funext λ x → 𝒟.idr
 
   --------------------------------------------------------------------------------
@@ -56,7 +55,7 @@ module Ind {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
   -- Ordering
 
   _fun≤_ : ∀ (f g : ∀ a → ⌞ 𝒟 a ⌟) → Type (o ⊔ r)
-  f fun≤ g = (n : A) → f n 𝒟.≤ g n
+  f fun≤ g = (n : I) → f n 𝒟.≤ g n
 
   _fun<_ : ∀ (f g : ∀ a → ⌞ 𝒟 a ⌟) → Type (o ⊔ o' ⊔ r)
   _fun<_ = strict _fun≤_
@@ -79,9 +78,9 @@ module Ind {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
   fun⊗-injr-on-fun≤ : ∀ {f g h} → g fun≤ h → (f fun⊗ g) ≡ (f fun⊗ h) → g ≡ h
   fun⊗-injr-on-fun≤ g≤h fg=fh = funext λ n → 𝒟.injr-on-≤ (g≤h n) (happly fg=fh n)
 
-Ind : ∀ {o o' r} (A : Type o) → (A → Displacement-algebra o' r) → Poset (o ⊔ o') (o ⊔ r)
-Ind {o = o} {o' = o'} {r = r} A 𝒟 = to-poset mk where
-  open Ind A 𝒟
+Ind : ∀ {o o' r} (I : Type o) → (I → Displacement-algebra o' r) → Poset (o ⊔ o') (o ⊔ r)
+Ind {o = o} {o' = o'} {r = r} I 𝒟 = to-poset mk where
+  open Ind I 𝒟
   open make-poset
 
   mk : make-poset (o ⊔ r) (∀ a → ⌞ 𝒟 a ⌟)
@@ -91,17 +90,17 @@ Ind {o = o} {o' = o'} {r = r} A 𝒟 = to-poset mk where
   mk .≤-thin = fun≤-thin
   mk .≤-antisym = fun≤-antisym
 
-module _ {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
-  open Ind A 𝒟
+module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
+  open Ind I 𝒟
   open make-displacement-algebra
-  private module 𝒟 {a : A} = Displacement-algebra (𝒟 a)
+  private module 𝒟 {a : I} = Displacement-algebra (𝒟 a)
 
   --------------------------------------------------------------------------------
   -- Displacement Algebra
 
   IndProd : Displacement-algebra (o ⊔ o') (o ⊔ r)
   IndProd = to-displacement-algebra mk where
-    mk : make-displacement-algebra (Ind A 𝒟)
+    mk : make-displacement-algebra (Ind I 𝒟)
     mk .ε = funε
     mk ._⊗_ = _fun⊗_
     mk .idl = fun⊗-idl
@@ -122,7 +121,7 @@ module _ {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
       IndProd
       fun⊗-right-invariant
     where
-      open module M {a : A} = is-ordered-monoid (𝒟-om a)
+      open module M {a : I} = is-ordered-monoid (𝒟-om a)
 
       fun⊗-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f fun⊗ h) 𝒟∞.≤ (g fun⊗ h)
       fun⊗-right-invariant f≤g n = right-invariant (f≤g n)
@@ -130,11 +129,11 @@ module _ {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
   --------------------------------------------------------------------------------
   -- Joins
 
-  fun⊗-has-joins : ((a : A) → has-joins (𝒟 a))
+  fun⊗-has-joins : ((a : I) → has-joins (𝒟 a))
     → has-joins IndProd
   fun⊗-has-joins 𝒟-joins = joins
     where
-      open module J {a : A} = has-joins (𝒟-joins a)
+      open module J {a : I} = has-joins (𝒟-joins a)
 
       joins : has-joins IndProd
       joins .has-joins.join f g n = join (f n) (g n)
@@ -148,7 +147,7 @@ module _ {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
   fun⊗-has-bottom : (∀ a → has-bottom (𝒟 a)) → has-bottom IndProd
   fun⊗-has-bottom 𝒟-bottom = bottom
     where
-      open module B {a : A} = has-bottom (𝒟-bottom a)
+      open module B {a : I} = has-bottom (𝒟-bottom a)
 
       bottom : has-bottom IndProd
       bottom .has-bottom.bot _ = bot

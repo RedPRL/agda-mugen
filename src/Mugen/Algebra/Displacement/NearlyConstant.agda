@@ -17,8 +17,9 @@ open import Mugen.Algebra.OrderedMonoid
 -- Nearly Constant Functions
 -- Section 3.3.5
 --
--- A "nearly constant function" is some function 'f : Nat → 𝒟'
--- that differs from some fixed 'd : 𝒟' for only a finite set of 'n : Nat'
+-- A "nearly constant function" is a function 'f : Nat → 𝒟'
+-- that differs from some fixed 'base : 𝒟' for only
+-- a finite set of 'n : Nat'
 --
 -- We represent these via prefix lists. IE: the function
 --
