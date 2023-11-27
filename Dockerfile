@@ -1,18 +1,12 @@
 ####################################################################################################
-# Stage 0: versions of Agda and 1lab
-####################################################################################################
-
-ARG GHC_VERSION=9.4.7
-ARG AGDA_VERSION=5c8116227e2d9120267aed43f0e545a65d9c2fe2
-ARG ONELAB_VERSION=3f461009858d64a93d5d2b687ecf02504b9848a7
-
-####################################################################################################
 # Stage 1: building everything except agda-mugen
 ####################################################################################################
 
+ARG GHC_VERSION=9.4.7
 FROM fossa/haskell-static-alpine:ghc-${GHC_VERSION} AS agda
 
 WORKDIR /build/agda
+ARG AGDA_VERSION=5c8116227e2d9120267aed43f0e545a65d9c2fe2
 RUN \
   git init && \
   git remote add origin https://github.com/agda/agda.git && \
@@ -37,6 +31,7 @@ FROM alpine AS onelab
 RUN apk add --no-cache git
 
 WORKDIR /dist/1lab
+ARG ONELAB_VERSION=a84319a523d866afc828535ce669ed114fbb5fd1
 RUN \
   git init && \
   git remote add origin https://github.com/plt-amy/1lab && \

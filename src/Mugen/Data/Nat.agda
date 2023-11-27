@@ -5,7 +5,7 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude hiding (Nat-is-set)
-open import Mugen.Order.StrictOrder
+open import Mugen.Order.Poset
 
 open import Data.Nat public
 
@@ -28,55 +28,16 @@ open import Data.Nat public
 --------------------------------------------------------------------------------
 -- Order
 
-≤-strengthen : ∀ x y → x ≤ y → x ≡ y ⊎ x < y
-≤-strengthen zero zero 0≤x = inl refl
-≤-strengthen zero (suc y) 0≤x = inr (s≤s 0≤x)
-≤-strengthen (suc x) (suc y) (s≤s p) =
-  [ (λ p → inl (ap suc p))
-  , (λ p → inr (s≤s p))
-  ] (≤-strengthen x y p)
-
-<-weaken : ∀ x y → x < y → x ≤ y
-<-weaken x (suc y) (s≤s p) = ≤-sucr p
-
-<-suc : ∀ x → x < suc x
-<-suc _ = ≤-refl
-
-<-trans : ∀ x y z → x < y → y < z → x < z
-<-trans _ _ _ p q = ≤-trans (≤-sucr p) q
-
 ≡→≤ : ∀ {x y} → x ≡ y → x ≤ y
 ≡→≤ {x = zero} {y = y} p = 0≤x
-≡→≤ {x = suc x} {y = zero} p = absurd (zero≠suc (sym p))
+≡→≤ {x = suc x} {y = zero} p = absurd (suc≠zero p)
 ≡→≤ {x = suc x} {y = suc y} p = s≤s (≡→≤ (suc-inj p))
 
-≤≃non-strict : ∀ {x y} → (x ≤ y) ≃ non-strict _<_ x y
-≤≃non-strict {x = x} {y = y} =
-  prop-ext
-    ≤-is-prop
-    (disjoint-⊎-is-prop (Nat-is-set x y) ≤-is-prop λ (p , q) → <-irrefl p q)
-    (≤-strengthen _ _)
-    [ (λ p → subst (λ z → x ≤ z) p ≤-refl) , <-weaken x y ]
-
-<-is-strict-order : is-strict-order _<_
-<-is-strict-order .is-strict-order.<-irrefl {x} = <-irrefl refl
-<-is-strict-order .is-strict-order.<-trans {x} {y} {z} p q = <-trans x y z p q
-<-is-strict-order .is-strict-order.<-thin {x} {y} = ≤-is-prop
-<-is-strict-order .is-strict-order.has-is-set = Nat-is-set
-
-+-<-left-invariant : ∀ x y z → y < z → x + y < x + z
-+-<-left-invariant x y z p =
-  ≤-trans
-    (≡→≤ (sym (+-sucr x y)))
-    (+-preserves-≤l (suc y) z x p)
-
-+-<-right-invariant : ∀ x y z → x < y → x + z < y + z
-+-<-right-invariant x y z p = +-preserves-≤r (suc x) y z p
-
--- Lack of double orders forces our hand here.
-+-≤-right-invariant : ∀ x y z → non-strict _<_ x y → non-strict _<_ (x + z) (y + z)
-+-≤-right-invariant x y z p =
-  Equiv.to ≤≃non-strict (+-preserves-≤r x y z (Equiv.from ≤≃non-strict p))
+≤-is-partial-order : is-partial-order _≤_
+≤-is-partial-order .is-partial-order.≤-refl = ≤-refl
+≤-is-partial-order .is-partial-order.≤-trans = ≤-trans
+≤-is-partial-order .is-partial-order.≤-thin = ≤-is-prop
+≤-is-partial-order .is-partial-order.≤-antisym = ≤-antisym
 
 max-zerol : ∀ x → max 0 x ≡ x
 max-zerol zero = refl
@@ -99,7 +60,7 @@ min-is-glb (suc x) (suc y) (suc z) (s≤s p) (s≤s q) = s≤s (min-is-glb x y z
 --------------------------------------------------------------------------------
 -- Bundles
 
-Nat< : Strict-order lzero lzero
-Nat< .Strict-order.Ob = Nat
-Nat< .Strict-order.strict-order-on .Strict-order-on._<_ = _<_
-Nat< .Strict-order.strict-order-on .Strict-order-on.has-is-strict-order = <-is-strict-order
+Nat≤ : Poset lzero lzero
+Nat≤ .Poset.Ob = Nat
+Nat≤ .Poset.poset-on .Poset-on._≤_ = _≤_
+Nat≤ .Poset.poset-on .Poset-on.has-is-poset = ≤-is-partial-order

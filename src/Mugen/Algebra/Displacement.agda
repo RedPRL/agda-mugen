@@ -6,7 +6,7 @@ open import Algebra.Semigroup
 
 open import Mugen.Prelude
 open import Mugen.Algebra.OrderedMonoid
-open import Mugen.Order.StrictOrder
+open import Mugen.Order.Poset
 
 import Mugen.Data.Nat as Nat
 
@@ -22,24 +22,33 @@ private variable
 -- over an order.
 
 record is-displacement-algebra
-  {o r} (A : Strict-order o r)
+  {o r} (A : Poset o r)
   (ε : ⌞ A ⌟) (_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟)
   : Type (o ⊔ r)
   where
   no-eta-equality
-  open Strict-order A
+  open Poset A
   field
     has-is-monoid : is-monoid ε _⊗_
-    left-invariant : ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
+    
+    -- These two properties are constructively MUCH NICER than
+    --   ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
+    -- The reason is that the second part of '_<_' is a negation,
+    -- and a function between two negated types '(A → ⊥) → (B → ⊥)'
+    -- is constructively very annoying when proving that InfProd
+    -- is a displacement algebra. What we need is a slightly more
+    -- constructive version of type 'B → A' instead.
+    ≤-left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
+    injr-on-≤ : ∀ {x y z} → y ≤ z → (x ⊗ y) ≡ (x ⊗ z) → y ≡ z
 
   open is-monoid has-is-monoid hiding (has-is-set) public
 
-  ≤-left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
-  ≤-left-invariant {x = x} (inl p) = inl (ap (x ⊗_) p)
-  ≤-left-invariant (inr y<z) = inr (left-invariant y<z)
+  <-left-invariant : ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
+  <-left-invariant y<z .fst = ≤-left-invariant (y<z .fst)
+  <-left-invariant y<z .snd = y<z .snd ⊙ injr-on-≤ (y<z .fst)
 
 record Displacement-algebra-on
-  {o r : Level} (A : Strict-order o r)
+  {o r : Level} (A : Poset o r)
   : Type (o ⊔ lsuc r)
   where
   field
@@ -52,16 +61,16 @@ record Displacement-algebra-on
 record Displacement-algebra (o r : Level) : Type (lsuc (o ⊔ r)) where
   no-eta-equality
   field
-    strict-order : Strict-order o r
-    displacement-algebra-on : Displacement-algebra-on strict-order
+    poset : Poset o r
+    displacement-algebra-on : Displacement-algebra-on poset
 
-  open Strict-order strict-order public
+  open Poset poset public
   open Displacement-algebra-on displacement-algebra-on public
 
 instance
   Underlying-displacement-algebra : ∀ {o r} → Underlying (Displacement-algebra o r)
   Underlying-displacement-algebra .Underlying.ℓ-underlying = _
-  Underlying.⌞ Underlying-displacement-algebra ⌟ D = ⌞ Displacement-algebra.strict-order D ⌟
+  Underlying.⌞ Underlying-displacement-algebra ⌟ D = ⌞ Displacement-algebra.poset D ⌟
 
 private
   variable
@@ -79,7 +88,7 @@ module _
     module Y = Displacement-algebra Y
 
   record is-displacement-algebra-hom
-    (f : Strictly-monotone X.strict-order Y.strict-order)
+    (f : Strictly-monotone X.poset Y.poset)
     : Type (o ⊔ o')
     where
     no-eta-equality
@@ -89,7 +98,7 @@ module _
       pres-⊗ : ∀ (x y : ⌞ X ⌟) → hom (x X.⊗ y) ≡ (hom x Y.⊗ hom y)
 
   is-displacement-algebra-hom-is-prop
-    : (f : Strictly-monotone X.strict-order Y.strict-order)
+    : (f : Strictly-monotone X.poset Y.poset)
     → is-prop (is-displacement-algebra-hom f)
   is-displacement-algebra-hom-is-prop f =
     Iso→is-hlevel 1 eqv $
@@ -100,7 +109,7 @@ module _
   record Displacement-algebra-hom : Type (o ⊔ o' ⊔ r ⊔ r') where
     no-eta-equality
     field
-      strict-hom : Strictly-monotone X.strict-order Y.strict-order
+      strict-hom : Strictly-monotone X.poset Y.poset
       has-is-displacement-hom : is-displacement-algebra-hom strict-hom
 
     open Strictly-monotone strict-hom public
@@ -135,7 +144,7 @@ module _ {o r o' r' ℓ} {X : Displacement-algebra o r} {Y : Displacement-algebr
     module Y = Displacement-algebra Y
 
   Extensional-Displacement-algebra-hom
-    : ∀ ⦃ sa : Extensional (Strictly-monotone X.strict-order Y.strict-order) ℓ ⦄
+    : ∀ ⦃ sa : Extensional (Strictly-monotone X.poset Y.poset) ℓ ⦄
     → Extensional (Displacement-algebra-hom X Y) ℓ
   Extensional-Displacement-algebra-hom ⦃ sa ⦄ =
     injection→extensional! {f = strict-hom} (Displacement-algebra-hom-path _ _) sa
@@ -191,20 +200,20 @@ module _ where
 -- Some Properties of Displacement Algebras
 
 module _
-  {o r} (A : Strict-order o r)
+  {o r} (A : Poset o r)
   {ε : ⌞ A ⌟} {_⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟}
   (D : is-displacement-algebra A ε _⊗_)
   where
   private
-    open Strict-order A using (_≤_)
-    module A = Strict-order A
+    module A = Poset A
+    open A using (_≤_)
     module D = is-displacement-algebra D
 
   is-right-invariant-displacement-algebra→is-ordered-monoid
     : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z))
-    → is-ordered-monoid A.poset ε _⊗_
+    → is-ordered-monoid A ε _⊗_
   is-right-invariant-displacement-algebra→is-ordered-monoid ≤-invariantr = om where
-    om : is-ordered-monoid A.poset ε _⊗_
+    om : is-ordered-monoid A ε _⊗_
     om .is-ordered-monoid.has-is-monoid = D.has-is-monoid
     om .is-ordered-monoid.invariant w≤y x≤z =
       A.≤-trans (≤-invariantr w≤y) (D.≤-left-invariant x≤z)
@@ -223,7 +232,7 @@ module _ {o r} (𝒟 : Displacement-algebra o r) where
   right-invariant→has-ordered-monoid : (∀ {x y z} → x ≤ y → (x ⊗ z) ≤ (y ⊗ z)) → has-ordered-monoid
   right-invariant→has-ordered-monoid =
     is-right-invariant-displacement-algebra→is-ordered-monoid
-      strict-order
+      poset
       has-is-displacement-algebra
 
   -- Joins
@@ -287,10 +296,10 @@ record is-bounded-displacement-subalgebra
 
 module _
   {o r o′ r′}
-  (A : Strict-order o r) (B : Displacement-algebra o′ r′)
+  (A : Poset o r) (B : Displacement-algebra o′ r′)
   where
   private
-    module A = Strict-order A
+    module A = Poset A
     module B = Displacement-algebra B
 
   record is-right-displacement-action
@@ -299,9 +308,10 @@ module _
     where
     no-eta-equality
     field
-      identity  : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
-      compat    : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
-      invariant : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.< y → α a x A.< α a y
+      identity      : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
+      compat        : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
+      ≤-invariant   : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.≤ y → α a x A.≤ α a y
+      ≤-implies-inj : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → x B.≤ y → α a x ≡ α a y → x ≡ y
 
   is-right-displacement-action-is-prop
     : (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
@@ -310,12 +320,13 @@ module _
     Iso→is-hlevel 1 eqv $
     Σ-is-hlevel 1 (Π-is-hlevel 1 λ _ → A.has-is-set _ _) λ _ →
     Σ-is-hlevel 1 (Π-is-hlevel³ 1 λ _ _ _ → A.has-is-set _ _) λ _ →
-    Π-is-hlevel³ 1 λ _ _ _ → Π-is-hlevel 1 λ _ → A.<-thin
+    Σ-is-hlevel 1 (Π-is-hlevel³ 1 λ _ _ _ → Π-is-hlevel 1 λ _ → A.≤-thin) λ _ →
+    Π-is-hlevel³ 1 λ _ _ _ → Π-is-hlevel² 1 λ _ _ → B.has-is-set _ _
     where unquoteDecl eqv = declare-record-iso eqv (quote is-right-displacement-action)
 
 record Right-displacement-action
   {o r o′ r′}
-  (A : Strict-order o r) (B : Displacement-algebra o′ r′)
+  (A : Poset o r) (B : Displacement-algebra o′ r′)
   : Type (o ⊔ r ⊔ o′ ⊔ r′)
   where
   field
@@ -329,7 +340,7 @@ module _ where
 
   Right-displacement-action-path
     : ∀ {o r o′ r′}
-    → {A : Strict-order o r} {B : Displacement-algebra o′ r′}
+    → {A : Poset o r} {B : Displacement-algebra o′ r′}
     → (α β : Right-displacement-action A B)
     → (∀ a b → α .hom a b ≡ β .hom a b)
     → α ≡ β
@@ -352,18 +363,19 @@ instance
 -- Builders
 
 record make-displacement-algebra
-  {o r} (A : Strict-order o r)
+  {o r} (A : Poset o r)
   : Type (o ⊔ r)
   where
   no-eta-equality
-  open Strict-order A
+  open Poset A
   field
     ε : ⌞ A ⌟
     _⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟
     idl : ∀ {x} → ε ⊗ x ≡ x
     idr : ∀ {x} → x ⊗ ε ≡ x
     associative : ∀ {x y z} → x ⊗ (y ⊗ z) ≡ (x ⊗ y) ⊗ z
-    left-invariant : ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
+    ≤-left-invariant : ∀ {x y z} → y ≤ z → (x ⊗ y) ≤ (x ⊗ z)
+    injr-on-≤ : ∀ {x y z} → y ≤ z → (x ⊗ y) ≡ (x ⊗ z) → y ≡ z
 
 module _ where
   open Displacement-algebra
@@ -372,17 +384,18 @@ module _ where
   open make-displacement-algebra
 
   to-displacement-algebra
-    : ∀ {o r} {A : Strict-order o r}
+    : ∀ {o r} {A : Poset o r}
     → make-displacement-algebra A
     → Displacement-algebra o r
-  to-displacement-algebra {A = A} mk .strict-order = A
+  to-displacement-algebra {A = A} mk .poset = A
   to-displacement-algebra {A = A} mk .displacement-algebra-on .ε = mk .ε
   to-displacement-algebra {A = A} mk .displacement-algebra-on ._⊗_ = mk ._⊗_
-  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .has-is-semigroup .has-is-magma .has-is-set = Strict-order.has-is-set A
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .has-is-semigroup .has-is-magma .is-magma.has-is-set = Poset.has-is-set A
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .has-is-semigroup .associative = mk .associative
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idl = mk .idl
   to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .has-is-monoid .idr = mk .idr
-  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .left-invariant = mk .left-invariant
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .injr-on-≤ = mk .injr-on-≤
+  to-displacement-algebra {A = A} mk .displacement-algebra-on .has-is-displacement-algebra .≤-left-invariant = mk .≤-left-invariant
 
 record make-displacement-subalgebra
   {o r o' r'}
@@ -398,7 +411,7 @@ record make-displacement-subalgebra
     into : ⌞ X ⌟ → ⌞ Y ⌟
     pres-ε : into X.ε ≡ Y.ε
     pres-⊗ : ∀ x y → into (x X.⊗ y) ≡ into x Y.⊗ into y
-    strictly-mono : ∀ x y → x X.< y → into x Y.< into y
+    mono : ∀ x y → x X.≤ y → into x Y.≤ into y
     inj : ∀ {x y} → into x ≡ into y → x ≡ y
 
 module _ where
@@ -414,7 +427,8 @@ module _ where
     → make-displacement-subalgebra X Y
     → is-displacement-subalgebra X Y
   to-displacement-subalgebra mk .into .strict-hom .hom = mk .into
-  to-displacement-subalgebra mk .into .strict-hom .strict-mono = mk .strictly-mono _ _
+  to-displacement-subalgebra mk .into .strict-hom .mono = mk .mono _ _
+  to-displacement-subalgebra mk .into .strict-hom .inj-on-related _ = mk .inj
   to-displacement-subalgebra mk .into .has-is-displacement-hom .pres-ε = mk .pres-ε
   to-displacement-subalgebra mk .into .has-is-displacement-hom .pres-⊗ = mk .pres-⊗
   to-displacement-subalgebra mk .inj = mk .inj

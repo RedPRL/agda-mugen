@@ -28,6 +28,9 @@ private
 ∷-head-inj : ∀ {x y : A} {xs ys : List⁺ A} → (x ∷ xs) ≡ (y ∷ ys) → x ≡ y
 ∷-head-inj p = ap head p
 
+∷-tail-inj : ∀ {x y : A} {xs ys : List⁺ A} → (x ∷ xs) ≡ (y ∷ ys) → xs ≡ ys
+∷-tail-inj p = ap tail p
+
 []≢∷ : ∀ {x y : A} {ys : List⁺ A} → [ x ] ≡ y ∷ ys → ⊥
 []≢∷ p = subst distinguish p tt
   where
@@ -46,7 +49,7 @@ module List⁺-Path {ℓ} {A : Type ℓ} where
   encode {xs = [ x ]} {ys = [ y ]} xs≡ys = []-inj xs≡ys
   encode {xs = [ x ]} {ys = y ∷ ys} xs≡ys = lift ([]≢∷ xs≡ys)
   encode {xs = x ∷ xs} {ys = [ y ]} xs≡ys = lift ([]≢∷ (sym xs≡ys))
-  encode {xs = x ∷ xs} {ys = y ∷ ys} xs≡ys = ∷-head-inj xs≡ys , encode {xs = xs} {ys = ys} (ap tail xs≡ys)
+  encode {xs = x ∷ xs} {ys = y ∷ ys} xs≡ys = ∷-head-inj xs≡ys , encode {xs = xs} {ys = ys} (∷-tail-inj xs≡ys)
 
   decode : ∀ {xs ys : List⁺ A} → Code xs ys → xs ≡ ys
   decode {xs = [ x ]} {ys = [ y ]} p = ap [_] p

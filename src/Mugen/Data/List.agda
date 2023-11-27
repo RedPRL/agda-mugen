@@ -11,14 +11,14 @@ open import Data.List hiding (reverse) public
 open import Mugen.Prelude
 
 private variable
-  ℓ ℓ′ : Level
-  A B : Type ℓ
+  ℓ : Level
+  A : Type ℓ
 
-replicate : Nat → A → List A
-replicate zero x = []
-replicate (suc n) x = x ∷ (replicate n x)
+++-injr : (xs ys zs : List A) → xs ++ ys ≡ xs ++ zs → ys ≡ zs
+++-injr [] _ _ p = p
+++-injr (x ∷ xs) _ _ p = ++-injr xs _ _ $ ∷-tail-inj p
 
-module _ {ℓ} {A : Type ℓ} (aset : is-set A) where
+module _ (aset : is-set A) where
 
   ++-is-magma : is-magma {A = List A} _++_
   ++-is-magma .has-is-set = ListPath.List-is-hlevel 0 aset
@@ -31,15 +31,3 @@ module _ {ℓ} {A : Type ℓ} (aset : is-set A) where
   ++-is-monoid .has-is-semigroup = ++-is-semigroup
   ++-is-monoid .idl {x} = ++-idl x
   ++-is-monoid .idr {x} = ++-idr x
-
-All₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
-All₂ P b1 [] b2 [] = P b1 b2
-All₂ P b1 [] b2 (y ∷ ys) = P b1 y × All₂ P b1 [] b2 ys
-All₂ P b1 (x ∷ xs) b2 [] = P x b2 × All₂ P b1 xs b2 []
-All₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y × All₂ P b1 xs b2 ys
-
-Some₂ : (P : A → A → Type ℓ′) → A → List A → A → List A → Type ℓ′
-Some₂ P b1 [] b2 [] = P b1 b2
-Some₂ P b1 [] b2 (y ∷ ys) = P b1 y ⊎ Some₂ P b1 [] b2 ys
-Some₂ P b1 (x ∷ xs) b2 [] = P x b2 ⊎ Some₂ P b1 xs b2 []
-Some₂ P b1 (x ∷ xs) b2 (y ∷ ys) = P x y ⊎ Some₂ P b1 xs b2 ys

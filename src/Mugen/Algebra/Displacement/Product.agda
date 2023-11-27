@@ -5,10 +5,9 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
-
+open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.OrderedMonoid
-open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Products
@@ -56,96 +55,59 @@ module Product {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
   --------------------------------------------------------------------------------
   -- Ordering
 
-  -- NOTE: This version of the definition doesn't require a propositional truncation.
-  data _⊗×<_ (x :  ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) : Type (o ⊔ r) where
-    fst< : fst x 𝒟₁.< fst y → snd x ≡ snd y → x ⊗×< y
-    snd< : fst x ≡ fst y → snd x 𝒟₂.< snd y → x ⊗×< y
-    both< :  fst x 𝒟₁.< fst y → snd x 𝒟₂.< snd y → x ⊗×< y
+  _⊗×≤_ : ∀ (x :  ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → Type r
+  _⊗×≤_ x y = (fst x 𝒟₁.≤ fst y) × (snd x 𝒟₂.≤ snd y)
 
-  -- Instead of working with 'non-strict _⊗×<_', we define an equivalent
-  -- definition that is simpler to handle.
-  record _⊗×≤_ (x :  ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) : Type (o ⊔ r) where
-    constructor both≤
-    field
-      fst≤ : fst x 𝒟₁.≤ fst y
-      snd≤ : snd x 𝒟₂.≤ snd y
+  ⊗×≤-thin : ∀ x y → is-prop (x ⊗×≤ y)
+  ⊗×≤-thin x y = hlevel 1
 
-  open _⊗×≤_ public
+  ⊗×≤-refl : ∀ x → x ⊗×≤ x
+  ⊗×≤-refl x = 𝒟₁.≤-refl , 𝒟₂.≤-refl
 
-  from-⊗×≤ : ∀ {x y} → x ⊗×≤ y → non-strict _⊗×<_ x y
-  from-⊗×≤ (both≤ (inl x1≡y1) (inl x2≡y2)) = inl (Σ-pathp x1≡y1 x2≡y2)
-  from-⊗×≤ (both≤ (inl x1≡y1) (inr x2<y2)) = inr (snd< x1≡y1 x2<y2)
-  from-⊗×≤ (both≤ (inr x1<y1) (inl x2≡y2)) = inr (fst< x1<y1 x2≡y2)
-  from-⊗×≤ (both≤ (inr x1<y1) (inr x2<y2)) = inr (both< x1<y1 x2<y2)
+  ⊗×≤-trans : ∀ x y z → x ⊗×≤ y → y ⊗×≤ z → x ⊗×≤ z
+  ⊗×≤-trans _ _ _ (x1≤y1 , x2≤y2) (y1≤z1 , y2≤z2) = 𝒟₁.≤-trans x1≤y1 y1≤z1 , 𝒟₂.≤-trans x2≤y2 y2≤z2
 
-  to-⊗×≤ : ∀ {x y} → non-strict _⊗×<_ x y → x ⊗×≤ y
-  to-⊗×≤ (inl x≡y) = both≤ (inl (ap fst x≡y)) (inl (ap snd x≡y))
-  to-⊗×≤ (inr (fst< x1<y1 x2≡y2)) = both≤ (inr x1<y1) (inl x2≡y2)
-  to-⊗×≤ (inr (snd< x1≡y1 x2<y2)) = both≤ (inl x1≡y1) (inr x2<y2)
-  to-⊗×≤ (inr (both< x1<y1 x2<y2)) = both≤ (inr x1<y1) (inr x2<y2)
-
-  ⊗×<-irrefl : ∀ x → x ⊗×< x → ⊥
-  ⊗×<-irrefl _ (fst< x1<x1 _) = 𝒟₁.<-irrefl x1<x1
-  ⊗×<-irrefl _ (snd< _ x2<x2) = 𝒟₂.<-irrefl x2<x2
-  ⊗×<-irrefl _ (both< x1<x1 x2<x2) = 𝒟₁.<-irrefl x1<x1
-
-  ⊗×<-trans : ∀ x y z → x ⊗×< y → y ⊗×< z → x ⊗×< z
-  ⊗×<-trans _ _ _ (fst< x1<y1 x2≡y2)  (fst< y1<z1 y2≡z2)  = fst< (𝒟₁.<-trans x1<y1 y1<z1) (x2≡y2 ∙ y2≡z2)
-  ⊗×<-trans _ _ _ (fst< x1<y1 x2≡y2)  (snd< y1≡z1 y2<z2)  = both< (𝒟₁.<+≡→< x1<y1 y1≡z1) (𝒟₂.≡+<→< x2≡y2 y2<z2)
-  ⊗×<-trans _ _ _ (fst< x1<y1 x2≡y2)  (both< y1<z1 y2<z2) = both< (𝒟₁.<-trans x1<y1 y1<z1) (𝒟₂.≡+<→< x2≡y2 y2<z2)
-  ⊗×<-trans _ _ _ (snd< x1≡y1 x2<y2)  (fst< y1<z1 y2≡z2)  = both< (𝒟₁.≡+<→< x1≡y1 y1<z1) (𝒟₂.<+≡→< x2<y2 y2≡z2)
-  ⊗×<-trans _ _ _ (snd< x1≡y1 x2<y2)  (snd< y1≡z1 y2<z2)  = snd< (x1≡y1 ∙ y1≡z1) (𝒟₂.<-trans x2<y2 y2<z2)
-  ⊗×<-trans _ _ _ (snd< x1≡y1 x2<y2)  (both< y1<z1 y2<z2) = both< (𝒟₁.≡+<→< x1≡y1 y1<z1) (𝒟₂.<-trans x2<y2 y2<z2)
-  ⊗×<-trans _ _ _ (both< x1<y1 x2<y2) (fst< y1<z1 y2≡z2)  = both< (𝒟₁.<-trans x1<y1 y1<z1) (𝒟₂.<+≡→< x2<y2 y2≡z2)
-  ⊗×<-trans _ _ _ (both< x1<y1 x2<y2) (snd< y1≡z1 y2<z2)  = both< (𝒟₁.<+≡→< x1<y1 y1≡z1) (𝒟₂.<-trans x2<y2 y2<z2)
-  ⊗×<-trans _ _ _ (both< x1<y1 x2<y2) (both< y1<z1 y2<z2) = both< (𝒟₁.<-trans x1<y1 y1<z1) (𝒟₂.<-trans x2<y2 y2<z2)
-
-  ⊗×<-is-prop : ∀ x y → is-prop (x ⊗×< y)
-  ⊗×<-is-prop _ _ (fst< x1<y1 x2≡y2)  (fst< x1<y1′ x2≡y2′)  = ap₂ fst< (𝒟₁.<-thin x1<y1 x1<y1′) (𝒟₂.has-is-set _ _ x2≡y2 x2≡y2′)
-  ⊗×<-is-prop _ _ (fst< x1<y1 _)      (snd< x1≡y1 _)        = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
-  ⊗×<-is-prop _ _ (fst< _ x2≡y2)      (both< _ x2<y2)       = absurd (𝒟₂.<-irrefl (𝒟₂.<+≡→< x2<y2 (sym x2≡y2)))
-  ⊗×<-is-prop _ _ (snd< x1≡y1 _)      (fst< x1<y1 _)        = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
-  ⊗×<-is-prop _ _ (snd< x1≡y1 x2<y2)  (snd< x1≡y1′ x2<y2′)  = ap₂ snd< (𝒟₁.has-is-set _ _ x1≡y1 x1≡y1′) (𝒟₂.<-thin x2<y2 x2<y2′)
-  ⊗×<-is-prop _ _ (snd< x1≡y1 _)      (both< x1<y1 _)       = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
-  ⊗×<-is-prop _ _ (both< _ x2<y2)     (fst< _ x2≡y2)        = absurd (𝒟₂.<-irrefl (𝒟₂.<+≡→< x2<y2 (sym x2≡y2)))
-  ⊗×<-is-prop _ _ (both< x1<y1 _)     (snd< x1≡y1 _)        = absurd (𝒟₁.<-irrefl (𝒟₁.<+≡→< x1<y1 (sym x1≡y1)))
-  ⊗×<-is-prop _ _ (both< x1<y1 x2<y2) (both< x1<y1′ x2<y2′) = ap₂ both< (𝒟₁.<-thin x1<y1 x1<y1′) (𝒟₂.<-thin x2<y2 x2<y2′)
+  ⊗×≤-antisym : ∀ x y → x ⊗×≤ y → y ⊗×≤ x → x ≡ y
+  ⊗×≤-antisym _ _ (x1≤y1 , x2≤y2) (y1≤z1 , y2≤z2) i = 𝒟₁.≤-antisym x1≤y1 y1≤z1 i , 𝒟₂.≤-antisym x2≤y2 y2≤z2 i
 
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ⊗×-left-invariant : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×< z → (x ⊗× y) ⊗×< (x ⊗× z)
-  ⊗×-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (fst< y1<z1 y2≡z2)  = fst< (𝒟₁.left-invariant y1<z1) (ap (x2 𝒟₂.⊗_) y2≡z2)
-  ⊗×-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (snd< y1≡z1 y2<z2)  = snd< (ap (x1 𝒟₁.⊗_) y1≡z1) (𝒟₂.left-invariant y2<z2)
-  ⊗×-left-invariant (x1 , x2) (y1 , y2) (z1 , z2) (both< y1<z1 y2<z2) = both< (𝒟₁.left-invariant y1<z1) (𝒟₂.left-invariant y2<z2)
+  ⊗×-left-invariant : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×≤ z → (x ⊗× y) ⊗×≤ (x ⊗× z)
+  ⊗×-left-invariant _ _ _ (y1≤z1 , y2≤z2) = 𝒟₁.≤-left-invariant y1≤z1 , 𝒟₂.≤-left-invariant y2≤z2
+
+  ⊗×-injr-on-⊗≤ : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×≤ z → (x ⊗× y) ≡ (x ⊗× z) → y ≡ z
+  ⊗×-injr-on-⊗≤ _ _ _ (y1≤z1 , y2≤z2) p i = 𝒟₁.injr-on-≤ y1≤z1 (ap fst p) i , 𝒟₂.injr-on-≤ y2≤z2 (ap snd p) i
 
 _⊗ᵈ_
   : ∀ {o r}
   → Displacement-algebra o r
   → Displacement-algebra o r
-  → Displacement-algebra o (o ⊔ r)
+  → Displacement-algebra o r
 𝒟₁ ⊗ᵈ 𝒟₂ = to-displacement-algebra mk where
   open Product 𝒟₁ 𝒟₂
   module 𝒟₁ = Displacement-algebra 𝒟₁
   module 𝒟₂ = Displacement-algebra 𝒟₂
 
-  mk-strict : make-strict-order _ _
-  mk-strict .make-strict-order._<_ = _⊗×<_
-  mk-strict .make-strict-order.<-irrefl = ⊗×<-irrefl _
-  mk-strict .make-strict-order.<-trans = ⊗×<-trans _ _ _
-  mk-strict .make-strict-order.<-thin = ⊗×<-is-prop _ _
-  mk-strict .make-strict-order.has-is-set = ×-is-hlevel 2 𝒟₁.has-is-set 𝒟₂.has-is-set
+  mk-poset : make-poset _ _
+  mk-poset .make-poset._≤_ = _⊗×≤_
+  mk-poset .make-poset.≤-thin = ⊗×≤-thin _ _
+  mk-poset .make-poset.≤-refl = ⊗×≤-refl _
+  mk-poset .make-poset.≤-trans = ⊗×≤-trans _ _ _
+  mk-poset .make-poset.≤-antisym = ⊗×≤-antisym _ _
 
-  mk : make-displacement-algebra (to-strict-order mk-strict)
+  mk : make-displacement-algebra (to-poset mk-poset)
   mk .make-displacement-algebra.ε = ε×
   mk .make-displacement-algebra._⊗_ = _⊗×_
   mk .make-displacement-algebra.idl = ⊗×-idl _
   mk .make-displacement-algebra.idr = ⊗×-idr _
   mk .make-displacement-algebra.associative = ⊗×-associative _ _ _
-  mk .make-displacement-algebra.left-invariant = ⊗×-left-invariant _ _ _
+  mk .make-displacement-algebra.≤-left-invariant = ⊗×-left-invariant _ _ _
+  mk .make-displacement-algebra.injr-on-≤ = ⊗×-injr-on-⊗≤ _ _ _
 
-module ProductProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
-                          where
+module ProductProperties
+  {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
+  where
   private
     module 𝒟₁ = Displacement-algebra 𝒟₁
     module 𝒟₂ = Displacement-algebra 𝒟₂
@@ -156,13 +118,14 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
 
   ⊗×-has-ordered-monoid : has-ordered-monoid 𝒟₁ → has-ordered-monoid 𝒟₂ → has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂)
   ⊗×-has-ordered-monoid 𝒟₁-ordered-monoid 𝒟₂-ordered-monoid =
-    right-invariant→has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂) λ x≤y → from-⊗×≤ (⊗×-right-invariant _ _ _ (to-⊗×≤ x≤y))
+    right-invariant→has-ordered-monoid (𝒟₁ ⊗ᵈ 𝒟₂) λ x≤y → ⊗×-right-invariant _ _ _ x≤y
     where
       module 𝒟₁-ordered-monoid = is-ordered-monoid (𝒟₁-ordered-monoid)
       module 𝒟₂-ordered-monoid = is-ordered-monoid (𝒟₂-ordered-monoid)
 
       ⊗×-right-invariant : ∀ x y z → x ⊗×≤ y → (x ⊗× z) ⊗×≤ (y ⊗× z)
-      ⊗×-right-invariant x y z (both≤ x1≤y1 x2≤y2) = both≤ (𝒟₁-ordered-monoid.right-invariant x1≤y1) (𝒟₂-ordered-monoid.right-invariant x2≤y2)
+      ⊗×-right-invariant x y z (x1≤y1 , x2≤y2) =
+        𝒟₁-ordered-monoid.right-invariant x1≤y1 , 𝒟₂-ordered-monoid.right-invariant x2≤y2
 
   --------------------------------------------------------------------------------
   -- Joins
@@ -175,11 +138,11 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
 
       joins : has-joins (𝒟₁ ⊗ᵈ 𝒟₂)
       joins .has-joins.join (x1 , x2) (y1 , y2) = (𝒟₁-joins.join x1 y1) , (𝒟₂-joins.join x2 y2)
-      joins .has-joins.joinl = from-⊗×≤ (both≤ 𝒟₁-joins.joinl 𝒟₂-joins.joinl)
-      joins .has-joins.joinr = from-⊗×≤ (both≤ 𝒟₁-joins.joinr 𝒟₂-joins.joinr)
+      joins .has-joins.joinl = 𝒟₁-joins.joinl , 𝒟₂-joins.joinl
+      joins .has-joins.joinr = 𝒟₁-joins.joinr , 𝒟₂-joins.joinr
       joins .has-joins.universal {x1 , x2} {y1 , y2} {z1 , z2} x≤z y≤z =
-        from-⊗×≤ $ both≤ (𝒟₁-joins.universal (fst≤ (to-⊗×≤ x≤z)) (fst≤ (to-⊗×≤ y≤z)))
-                         (𝒟₂-joins.universal (snd≤ (to-⊗×≤ x≤z)) (snd≤ (to-⊗×≤ y≤z)))
+        𝒟₁-joins.universal (fst x≤z) (fst y≤z) ,
+        𝒟₂-joins.universal (snd x≤z) (snd y≤z)
 
   --------------------------------------------------------------------------------
   -- Bottoms
@@ -192,4 +155,4 @@ module ProductProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}
 
       bottom : has-bottom (𝒟₁ ⊗ᵈ 𝒟₂)
       bottom .has-bottom.bot = 𝒟₁-bottom.bot , 𝒟₂-bottom.bot
-      bottom .has-bottom.is-bottom (x1 , x2) = from-⊗×≤ (both≤ (𝒟₁-bottom.is-bottom x1) (𝒟₂-bottom.is-bottom x2))
+      bottom .has-bottom.is-bottom (x1 , x2) = 𝒟₁-bottom.is-bottom x1 , 𝒟₂-bottom.is-bottom x2

@@ -7,14 +7,11 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
-
+open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.Displacement.NearlyConstant
 open import Mugen.Algebra.OrderedMonoid
-open import Mugen.Order.StrictOrder
-
-open import Mugen.Data.List
 
 
 --------------------------------------------------------------------------------
@@ -75,8 +72,8 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞
   --------------------------------------------------------------------------------
   -- Order
 
-  _<_ : FinSupportList → FinSupportList → Type (o ⊔ r)
-  _<_ xs ys = (xs .support) supp< (ys .support)
+  _≤_ : FinSupportList → FinSupportList → Type r
+  _≤_ xs ys = (xs .support) supp≤ (ys .support)
 
 --------------------------------------------------------------------------------
 -- Displacement Algebra
@@ -86,26 +83,29 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
   open FinSupportList
   private module 𝒩 = Displacement-algebra (NearlyConstant 𝒟 _≡?_)
 
-  FiniteSupport : Displacement-algebra o (o ⊔ r)
+  FiniteSupport : Displacement-algebra o r
   FiniteSupport = to-displacement-algebra mk where
-    mk-strict : make-strict-order (o ⊔ r) FinSupportList
-    mk-strict .make-strict-order._<_ = _<_
-    mk-strict .make-strict-order.<-irrefl {xs} =
-      𝒩.<-irrefl {xs .support}
-    mk-strict .make-strict-order.<-trans {xs} {ys} {zs} =
-      𝒩.<-trans {xs .support} {ys .support} {zs .support}
-    mk-strict .make-strict-order.<-thin {xs} {ys} =
-      𝒩.<-thin {xs .support} {ys .support}
-    mk-strict .make-strict-order.has-is-set = FinSupportList-is-set
+    mk-strict : make-poset r FinSupportList
+    mk-strict .make-poset._≤_ = _≤_
+    mk-strict .make-poset.≤-refl {xs} =
+      𝒩.≤-refl {xs .support}
+    mk-strict .make-poset.≤-thin {xs} {ys} =
+      𝒩.≤-thin {xs .support} {ys .support}
+    mk-strict .make-poset.≤-trans {xs} {ys} {zs} =
+      𝒩.≤-trans {xs .support} {ys .support} {zs .support}
+    mk-strict .make-poset.≤-antisym {xs} {ys} p q =
+      fin-support-list-path $ 𝒩.≤-antisym {xs .support} {ys .support} p q
 
-    mk : make-displacement-algebra (to-strict-order mk-strict)
+    mk : make-displacement-algebra (to-poset mk-strict)
     mk .make-displacement-algebra.ε = empty-fin
     mk .make-displacement-algebra._⊗_ = merge-fin
     mk .make-displacement-algebra.idl = fin-support-list-path 𝒩.idl
     mk .make-displacement-algebra.idr = fin-support-list-path 𝒩.idr
     mk .make-displacement-algebra.associative = fin-support-list-path 𝒩.associative
-    mk .make-displacement-algebra.left-invariant {xs} {ys} {zs} =
-      𝒩.left-invariant {xs .support} {ys .support} {zs .support}
+    mk .make-displacement-algebra.≤-left-invariant {xs} {ys} {zs} =
+      𝒩.≤-left-invariant {xs .support} {ys .support} {zs .support}
+    mk .make-displacement-algebra.injr-on-≤ {xs} {ys} p q =
+      fin-support-list-path $ 𝒩.injr-on-≤ {xs .support} {ys .support} p (ap support q)
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
@@ -124,7 +124,7 @@ module _
     mk .make-displacement-subalgebra.into = FinSupportList.support
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ _ _ = refl
-    mk .make-displacement-subalgebra.strictly-mono _ _ xs<ys = xs<ys
+    mk .make-displacement-subalgebra.mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
   FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (InfProd 𝒟)
@@ -144,10 +144,11 @@ module _
   (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
   open FinSupport 𝒟 _≡?_
+  open FinSupportList
 
   fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 _≡?_)
   fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 _≡?_) λ {xs} {ys} {zs} xs≤ys →
-    ⊎-mapl fin-support-list-path (supp≤-right-invariant 𝒟-ordered-monoid _≡?_ (⊎-mapl (ap FinSupportList.support) xs≤ys))
+    supp≤-right-invariant {𝒟 = 𝒟} 𝒟-ordered-monoid _≡?_ {xs .support} {ys .support} {zs .support} xs≤ys
 
 --------------------------------------------------------------------------------
 -- Extensionality based on 'finite-support-list' and eventually 'index-inj'

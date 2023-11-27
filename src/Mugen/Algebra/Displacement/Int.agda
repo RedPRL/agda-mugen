@@ -21,23 +21,22 @@ Int+ = to-displacement-algebra mk where
   mk .make-displacement-algebra.idl = +ℤ-idl _
   mk .make-displacement-algebra.idr = +ℤ-idr _
   mk .make-displacement-algebra.associative {x} {y} {z} = +ℤ-associative x y z
-  mk .make-displacement-algebra.left-invariant {x} {y} {z} = +ℤ-left-invariant x y z
+  mk .make-displacement-algebra.≤-left-invariant {x} {y} {z} = +ℤ-left-invariant x y z
+  mk .make-displacement-algebra.injr-on-≤ {x} {y} {z} _ = +ℤ-injr x y z
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
 
-Int+-has-ordered-monoid : has-ordered-monoid ℤ-Displacement
+Int+-has-ordered-monoid : has-ordered-monoid Int+
 Int+-has-ordered-monoid =
-  right-invariant→has-ordered-monoid ℤ-Displacement
-    (+ℤ-weak-right-invariant _ _ _)
-
+  right-invariant→has-ordered-monoid Int+
+    (+ℤ-right-invariant _ _ _)
 
 --------------------------------------------------------------------------------
 -- Joins
 
 Int+-has-joins : has-joins Int+
 Int+-has-joins .has-joins.join = maxℤ
-Int+-has-joins .has-joins.joinl {x} {y} = ≤ℤ-strengthen x (maxℤ x y) (maxℤ-≤l x y)
-Int+-has-joins .has-joins.joinr {x} {y} = ≤ℤ-strengthen y (maxℤ x y) (maxℤ-≤r x y)
-Int+-has-joins .has-joins.universal {x} {y} {z} x≤z y≤z =
-  ≤ℤ-strengthen (maxℤ x y) z (maxℤ-is-lub x y z (to-≤ℤ x z x≤z) (to-≤ℤ y z y≤z))
+Int+-has-joins .has-joins.joinl {x} {y} = maxℤ-≤l x y
+Int+-has-joins .has-joins.joinr {x} {y} = maxℤ-≤r x y
+Int+-has-joins .has-joins.universal {x} {y} {z} = maxℤ-is-lub x y z
