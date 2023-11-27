@@ -8,7 +8,7 @@ import Mugen.Algebra.Displacement.Constant
 import Mugen.Algebra.Displacement.Endomorphism
 import Mugen.Algebra.Displacement.FiniteSupport
 import Mugen.Algebra.Displacement.Fractal
-import Mugen.Algebra.Displacement.InfiniteProduct
+import Mugen.Algebra.Displacement.IndexedProduct
 import Mugen.Algebra.Displacement.Int
 import Mugen.Algebra.Displacement.Lexicographic
 import Mugen.Algebra.Displacement.Nat

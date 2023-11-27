@@ -9,7 +9,7 @@ open import Algebra.Semigroup
 open import Mugen.Prelude
 open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.InfiniteProduct
+open import Mugen.Algebra.Displacement.IndexedProduct
 open import Mugen.Algebra.Displacement.NearlyConstant
 open import Mugen.Algebra.OrderedMonoid
 
@@ -19,7 +19,7 @@ open import Mugen.Algebra.OrderedMonoid
 -- Section 3.3.5
 --
 -- Finitely supported functions over some displacement algebra '𝒟' are
--- functions 'f : Nat → 𝒟' that differ from 'const ε' in only a finite number of positions.
+-- functions 'f : Nat → 𝒟' that differ from the unit 'ε' in only a finite number of positions.
 -- These are a special case of the Nearly Constant functions where the base is always ε
 -- and are implemented as such.
 
@@ -127,11 +127,11 @@ module _
     mk .make-displacement-subalgebra.mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-  FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (InfProd 𝒟)
-  FinSupport⊆InfProd =
+  FinSupport⊆IdxProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
+  FinSupport⊆IdxProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
-      (NearlyConstant⊆InfProd _≡?_)
+      (NearlyConstant⊆IdxProd _≡?_)
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
