@@ -1,7 +1,5 @@
 module Mugen.Order.Discrete where
 
-open import Data.Fin
-
 open import Mugen.Prelude
 
 open import Mugen.Order.Poset

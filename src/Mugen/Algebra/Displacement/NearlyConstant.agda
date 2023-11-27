@@ -7,12 +7,11 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
+open import Mugen.Data.List
 open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.InfiniteProduct
 open import Mugen.Algebra.OrderedMonoid
-
-open import Mugen.Data.List
 
 --------------------------------------------------------------------------------
 -- Nearly Constant Functions

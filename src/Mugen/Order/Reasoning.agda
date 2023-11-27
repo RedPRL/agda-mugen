@@ -1,5 +1,5 @@
-open import Mugen.Prelude
 open import Mugen.Order.Poset
+open import Mugen.Prelude
 
 module Mugen.Order.Reasoning {o r} (A : Poset o r) where
 

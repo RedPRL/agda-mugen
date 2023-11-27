@@ -1,6 +1,6 @@
-import Order.Base
-
 open import Mugen.Prelude
+
+import Order.Base
 
 module Mugen.Order.Poset where
 
