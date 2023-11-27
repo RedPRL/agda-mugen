@@ -127,11 +127,11 @@ module _
     mk .make-displacement-subalgebra.mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-  FinSupport⊆IndProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (IndProd Nat λ _ → 𝒟)
-  FinSupport⊆IndProd =
+  FinSupport⊆IdxProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
+  FinSupport⊆IdxProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
-      (NearlyConstant⊆IndProd _≡?_)
+      (NearlyConstant⊆IdxProd _≡?_)
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid

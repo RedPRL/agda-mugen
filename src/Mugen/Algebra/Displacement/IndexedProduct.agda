@@ -11,131 +11,132 @@ open import Mugen.Algebra.OrderedMonoid
 
 --------------------------------------------------------------------------------
 -- Product of Indexed Displacements
+-- POPL 2023 Section 3.3.5 discussed the special case where I = Nat and 𝒟 is a constant family
 --
 -- The product of indexed displacement algebras consists
--- of functions '(a : I) → 𝒟 a'. Multiplication is performed pointwise,
+-- of functions '(i : I) → 𝒟 i'. Multiplication is performed pointwise,
 -- and ordering is given by 'f ≤ g' if '∀ n. f n ≤ g n'.
 
-module Ind {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
+module Idx {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   private
-    module 𝒟 {a : I} = Displacement-algebra (𝒟 a)
+    module 𝒟 {i : I} = Displacement-algebra (𝒟 i)
     open 𝒟 using (ε; _⊗_)
 
-  _fun⊗_ : (∀ a → ⌞ 𝒟 a ⌟) → (∀ a → ⌞ 𝒟 a ⌟) → (∀ a → ⌞ 𝒟 a ⌟)
-  f fun⊗ g = λ a → f a ⊗ g a
+  _idx⊗_ : (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟)
+  f idx⊗ g = λ a → f a ⊗ g a
 
-  funε : (a : I) → ⌞ 𝒟 a ⌟
-  funε _ = ε
+  idxε : (i : I) → ⌞ 𝒟 i ⌟
+  idxε _ = ε
 
-  fun⊗-associative : ∀ {f g h : (a : I) → ⌞ 𝒟 a ⌟} → (f fun⊗ (g fun⊗ h)) ≡ ((f fun⊗ g) fun⊗ h)
-  fun⊗-associative = funext λ x → 𝒟.associative
+  idx⊗-associative : ∀ {f g h : (i : I) → ⌞ 𝒟 i ⌟} → (f idx⊗ (g idx⊗ h)) ≡ ((f idx⊗ g) idx⊗ h)
+  idx⊗-associative = funext λ x → 𝒟.associative
 
-  fun⊗-idl : ∀ {f : (a : I) → ⌞ 𝒟 a ⌟} → (funε fun⊗ f) ≡ f
-  fun⊗-idl = funext λ x → 𝒟.idl
+  idx⊗-idl : ∀ {f : (i : I) → ⌞ 𝒟 i ⌟} → (idxε idx⊗ f) ≡ f
+  idx⊗-idl = funext λ x → 𝒟.idl
 
-  fun⊗-idr : ∀ {f : (a : I) → ⌞ 𝒟 a ⌟} → (f fun⊗ funε) ≡ f
-  fun⊗-idr = funext λ x → 𝒟.idr
+  idx⊗-idr : ∀ {f : (i : I) → ⌞ 𝒟 i ⌟} → (f idx⊗ idxε) ≡ f
+  idx⊗-idr = funext λ x → 𝒟.idr
 
   --------------------------------------------------------------------------------
   -- Algebra
 
-  fun⊗-is-magma : is-magma _fun⊗_
-  fun⊗-is-magma .has-is-set = Π-is-hlevel 2 (λ _ → 𝒟.has-is-set)
+  idx⊗-is-magma : is-magma _idx⊗_
+  idx⊗-is-magma .has-is-set = Π-is-hlevel 2 (λ _ → 𝒟.has-is-set)
 
-  fun⊗-is-semigroup : is-semigroup _fun⊗_
-  fun⊗-is-semigroup .has-is-magma = fun⊗-is-magma
-  fun⊗-is-semigroup .associative = fun⊗-associative
+  idx⊗-is-semigroup : is-semigroup _idx⊗_
+  idx⊗-is-semigroup .has-is-magma = idx⊗-is-magma
+  idx⊗-is-semigroup .associative = idx⊗-associative
 
-  fun⊗-is-monoid : is-monoid funε _fun⊗_
-  fun⊗-is-monoid .has-is-semigroup = fun⊗-is-semigroup
-  fun⊗-is-monoid .idl = fun⊗-idl
-  fun⊗-is-monoid .idr = fun⊗-idr
+  idx⊗-is-monoid : is-monoid idxε _idx⊗_
+  idx⊗-is-monoid .has-is-semigroup = idx⊗-is-semigroup
+  idx⊗-is-monoid .idl = idx⊗-idl
+  idx⊗-is-monoid .idr = idx⊗-idr
 
   --------------------------------------------------------------------------------
   -- Ordering
 
-  _fun≤_ : ∀ (f g : ∀ a → ⌞ 𝒟 a ⌟) → Type (o ⊔ r)
-  f fun≤ g = (n : I) → f n 𝒟.≤ g n
+  _idx≤_ : ∀ (f g : ∀ i → ⌞ 𝒟 i ⌟) → Type (o ⊔ r)
+  f idx≤ g = (n : I) → f n 𝒟.≤ g n
 
-  _fun<_ : ∀ (f g : ∀ a → ⌞ 𝒟 a ⌟) → Type (o ⊔ o' ⊔ r)
-  _fun<_ = strict _fun≤_
+  _idx<_ : ∀ (f g : ∀ i → ⌞ 𝒟 i ⌟) → Type (o ⊔ o' ⊔ r)
+  _idx<_ = strict _idx≤_
 
-  fun≤-thin : ∀ {f g} → is-prop (f fun≤ g)
-  fun≤-thin = hlevel 1
+  idx≤-thin : ∀ {f g} → is-prop (f idx≤ g)
+  idx≤-thin = hlevel 1
 
-  fun≤-refl : ∀ {f : ∀ a → ⌞ 𝒟 a ⌟} → f fun≤ f
-  fun≤-refl = λ _ → 𝒟.≤-refl
+  idx≤-refl : ∀ {f : ∀ i → ⌞ 𝒟 i ⌟} → f idx≤ f
+  idx≤-refl = λ _ → 𝒟.≤-refl
 
-  fun≤-trans : ∀ {f g h} → f fun≤ g → g fun≤ h → f fun≤ h
-  fun≤-trans f≤g g≤h n = 𝒟.≤-trans (f≤g n) (g≤h n)
+  idx≤-trans : ∀ {f g h} → f idx≤ g → g idx≤ h → f idx≤ h
+  idx≤-trans f≤g g≤h n = 𝒟.≤-trans (f≤g n) (g≤h n)
 
-  fun≤-antisym : ∀ {f g} → f fun≤ g → g fun≤ f → f ≡ g
-  fun≤-antisym f≤g g≤f = funext λ n → 𝒟.≤-antisym (f≤g n) (g≤f n)
+  idx≤-antisym : ∀ {f g} → f idx≤ g → g idx≤ f → f ≡ g
+  idx≤-antisym f≤g g≤f = funext λ n → 𝒟.≤-antisym (f≤g n) (g≤f n)
 
-  fun⊗-left-invariant : ∀ {f g h} → g fun≤ h → (f fun⊗ g) fun≤ (f fun⊗ h)
-  fun⊗-left-invariant g≤h n = 𝒟.≤-left-invariant (g≤h n)
+  idx⊗-left-invariant : ∀ {f g h} → g idx≤ h → (f idx⊗ g) idx≤ (f idx⊗ h)
+  idx⊗-left-invariant g≤h n = 𝒟.≤-left-invariant (g≤h n)
 
-  fun⊗-injr-on-fun≤ : ∀ {f g h} → g fun≤ h → (f fun⊗ g) ≡ (f fun⊗ h) → g ≡ h
-  fun⊗-injr-on-fun≤ g≤h fg=fh = funext λ n → 𝒟.injr-on-≤ (g≤h n) (happly fg=fh n)
+  idx⊗-injr-on-idx≤ : ∀ {f g h} → g idx≤ h → (f idx⊗ g) ≡ (f idx⊗ h) → g ≡ h
+  idx⊗-injr-on-idx≤ g≤h fg=fh = funext λ n → 𝒟.injr-on-≤ (g≤h n) (happly fg=fh n)
 
-Ind : ∀ {o o' r} (I : Type o) → (I → Displacement-algebra o' r) → Poset (o ⊔ o') (o ⊔ r)
-Ind {o = o} {o' = o'} {r = r} I 𝒟 = to-poset mk where
-  open Ind I 𝒟
+Idx : ∀ {o o' r} (I : Type o) → (I → Displacement-algebra o' r) → Poset (o ⊔ o') (o ⊔ r)
+Idx {o = o} {o' = o'} {r = r} I 𝒟 = to-poset mk where
+  open Idx I 𝒟
   open make-poset
 
-  mk : make-poset (o ⊔ r) (∀ a → ⌞ 𝒟 a ⌟)
-  mk ._≤_ = _fun≤_
-  mk .≤-refl = fun≤-refl
-  mk .≤-trans = fun≤-trans
-  mk .≤-thin = fun≤-thin
-  mk .≤-antisym = fun≤-antisym
+  mk : make-poset (o ⊔ r) (∀ i → ⌞ 𝒟 i ⌟)
+  mk ._≤_ = _idx≤_
+  mk .≤-refl = idx≤-refl
+  mk .≤-trans = idx≤-trans
+  mk .≤-thin = idx≤-thin
+  mk .≤-antisym = idx≤-antisym
 
 module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
-  open Ind I 𝒟
+  open Idx I 𝒟
   open make-displacement-algebra
-  private module 𝒟 {a : I} = Displacement-algebra (𝒟 a)
+  private module 𝒟 {i : I} = Displacement-algebra (𝒟 i)
 
   --------------------------------------------------------------------------------
   -- Displacement Algebra
 
-  IndProd : Displacement-algebra (o ⊔ o') (o ⊔ r)
-  IndProd = to-displacement-algebra mk where
-    mk : make-displacement-algebra (Ind I 𝒟)
-    mk .ε = funε
-    mk ._⊗_ = _fun⊗_
-    mk .idl = fun⊗-idl
-    mk .idr = fun⊗-idr
-    mk .associative = fun⊗-associative
-    mk .≤-left-invariant = fun⊗-left-invariant
-    mk .injr-on-≤ = fun⊗-injr-on-fun≤
+  IdxProd : Displacement-algebra (o ⊔ o') (o ⊔ r)
+  IdxProd = to-displacement-algebra mk where
+    mk : make-displacement-algebra (Idx I 𝒟)
+    mk .ε = idxε
+    mk ._⊗_ = _idx⊗_
+    mk .idl = idx⊗-idl
+    mk .idr = idx⊗-idr
+    mk .associative = idx⊗-associative
+    mk .≤-left-invariant = idx⊗-left-invariant
+    mk .injr-on-≤ = idx⊗-injr-on-idx≤
 
   --------------------------------------------------------------------------------
   -- Ordered Monoid
 
-  private module 𝒟∞ = Displacement-algebra IndProd
+  private module 𝒟∞ = Displacement-algebra IdxProd
 
-  fun⊗-has-ordered-monoid : (∀ a → has-ordered-monoid (𝒟 a))
-    → has-ordered-monoid IndProd
-  fun⊗-has-ordered-monoid 𝒟-om =
+  idx⊗-has-ordered-monoid : (∀ i → has-ordered-monoid (𝒟 i))
+    → has-ordered-monoid IdxProd
+  idx⊗-has-ordered-monoid 𝒟-om =
     right-invariant→has-ordered-monoid
-      IndProd
-      fun⊗-right-invariant
+      IdxProd
+      idx⊗-right-invariant
     where
       open module M {a : I} = is-ordered-monoid (𝒟-om a)
 
-      fun⊗-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f fun⊗ h) 𝒟∞.≤ (g fun⊗ h)
-      fun⊗-right-invariant f≤g n = right-invariant (f≤g n)
+      idx⊗-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f idx⊗ h) 𝒟∞.≤ (g idx⊗ h)
+      idx⊗-right-invariant f≤g n = right-invariant (f≤g n)
 
   --------------------------------------------------------------------------------
   -- Joins
 
-  fun⊗-has-joins : ((a : I) → has-joins (𝒟 a))
-    → has-joins IndProd
-  fun⊗-has-joins 𝒟-joins = joins
+  idx⊗-has-joins : ((i : I) → has-joins (𝒟 i))
+    → has-joins IdxProd
+  idx⊗-has-joins 𝒟-joins = joins
     where
       open module J {a : I} = has-joins (𝒟-joins a)
 
-      joins : has-joins IndProd
+      joins : has-joins IdxProd
       joins .has-joins.join f g n = join (f n) (g n)
       joins .has-joins.joinl = λ _ → joinl
       joins .has-joins.joinr = λ _ → joinr
@@ -144,11 +145,11 @@ module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   --------------------------------------------------------------------------------
   -- Bottom
 
-  fun⊗-has-bottom : (∀ a → has-bottom (𝒟 a)) → has-bottom IndProd
-  fun⊗-has-bottom 𝒟-bottom = bottom
+  idx⊗-has-bottom : (∀ i → has-bottom (𝒟 i)) → has-bottom IdxProd
+  idx⊗-has-bottom 𝒟-bottom = bottom
     where
       open module B {a : I} = has-bottom (𝒟-bottom a)
 
-      bottom : has-bottom IndProd
+      bottom : has-bottom IdxProd
       bottom .has-bottom.bot _ = bot
       bottom .has-bottom.is-bottom f = λ n → is-bottom (f n)
