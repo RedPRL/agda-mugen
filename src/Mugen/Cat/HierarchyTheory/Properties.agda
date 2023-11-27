@@ -71,7 +71,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
     module ℳᴰ = Monad (ℳ 𝒟)
     module H⟨Δ⁺⟩ = Poset (H.M₀ Δ⁺)
     module H⟨Δ⟩ = Poset (H.M₀ Δ)
-    module Fᴹᴰ⟨Δ⁺⟩ = Poset (fst (Fᴹᴰ⟨ Lift< (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r) Δ⁺ ⟩))
+    module Fᴹᴰ⟨Δ⁺⟩ = Poset (fst (Fᴹᴰ⟨ Lift≤ (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r) Δ⁺ ⟩))
     module Fᴹᴰ⟨Ψ⟩ = Poset (fst (Fᴹᴰ⟨ Disc Ψ ⟩))
     module H⟨Δ⁺⟩→ = Displacement-algebra (Endo∘ H Δ⁺)
     module SOrd {o} {r} = Cat (Strict-orders o r)
@@ -98,8 +98,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
     ι₁-hom .inj-on-related _ p = ι₁-inj p
 
     ι₁-monic : SOrd.is-monic ι₁-hom
-    ι₁-monic g h p = ext λ α →
-      inl-inj (inr-inj (p #ₚ α))
+    ι₁-monic g h p = ext λ α → ι₁-inj (p #ₚ α)
 
 
   --------------------------------------------------------------------------------
@@ -139,20 +138,20 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
 
   σ̅-∘ : ∀ (σ δ : Algebra-hom _ H Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) → σ̅ (σ SOrdᴴ.∘ δ) ≡ H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ
   σ̅-∘ σ δ = ext λ where
-      (ι₀ α) →
-        H.unit.η _ # (ι₀ α)                               ≡˘⟨ H.right-ident #ₚ _ ⟩
-        H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₀ α))   ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (σ̅ σ) #ₚ ι₀ α) ⟩
-        H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # (ι₀ α))) ∎
-      (ι₁ α) →
-        H.M₁ ι₁-hom # (σ # (δ # (H.unit.η _ # α)))                                                              ≡˘⟨ ap (λ e → H.M₁ ι₁-hom # (σ # e)) (H.left-ident #ₚ _) ⟩
-        H.M₁ ι₁-hom # (σ # (H.mult.η _ # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α)))))                         ≡⟨ ap (H.M₁ ι₁-hom #_) (σ .commutes #ₚ _) ⟩
-        H.M₁ ι₁-hom # (H.mult.η _ # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α)))))        ≡˘⟨ H.mult.is-natural _ _ ι₁-hom #ₚ _ ⟩
-        H.mult.η _ # (H.M₁ (H.M₁ ι₁-hom) # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α))))) ≡⟨ ap (H.mult.η _ #_) (σ̅-ι σ (δ # (H.unit.η _ # α))) ⟩
-        H.mult.η _ # (H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # (δ # (H.unit.η _ # α))) ) ∎
-      (ι₂ α) →
-        H.unit.η _ # ι₂ α                               ≡˘⟨ H.right-ident #ₚ _ ⟩
-        H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₂ α)) ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (σ̅ σ) #ₚ (ι₂ α)) ⟩
-        H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # ι₂ α)) ∎
+    (ι₀ α) →
+      H.unit.η _ # (ι₀ α)                               ≡˘⟨ H.right-ident #ₚ _ ⟩
+      H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₀ α))   ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (σ̅ σ) #ₚ ι₀ α) ⟩
+      H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # (ι₀ α))) ∎
+    (ι₁ α) →
+      H.M₁ ι₁-hom # (σ # (δ # (H.unit.η _ # α)))                                                              ≡˘⟨ ap (λ e → H.M₁ ι₁-hom # (σ # e)) (H.left-ident #ₚ _) ⟩
+      H.M₁ ι₁-hom # (σ # (H.mult.η _ # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α)))))                         ≡⟨ ap (H.M₁ ι₁-hom #_) (σ .commutes #ₚ _) ⟩
+      H.M₁ ι₁-hom # (H.mult.η _ # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α)))))        ≡˘⟨ H.mult.is-natural _ _ ι₁-hom #ₚ _ ⟩
+      H.mult.η _ # (H.M₁ (H.M₁ ι₁-hom) # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η _) # (δ # (H.unit.η _ # α))))) ≡⟨ ap (H.mult.η _ #_) (σ̅-ι σ (δ # (H.unit.η _ # α))) ⟩
+      H.mult.η _ # (H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # (δ # (H.unit.η _ # α))) ) ∎
+    (ι₂ α) →
+      H.unit.η _ # ι₂ α                               ≡˘⟨ H.right-ident #ₚ _ ⟩
+      H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₂ α)) ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (σ̅ σ) #ₚ (ι₂ α)) ⟩
+      H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # ι₂ α)) ∎
 
   T′ : (σ : Algebra-hom _ H Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) → Algebra-hom _ H Fᴴ⟨ Δ⁺ ⟩ Fᴴ⟨ Δ⁺ ⟩
   T′ σ .morphism = H.mult.η _ ∘ H.M₁ (σ̅ σ)
@@ -193,7 +192,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
   -- required lifts into Uᴴ instead.
 
   Uᴴ : ∀ {X} → Functor (Endos SOrdᴴ X) (Strict-orders (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r))
-  Uᴴ {X} .Functor.F₀ _ = Lift< _ _ (fst X)
+  Uᴴ {X} .Functor.F₀ _ = Lift≤ _ _ (fst X)
   Uᴴ .Functor.F₁ σ .hom (lift α) = lift (σ # α)
   Uᴴ .Functor.F₁ σ .mono (lift α≤β) = lift (σ .morphism .mono α≤β)
   Uᴴ .Functor.F₁ σ .inj-on-related (lift α≤β) p = ap lift (σ .morphism .inj-on-related α≤β (lift-inj p))
@@ -211,7 +210,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
   -- Section 3.4, Lemma 3.8
 
   ν : (pt : ∣ Ψ ∣) → Uᴴ => Uᴹᴰ F∘ T
-  ν pt = ?
+  ν pt = nt
     where
       ℓ̅ : ⌞ H.M₀ Δ ⌟ → Hom Δ⁺ (H.M₀ Δ⁺)
       ℓ̅ ℓ .hom (ι₀ _) = H.M₁ ι₁-hom # ℓ
@@ -246,20 +245,12 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
         where
           open Mugen.Order.Reasoning (H.M₀ Δ⁺)
 
-{-
-      ν′-mono : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ H⟨Δ⁺⟩→.≤ ν′ ℓ
-      ν′-mono {ℓ′} {ℓ} ℓ′≤ℓ .Lift.lower =
-        inc (ι₀ ⋆ , ν′⟨ℓ′⟩⟨⋆⟩<ν′⟨ℓ⟩⟨⋆⟩)
-        where
-          open Mugen.Order.Reasoning (H.M₀ Δ⁺)
-
-          ν′⟨ℓ′⟩⟨⋆⟩<ν′⟨ℓ⟩⟨⋆⟩ : H.mult.η _ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η _ # (ι₀ ⋆))) H⟨Δ⁺⟩.≤ H.mult.η _ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η _ # (ι₀ ⋆)))
-          ν′⟨ℓ′⟩⟨⋆⟩<ν′⟨ℓ⟩⟨⋆⟩ =
-            H.mult.η _ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η _ # ι₀ ⋆)) ≐⟨ ap (H.mult.η _ #_) (sym $ H.unit.is-natural _ _ (ℓ̅ ℓ′) #ₚ _) ⟩
-            H.mult.η _ # (H.unit.η _ # (H.M₁ ι₁-hom # ℓ′))   ≤⟨ (H.mult.η _ ∘ H.unit.η _ ∘ H.M₁ ι₁-hom) .mono ℓ′≤ℓ ⟩
-            H.mult.η _ # (H.unit.η _ # (H.M₁ ι₁-hom # ℓ))    ≐⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (ℓ̅ ℓ) #ₚ _) ⟩
-            H.mult.η _ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η _ # ι₀ ⋆))  ≤∎
--}
+      ν′-inj-on-≤ : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ ≡ ν′ ℓ → ℓ′ ≡ ℓ
+      ν′-inj-on-≤ {ℓ′} {ℓ} ℓ′≤ℓ p = (H.mult.η _ ∘ H.unit.η _ ∘ H.M₁ ι₁-hom) .inj-on-related ℓ′≤ℓ $
+        H.mult.η _ # (H.unit.η _ # (H.M₁ ι₁-hom # ℓ′))   ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (ℓ̅ ℓ′) #ₚ _) ⟩
+        H.mult.η _ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η _ # ι₀ ⋆)) ≡⟨ ap (_# (H.unit.η _ # ι₀ ⋆)) p ⟩
+        H.mult.η _ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η _ # ι₀ ⋆))  ≡˘⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (ℓ̅ ℓ) #ₚ _) ⟩
+        H.mult.η _ # (H.unit.η _ # (H.M₁ ι₁-hom # ℓ))    ∎
 
       ℓ̅-σ̅ : ∀ {ℓ : ⌞ fst Fᴴ⟨ Δ ⟩ ⌟} (σ : Algebra-hom _ _ Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) → ℓ̅ (σ # ℓ) ≡ H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ
       ℓ̅-σ̅ {ℓ} σ = ext λ where
@@ -281,6 +272,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
       nt : Uᴴ => Uᴹᴰ F∘ T
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
       nt ._=>_.η _ .mono (lift ℓ≤ℓ′) = inc (biased refl (ν′-mono ℓ≤ℓ′))
+      nt ._=>_.η _ .inj-on-related (lift ℓ≤ℓ′) p = ap lift $ ν′-inj-on-≤ ℓ≤ℓ′ (ap snd p)
       nt ._=>_.is-natural _ _ σ = ext λ ℓ →
         refl , λ α →
           H.mult.η _ # (H.M₁ (ℓ̅ (σ # ℓ .Lift.lower)) # α)                                         ≡⟨ ap (λ e → (H.mult.η _ ∘ H.M₁ e) # α) (ℓ̅-σ̅ σ) ⟩

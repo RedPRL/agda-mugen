@@ -22,12 +22,12 @@ Strict-orders o r .idr f = ext (λ _ → refl)
 Strict-orders o r .idl f = ext (λ _ → refl)
 Strict-orders o r .assoc f g h = ext (λ _ → refl)
 
-Lift<
+Lift≤
   : ∀ {o r}
   → (o′ r′ : Level)
   → Poset o r
   → Poset (o ⊔ o′) (r ⊔ r′)
-Lift< o' r' X = to-poset mk where
+Lift≤ o' r' X = to-poset mk where
   open Poset X
 
   mk : make-poset _ (Lift o' ⌞ X ⌟)
