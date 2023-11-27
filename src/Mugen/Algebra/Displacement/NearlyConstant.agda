@@ -100,29 +100,27 @@ module NearlyConst
       is-compact-is-prop (raw (_ ∷ []) _) = hlevel 1
       is-compact-is-prop (raw (_ ∷ y ∷ ys) _) = is-compact-is-prop (raw (y ∷ ys) _)
 
+    module _ (b : ⌞ 𝒟 ⌟) where
+      compact-list-step : ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟  → List ⌞ 𝒟 ⌟
+      compact-list-step x [] with x ≡? b
+      ... | yes _ = []
+      ... | no _ = x ∷ []
+      compact-list-step x (y ∷ ys) = x ∷ y ∷ ys
+
+      compact-list : List ⌞ 𝒟 ⌟ → List ⌞ 𝒟 ⌟
+      compact-list [] = []
+      compact-list (x ∷ xs) = compact-list-step x (compact-list xs)
+
     compact-step : ⌞ 𝒟 ⌟ → RawList → RawList
-    compact-step x (raw [] b) with x ≡? b
-    ... | yes _ = raw [] b
-    ... | no _ = raw (x ∷ []) b
-    compact-step x (raw (y ∷ ys) b) = (raw (x ∷ y ∷ ys) b)
+    compact-step x (raw xs b) = raw (compact-list-step b x xs) b
 
     compact : RawList → RawList
-    compact (raw [] b) = raw [] b
-    compact (raw (x ∷ xs) b) = compact-step x (compact (raw xs b))
+    compact (raw xs b) = raw (compact-list b xs) b
 
     -- compact preserves 'base'
     abstract
-      private
-        base-compact-step : ∀ x xs → compact-step x xs .base ≡ xs .base
-        base-compact-step x (raw [] b) with x ≡? b
-        ... | yes _ = refl
-        ... | no _ = refl
-        base-compact-step x (raw (y ∷ ys) b) = refl
-
       base-compact : ∀ xs → compact xs .base ≡ xs .base
-      base-compact (raw [] b) = refl
-      base-compact (raw (x ∷ xs) b) =
-        base-compact-step x (compact (raw xs b)) ∙ base-compact (raw xs b)
+      base-compact _ = refl
 
     abstract
       compact-compacted : ∀ {xs} → is-compact xs → compact xs ≡ xs
