@@ -9,7 +9,7 @@ open import Algebra.Semigroup
 open import Mugen.Prelude
 open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.InfiniteProduct
+open import Mugen.Algebra.Displacement.IndexedProduct
 open import Mugen.Algebra.Displacement.NearlyConstant
 open import Mugen.Algebra.OrderedMonoid
 
@@ -127,11 +127,11 @@ module _
     mk .make-displacement-subalgebra.mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-  FinSupport⊆InfProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (InfProd 𝒟)
-  FinSupport⊆InfProd =
+  FinSupport⊆IndProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (IndProd Nat λ _ → 𝒟)
+  FinSupport⊆IndProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
-      (NearlyConstant⊆InfProd _≡?_)
+      (NearlyConstant⊆IndProd _≡?_)
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid

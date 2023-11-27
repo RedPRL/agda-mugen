@@ -10,7 +10,7 @@ open import Mugen.Prelude
 open import Mugen.Data.List
 open import Mugen.Order.Poset
 open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.InfiniteProduct
+open import Mugen.Algebra.Displacement.IndexedProduct
 open import Mugen.Algebra.OrderedMonoid
 
 --------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ open import Mugen.Algebra.OrderedMonoid
 -- prefix list "the support".
 --
 -- However, there is a slight problem here when we go to show that
--- this is a subalgebra of 'InfProd': it's not injective! The problem
+-- this is a subalgebra of 'IndProd': it's not injective! The problem
 -- occurs when you have trailing base elements, meaning 2 lists can
 -- denote the same function!
 --
@@ -43,7 +43,7 @@ module NearlyConst
   (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
   private module 𝒟 = Displacement-algebra 𝒟
-  open Inf 𝒟
+  open Ind Nat (λ _ → 𝒟)
 
   --------------------------------------------------------------------------------
   -- Raw Support Lists
@@ -215,7 +215,7 @@ module NearlyConst
     -- Order
 
     _raw≤_ : RawList → RawList → Type r
-    xs raw≤ ys = index xs inf≤ index ys
+    xs raw≤ ys = index xs fun≤ index ys
 
     index= : RawList → RawList → Type o
     index= xs ys = (n : Nat) → index xs n ≡ index ys n
@@ -334,8 +334,8 @@ module NearlyConst
   -- XXX this will be replaced by the Immortal specification builders
   merge-left-invariant : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys supp≤ merge xs zs
   merge-left-invariant {xs} {ys} {zs} ys≤zs =
-    coe1→0 (λ i → (λ n → index-merge xs ys n i) inf≤ (λ n → index-merge xs zs n i)) $
-    ⊗∞-left-invariant ys≤zs
+    coe1→0 (λ i → (λ n → index-merge xs ys n i) fun≤ (λ n → index-merge xs zs n i)) $
+    fun⊗-left-invariant ys≤zs
 
   -- XXX this will be replaced by the Immortal specification builders
   merge-injr-on-≤ : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys ≡ merge xs zs → ys ≡ zs
@@ -347,7 +347,7 @@ module NearlyConst
 
 module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
   private module 𝒟 = Displacement-algebra 𝒟
-  open Inf 𝒟
+  open Ind Nat (λ _ → 𝒟)
   open NearlyConst 𝒟 _≡?_
 
   NearlyConstant : Displacement-algebra o r
@@ -355,10 +355,10 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
     open make-poset
     mk-poset : make-poset r SupportList
     mk-poset ._≤_ = _supp≤_
-    mk-poset .≤-refl = inf≤-refl
-    mk-poset .≤-trans = inf≤-trans
-    mk-poset .≤-thin = inf≤-thin
-    mk-poset .≤-antisym p q = index-inj $ inf≤-antisym p q
+    mk-poset .≤-refl = fun≤-refl
+    mk-poset .≤-trans = fun≤-trans
+    mk-poset .≤-thin = fun≤-thin
+    mk-poset .≤-antisym p q = index-inj $ fun≤-antisym p q
 
     open make-displacement-algebra
     mk : make-displacement-algebra (to-poset mk-poset)
@@ -390,9 +390,9 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
 module _ {o r} {𝒟 : Displacement-algebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
   open NearlyConst 𝒟 _≡?_
 
-  NearlyConstant⊆InfProd : is-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (InfProd 𝒟)
-  NearlyConstant⊆InfProd = to-displacement-subalgebra mk where
-    mk : make-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (InfProd 𝒟)
+  NearlyConstant⊆IndProd : is-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (IndProd Nat λ _ → 𝒟)
+  NearlyConstant⊆IndProd = to-displacement-subalgebra mk where
+    mk : make-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (IndProd Nat λ _ → 𝒟)
     mk .make-displacement-subalgebra.into = index
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ xs ys = funext (index-merge xs ys)
@@ -451,8 +451,8 @@ module NearlyConstJoins
   index-preserves-join : ∀ xs ys n → index (join xs ys) n ≡ 𝒥.join (index xs n) (index ys n)
   index-preserves-join = index-merge-with 𝒥.join
 
-  nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (⊗∞-has-joins 𝒟 𝒟-joins)
-  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
+  nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (fun⊗-has-joins Nat (λ _ → 𝒟) (λ _ → 𝒟-joins))
+  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆IndProd _≡?_
   nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (index-preserves-join x y)
 
 --------------------------------------------------------------------------------
@@ -472,8 +472,8 @@ module _
   nearly-constant-has-bottom .has-bottom.bot = support-list (raw [] bot) (lift tt)
   nearly-constant-has-bottom .has-bottom.is-bottom xs n = is-bottom _
 
-  nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (⊗∞-has-bottom 𝒟 𝒟-bottom)
-  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆InfProd _≡?_
+  nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (fun⊗-has-bottom Nat (λ _ → 𝒟) (λ _ → 𝒟-bottom))
+  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆IndProd _≡?_
   nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
 
 --------------------------------------------------------------------------------
