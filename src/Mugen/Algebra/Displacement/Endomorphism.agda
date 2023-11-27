@@ -13,7 +13,7 @@ open import Mugen.Data.NonEmpty
 open import Mugen.Algebra.Displacement
 open import Mugen.Order.Poset
 open import Mugen.Cat.StrictOrders
-open import Mugen.Cat.HierarchyTheory
+open import Mugen.Cat.Monad
 
 --------------------------------------------------------------------------------
 -- Endomorphism Displacements
@@ -89,7 +89,7 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
   endo≤-trans σ δ τ (lift σ≤δ) (lift δ≤τ) = lift λ α → H⟨Δ⟩.≤-trans (σ≤δ α) (δ≤τ α)
 
   endo≤-antisym : ∀ σ δ → endo[ σ ≤ δ ] → endo[ δ ≤ σ ] → σ ≡ δ
-  endo≤-antisym σ δ (lift σ≤δ) (lift δ≤σ) = free-algebra-hom-path $ ext λ α →
+  endo≤-antisym σ δ (lift σ≤δ) (lift δ≤σ) = free-algebra-hom-path H $ ext λ α →
     H⟨Δ⟩.≤-antisym (σ≤δ α) (δ≤σ α)
 
   --------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
   ∘-left-invariant σ δ τ δ≤τ = lift λ α → σ .morphism .Strictly-monotone.mono (δ≤τ .Lift.lower α)
 
   ∘-injr-on-≤ : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → σ ∘ δ ≡ σ ∘ τ → δ ≡ τ
-  ∘-injr-on-≤ σ δ τ (lift δ≤τ) p = free-algebra-hom-path $ ext λ α →
+  ∘-injr-on-≤ σ δ τ (lift δ≤τ) p = free-algebra-hom-path H $ ext λ α →
     σ .morphism .Strictly-monotone.inj-on-related (δ≤τ α) (ap (_# (unit.η Δ # α)) p)
 
   --------------------------------------------------------------------------------
