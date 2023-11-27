@@ -15,7 +15,7 @@ open import Mugen.Algebra.OrderedMonoid
 --
 -- The infinite product of a displacement algebra '𝒟' consists
 -- of functions 'A → 𝒟'. Multiplication is performed pointwise,
--- and ordering is given by 'f ≤ g' if '∀ n. f n ≤ n'.
+-- and ordering is given by 'f ≤ g' if '∀ n. f n ≤ g n'.
 
 module Ind {o o' r} (A : Type o) (𝒟 : A → Displacement-algebra o' r) where
   private
