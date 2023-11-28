@@ -20,8 +20,8 @@ import Mugen.Algebra.Displacement.Product
 import Mugen.Algebra.OrderedMonoid
 import Mugen.Cat.Endomorphisms
 import Mugen.Cat.HierarchyTheory
-import Mugen.Cat.HierarchyTheory.Properties
-import Mugen.Cat.McBrideMonad
+import Mugen.Cat.HierarchyTheory.McBride
+import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 import Mugen.Cat.Monad
 import Mugen.Cat.StrictOrders
 import Mugen.Data.Int

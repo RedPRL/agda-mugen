@@ -1,4 +1,4 @@
-module Mugen.Cat.McBrideMonad where
+module Mugen.Cat.HierarchyTheory.McBride where
 
 open import Cat.Diagram.Monad
 
