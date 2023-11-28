@@ -18,7 +18,7 @@ open import Mugen.Cat.Endomorphisms
 open import Mugen.Cat.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
-open import Mugen.Cat.McBrideMonad
+open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.Coproduct
 open import Mugen.Order.LeftInvariantRightCentered
