@@ -100,7 +100,7 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
 
   ∘-injr-on-≤ : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → σ ∘ δ ≡ σ ∘ τ → δ ≡ τ
   ∘-injr-on-≤ σ δ τ (lift δ≤τ) p = free-algebra-hom-path H $ ext λ α →
-    σ .morphism .Strictly-monotone.inj-on-related (δ≤τ α) (ap (_# (unit.η Δ # α)) p)
+    σ .morphism .Strictly-monotone.inj-on-related (δ≤τ α) (p #ₚ (unit.η Δ # α))
 
   --------------------------------------------------------------------------------
   -- Bundles

@@ -30,7 +30,7 @@ record is-displacement-algebra
   open Poset A
   field
     has-is-monoid : is-monoid ε _⊗_
-    
+
     -- These two properties are constructively MUCH NICER than
     --   ∀ {x y z} → y < z → (x ⊗ y) < (x ⊗ z)
     -- The reason is that the second part of '_<_' is a negation,
@@ -160,11 +160,9 @@ displacement-hom-∘
 displacement-hom-∘ f g .strict-hom =
   strictly-monotone-∘ (f .strict-hom) (g .strict-hom)
 displacement-hom-∘ f g .has-is-displacement-hom .is-displacement-algebra-hom.pres-ε =
-  ap (λ x → f # x) (g .pres-ε)
-  ∙ f .pres-ε
+  ap (f #_) (g .pres-ε) ∙ f .pres-ε
 displacement-hom-∘ f g .has-is-displacement-hom .is-displacement-algebra-hom.pres-⊗ x y =
-  ap (λ x → f # x) (g .pres-⊗ x y)
-  ∙ f .pres-⊗ (g # x) (g # y)
+  ap (f #_) (g .pres-⊗ x y) ∙ f .pres-⊗ (g # x) (g # y)
 
 --------------------------------------------------------------------------------
 -- Subalgebras of Displacement Algebras
