@@ -77,17 +77,17 @@ module _
 
   ⊗ᶠ-left-invariant : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ ys ≤ zs ] → fractal[ xs ⊗ᶠ ys ≤ xs ⊗ᶠ zs ]
   ⊗ᶠ-left-invariant [ x ] [ y ] [ z ] (single≤ y≤z) =
-    single≤ (𝒟.≤-left-invariant y≤z)
+    single≤ (𝒟.left-invariant y≤z)
   ⊗ᶠ-left-invariant [ x ] (y ∷ ys) (z ∷ zs) (tail≤ y≤z ys≤zs) =
-    tail≤ (𝒟.≤-left-invariant y≤z) λ xy=xz → ys≤zs (𝒟.injr-on-≤ y≤z xy=xz)
+    tail≤ (𝒟.left-invariant y≤z) λ xy=xz → ys≤zs (𝒟.injr-on-related y≤z xy=xz)
   ⊗ᶠ-left-invariant (x ∷ xs) ys zs ys≤zs =
     tail≤ 𝒟.≤-refl λ _ → ⊗ᶠ-left-invariant xs ys zs ys≤zs
 
   ⊗ᶠ-injr-on-≤ : ∀ (xs ys zs : List⁺ ⌞ 𝒟 ⌟) → fractal[ ys ≤ zs ] → xs ⊗ᶠ ys ≡ xs ⊗ᶠ zs → ys ≡ zs
   ⊗ᶠ-injr-on-≤ [ x ] [ y ] [ z ] (single≤ y≤z) p =
-    ap [_] $ 𝒟.injr-on-≤ y≤z $ []-inj p
+    ap [_] $ 𝒟.injr-on-related y≤z $ []-inj p
   ⊗ᶠ-injr-on-≤ [ x ] (y ∷ ys) (z ∷ zs) (tail≤ y≤z _) p =
-    ap₂ _∷_ (𝒟.injr-on-≤ y≤z (∷-head-inj p)) (∷-tail-inj p)
+    ap₂ _∷_ (𝒟.injr-on-related y≤z (∷-head-inj p)) (∷-tail-inj p)
   ⊗ᶠ-injr-on-≤ (x ∷ xs) ys zs ys≤zs p =
     ⊗ᶠ-injr-on-≤ xs ys zs ys≤zs (∷-tail-inj p)
 
@@ -109,5 +109,5 @@ module _
     mk .make-displacement-algebra.idl = ⊗ᶠ-idl _
     mk .make-displacement-algebra.idr = ⊗ᶠ-idr  _
     mk .make-displacement-algebra.associative = ⊗ᶠ-associative _ _ _
-    mk .make-displacement-algebra.≤-left-invariant = ⊗ᶠ-left-invariant _ _ _
-    mk .make-displacement-algebra.injr-on-≤ = ⊗ᶠ-injr-on-≤ _ _ _
+    mk .make-displacement-algebra.left-strict-invariant p =
+      ⊗ᶠ-left-invariant _ _ _ p , ⊗ᶠ-injr-on-≤ _ _ _ p

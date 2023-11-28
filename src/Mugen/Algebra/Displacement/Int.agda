@@ -21,8 +21,8 @@ Int+ = to-displacement-algebra mk where
   mk .make-displacement-algebra.idl = +ℤ-idl _
   mk .make-displacement-algebra.idr = +ℤ-idr _
   mk .make-displacement-algebra.associative {x} {y} {z} = +ℤ-associative x y z
-  mk .make-displacement-algebra.≤-left-invariant {x} {y} {z} = +ℤ-left-invariant x y z
-  mk .make-displacement-algebra.injr-on-≤ {x} {y} {z} _ = +ℤ-injr x y z
+  mk .make-displacement-algebra.left-strict-invariant {x} {y} {z} p =
+    +ℤ-left-invariant x y z p , +ℤ-injr x y z
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid

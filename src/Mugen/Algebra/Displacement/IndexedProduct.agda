@@ -15,15 +15,18 @@ open import Mugen.Algebra.OrderedMonoid
 --
 -- The product of indexed displacement algebras consists
 -- of functions '(i : I) → 𝒟 i'. Multiplication is performed pointwise,
--- and ordering is given by 'f ≤ g' if '∀ n. f n ≤ g n'.
+-- and ordering is given by 'f ≤ g' if '∀ i. f i ≤ g i'.
 
 module Idx {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   private
     module 𝒟 {i : I} = Displacement-algebra (𝒟 i)
     open 𝒟 using (ε; _⊗_)
 
+  map₂ : (∀ {i} → ⌞ 𝒟 i ⌟ → ⌞ 𝒟 i ⌟ → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟)
+  map₂ m f g i = m (f i) (g i)
+
   _idx⊗_ : (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟) → (∀ i → ⌞ 𝒟 i ⌟)
-  f idx⊗ g = λ a → f a ⊗ g a
+  _idx⊗_ = map₂ _⊗_
 
   idxε : (i : I) → ⌞ 𝒟 i ⌟
   idxε _ = ε
@@ -56,10 +59,7 @@ module Idx {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   -- Ordering
 
   _idx≤_ : ∀ (f g : ∀ i → ⌞ 𝒟 i ⌟) → Type (o ⊔ r)
-  f idx≤ g = (n : I) → f n 𝒟.≤ g n
-
-  _idx<_ : ∀ (f g : ∀ i → ⌞ 𝒟 i ⌟) → Type (o ⊔ o' ⊔ r)
-  _idx<_ = strict _idx≤_
+  f idx≤ g = (i : I) → f i 𝒟.≤ g i
 
   idx≤-thin : ∀ {f g} → is-prop (f idx≤ g)
   idx≤-thin = hlevel 1
@@ -68,16 +68,14 @@ module Idx {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
   idx≤-refl = λ _ → 𝒟.≤-refl
 
   idx≤-trans : ∀ {f g h} → f idx≤ g → g idx≤ h → f idx≤ h
-  idx≤-trans f≤g g≤h n = 𝒟.≤-trans (f≤g n) (g≤h n)
+  idx≤-trans f≤g g≤h i = 𝒟.≤-trans (f≤g i) (g≤h i)
 
   idx≤-antisym : ∀ {f g} → f idx≤ g → g idx≤ f → f ≡ g
-  idx≤-antisym f≤g g≤f = funext λ n → 𝒟.≤-antisym (f≤g n) (g≤f n)
+  idx≤-antisym f≤g g≤f = funext λ i → 𝒟.≤-antisym (f≤g i) (g≤f i)
 
-  idx⊗-left-invariant : ∀ {f g h} → g idx≤ h → (f idx⊗ g) idx≤ (f idx⊗ h)
-  idx⊗-left-invariant g≤h n = 𝒟.≤-left-invariant (g≤h n)
-
-  idx⊗-injr-on-idx≤ : ∀ {f g h} → g idx≤ h → (f idx⊗ g) ≡ (f idx⊗ h) → g ≡ h
-  idx⊗-injr-on-idx≤ g≤h fg=fh = funext λ n → 𝒟.injr-on-≤ (g≤h n) (happly fg=fh n)
+  idx⊗-left-strict-invariant : ∀ {f g h} → g idx≤ h → ((f idx⊗ g) idx≤ (f idx⊗ h)) × ((f idx⊗ g) ≡ (f idx⊗ h) → g ≡ h)
+  idx⊗-left-strict-invariant g≤h =
+    (𝒟.left-invariant ⊙ g≤h) , λ fg=fh → funext λ i → 𝒟.injr-on-related (g≤h i) (happly fg=fh i)
 
 Idx : ∀ {o o' r} (I : Type o) → (I → Displacement-algebra o' r) → Poset (o ⊔ o') (o ⊔ r)
 Idx {o = o} {o' = o'} {r = r} I 𝒟 = to-poset mk where
@@ -107,16 +105,14 @@ module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
     mk .idl = idx⊗-idl
     mk .idr = idx⊗-idr
     mk .associative = idx⊗-associative
-    mk .≤-left-invariant = idx⊗-left-invariant
-    mk .injr-on-≤ = idx⊗-injr-on-idx≤
+    mk .left-strict-invariant = idx⊗-left-strict-invariant
 
   --------------------------------------------------------------------------------
   -- Ordered Monoid
 
   private module 𝒟∞ = Displacement-algebra IdxProd
 
-  idx⊗-has-ordered-monoid : (∀ i → has-ordered-monoid (𝒟 i))
-    → has-ordered-monoid IdxProd
+  idx⊗-has-ordered-monoid : (∀ i → has-ordered-monoid (𝒟 i)) → has-ordered-monoid IdxProd
   idx⊗-has-ordered-monoid 𝒟-om =
     right-invariant→has-ordered-monoid
       IdxProd
@@ -125,22 +121,21 @@ module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
       open module M {a : I} = is-ordered-monoid (𝒟-om a)
 
       idx⊗-right-invariant : ∀ {f g h} → f 𝒟∞.≤ g → (f idx⊗ h) 𝒟∞.≤ (g idx⊗ h)
-      idx⊗-right-invariant f≤g n = right-invariant (f≤g n)
+      idx⊗-right-invariant f≤g i = right-invariant (f≤g i)
 
   --------------------------------------------------------------------------------
   -- Joins
 
-  idx⊗-has-joins : ((i : I) → has-joins (𝒟 i))
-    → has-joins IdxProd
+  idx⊗-has-joins : (∀ i → has-joins (𝒟 i)) → has-joins IdxProd
   idx⊗-has-joins 𝒟-joins = joins
     where
       open module J {a : I} = has-joins (𝒟-joins a)
 
       joins : has-joins IdxProd
-      joins .has-joins.join f g n = join (f n) (g n)
+      joins .has-joins.join = map₂ join
       joins .has-joins.joinl = λ _ → joinl
       joins .has-joins.joinr = λ _ → joinr
-      joins .has-joins.universal f≤h g≤h = λ n → universal (f≤h n) (g≤h n)
+      joins .has-joins.universal f≤h g≤h = λ i → universal (f≤h i) (g≤h i)
 
   --------------------------------------------------------------------------------
   -- Bottom
@@ -152,4 +147,4 @@ module _ {o o' r} (I : Type o) (𝒟 : I → Displacement-algebra o' r) where
 
       bottom : has-bottom IdxProd
       bottom .has-bottom.bot _ = bot
-      bottom .has-bottom.is-bottom f = λ n → is-bottom (f n)
+      bottom .has-bottom.is-bottom f = λ i → is-bottom (f i)

@@ -23,8 +23,8 @@ _^opᵈ : ∀ {o r} → Displacement-algebra o r → Displacement-algebra o r
   displacement .make-displacement-algebra.idl = idl
   displacement .make-displacement-algebra.idr = idr
   displacement .make-displacement-algebra.associative = associative
-  displacement .make-displacement-algebra.≤-left-invariant = ≤-left-invariant
-  displacement .make-displacement-algebra.injr-on-≤ p q = sym $ injr-on-≤ p (sym q)
+  displacement .make-displacement-algebra.left-strict-invariant p =
+    left-invariant p , λ q → sym $ injr-on-related p (sym q)
 
 module OpProperties {o r} {𝒟 : Displacement-algebra o r} where
   open Displacement-algebra 𝒟

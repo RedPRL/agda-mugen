@@ -73,11 +73,11 @@ module Product {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ⊗×-left-invariant : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×≤ z → (x ⊗× y) ⊗×≤ (x ⊗× z)
-  ⊗×-left-invariant _ _ _ (y1≤z1 , y2≤z2) = 𝒟₁.≤-left-invariant y1≤z1 , 𝒟₂.≤-left-invariant y2≤z2
-
-  ⊗×-injr-on-⊗≤ : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×≤ z → (x ⊗× y) ≡ (x ⊗× z) → y ≡ z
-  ⊗×-injr-on-⊗≤ _ _ _ (y1≤z1 , y2≤z2) p i = 𝒟₁.injr-on-≤ y1≤z1 (ap fst p) i , 𝒟₂.injr-on-≤ y2≤z2 (ap snd p) i
+  ⊗×-left-strict-invariant : ∀ (x y z : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → y ⊗×≤ z
+    → ((x ⊗× y) ⊗×≤ (x ⊗× z)) × ((x ⊗× y) ≡ (x ⊗× z) → y ≡ z)
+  ⊗×-left-strict-invariant _ _ _ (y1≤z1 , y2≤z2) =
+    (𝒟₁.left-invariant y1≤z1 , 𝒟₂.left-invariant y2≤z2) ,
+    λ p i → 𝒟₁.injr-on-related y1≤z1 (ap fst p) i , 𝒟₂.injr-on-related y2≤z2 (ap snd p) i
 
 _⊗ᵈ_
   : ∀ {o r}
@@ -102,8 +102,7 @@ _⊗ᵈ_
   mk .make-displacement-algebra.idl = ⊗×-idl _
   mk .make-displacement-algebra.idr = ⊗×-idr _
   mk .make-displacement-algebra.associative = ⊗×-associative _ _ _
-  mk .make-displacement-algebra.≤-left-invariant = ⊗×-left-invariant _ _ _
-  mk .make-displacement-algebra.injr-on-≤ = ⊗×-injr-on-⊗≤ _ _ _
+  mk .make-displacement-algebra.left-strict-invariant = ⊗×-left-strict-invariant _ _ _
 
 module ProductProperties
   {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r}

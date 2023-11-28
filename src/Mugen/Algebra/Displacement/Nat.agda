@@ -23,8 +23,8 @@ Nat+ = to-displacement-algebra displacement where
   displacement .make-displacement-algebra.idl = refl
   displacement .make-displacement-algebra.idr = Nat.+-zeror _
   displacement .make-displacement-algebra.associative {x} {y} {z} = Nat.+-associative x y z
-  displacement .make-displacement-algebra.≤-left-invariant = Nat.+-preserves-≤l _ _ _
-  displacement .make-displacement-algebra.injr-on-≤ _ = Nat.+-inj _ _ _
+  displacement .make-displacement-algebra.left-strict-invariant p =
+    Nat.+-preserves-≤l _ _ _ p , Nat.+-inj _ _ _
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
