@@ -34,8 +34,8 @@ Prefix++ A = to-displacement-algebra displacement where
   displacement .make-displacement-algebra.idl = ++-idl _
   displacement .make-displacement-algebra.idr = ++-idr _
   displacement .make-displacement-algebra.associative {xs} {ys} {zs} = sym $ ++-assoc xs ys zs
-  displacement .make-displacement-algebra.≤-left-invariant = ++-left-invariant _ _ _
-  displacement .make-displacement-algebra.injr-on-≤ _ = ++-injr _ _ _
+  displacement .make-displacement-algebra.left-strict-invariant p =
+    ++-left-invariant _ _ _ p , ++-injr _ _ _
 
 module PreProperties {ℓ} {A : Set ℓ} where
 

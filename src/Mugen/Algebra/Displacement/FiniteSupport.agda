@@ -102,10 +102,9 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
     mk .make-displacement-algebra.idl = fin-support-list-path 𝒩.idl
     mk .make-displacement-algebra.idr = fin-support-list-path 𝒩.idr
     mk .make-displacement-algebra.associative = fin-support-list-path 𝒩.associative
-    mk .make-displacement-algebra.≤-left-invariant {xs} {ys} {zs} =
-      𝒩.≤-left-invariant {xs .support} {ys .support} {zs .support}
-    mk .make-displacement-algebra.injr-on-≤ {xs} {ys} p q =
-      fin-support-list-path $ 𝒩.injr-on-≤ {xs .support} {ys .support} p (ap support q)
+    mk .make-displacement-algebra.left-strict-invariant {xs} {ys} {zs} p =
+      𝒩.left-invariant {xs .support} {ys .support} {zs .support} p ,
+      (fin-support-list-path ⊙ 𝒩.injr-on-related {xs .support} {ys .support} p ⊙ ap support)
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure

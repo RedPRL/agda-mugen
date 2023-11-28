@@ -1,3 +1,4 @@
+-- vim: nowrap
 module Mugen.Algebra.Displacement.Endomorphism where
 
 open import Algebra.Magma
@@ -95,12 +96,11 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ∘-left-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → endo[ σ ∘ δ ≤ σ ∘ τ ]
-  ∘-left-invariant σ δ τ δ≤τ = lift λ α → σ .morphism .Strictly-monotone.mono (δ≤τ .Lift.lower α)
-
-  ∘-injr-on-≤ : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → σ ∘ δ ≡ σ ∘ τ → δ ≡ τ
-  ∘-injr-on-≤ σ δ τ (lift δ≤τ) p = free-algebra-hom-path H $ ext λ α →
-    σ .morphism .Strictly-monotone.inj-on-related (δ≤τ α) (p #ₚ (unit.η Δ # α))
+  ∘-left-strict-invariant : ∀ (σ δ τ : Endomorphism) → endo[ δ ≤ τ ] → endo[ σ ∘ δ ≤ σ ∘ τ ] × (σ ∘ δ ≡ σ ∘ τ → δ ≡ τ)
+  ∘-left-strict-invariant σ δ τ (lift δ≤τ) =
+    (lift λ α → Strictly-monotone.mono (σ .morphism) (δ≤τ α)) ,
+    λ p → free-algebra-hom-path H $ ext λ α →
+    Strictly-monotone.inj-on-related (σ .morphism) (δ≤τ α) (p #ₚ (unit.η Δ # α))
 
   --------------------------------------------------------------------------------
   -- Bundles
@@ -123,5 +123,4 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .has-is-semigroup .associative = assoc _ _ _
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idl = idl _
   Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.has-is-monoid .⊗-idr = idr _
-  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.≤-left-invariant {σ} {δ} {τ} = ∘-left-invariant σ δ τ
-  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.injr-on-≤ = ∘-injr-on-≤ _ _ _
+  Endo∘ .Displacement-algebra.displacement-algebra-on .Displacement-algebra-on.has-is-displacement-algebra .is-displacement-algebra.left-strict-invariant {σ} {δ} {τ} = ∘-left-strict-invariant σ δ τ

@@ -53,14 +53,11 @@ module Lex {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  lex-left-invariant : ∀ x y z → lex≤ y z → lex≤ (x ⊗× y) (x ⊗× z)
-  lex-left-invariant x y z (y1≤z1 , y2≤z2) =
-    𝒟₁.≤-left-invariant y1≤z1 , λ p → 𝒟₂.≤-left-invariant (y2≤z2 (𝒟₁.injr-on-≤ y1≤z1 p))
-
-  lex-injr-on-≤ : ∀ x y z → lex≤ y z → (x ⊗× y) ≡ (x ⊗× z) → y ≡ z
-  lex-injr-on-≤ x y z (y1≤z1 , y2≤z2) p i =
-    let y1=z1 = 𝒟₁.injr-on-≤ y1≤z1 (ap fst p) in
-    y1=z1 i , 𝒟₂.injr-on-≤ (y2≤z2 y1=z1) (ap snd p) i
+  lex≤-left-strict-invariant : ∀ x y z → lex≤ y z
+    → lex≤ (x ⊗× y) (x ⊗× z) × ((x ⊗× y) ≡ (x ⊗× z) → y ≡ z)
+  lex≤-left-strict-invariant x y z (y1≤z1 , y2≤z2) =
+    (𝒟₁.left-invariant y1≤z1 , λ p → 𝒟₂.left-invariant (y2≤z2 (𝒟₁.injr-on-related y1≤z1 p))) ,
+    λ p i → let y1=z1 = 𝒟₁.injr-on-related y1≤z1 (ap fst p) in y1=z1 i , 𝒟₂.injr-on-related (y2≤z2 y1=z1) (ap snd p) i
 
 Lex
   : ∀ {o r}
@@ -86,8 +83,7 @@ Lex {o = o} {r = r} 𝒟₁ 𝒟₂ = to-displacement-algebra displacement
     displacement .make-displacement-algebra.idl = ⊗×-idl _
     displacement .make-displacement-algebra.idr = ⊗×-idr _
     displacement .make-displacement-algebra.associative = ⊗×-associative _ _ _
-    displacement .make-displacement-algebra.≤-left-invariant = lex-left-invariant _ _ _
-    displacement .make-displacement-algebra.injr-on-≤ = lex-injr-on-≤ _ _ _
+    displacement .make-displacement-algebra.left-strict-invariant = lex≤-left-strict-invariant _ _ _
 
 module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
   private

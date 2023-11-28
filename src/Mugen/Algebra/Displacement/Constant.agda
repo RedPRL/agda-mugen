@@ -67,15 +67,15 @@ module Constant
 
   ⊗α-left-invariant : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y ≤α z → (x ⊗α y) ≤α (x ⊗α z)
   ⊗α-left-invariant _ (inl y) (inl z) y≤z = y≤z
-  ⊗α-left-invariant (inl x) (inr y) (inr z) y≤z = α.≤-invariant x y z y≤z
-  ⊗α-left-invariant (inr x) (inr y) (inr z) y≤z = B.≤-left-invariant y≤z
+  ⊗α-left-invariant (inl x) (inr y) (inr z) y≤z = α.invariant x y z y≤z
+  ⊗α-left-invariant (inr x) (inr y) (inr z) y≤z = B.left-invariant y≤z
 
   ⊗α-injr-on-≤α : ∀ (x y z : ⌞ A ⌟ ⊎ ⌞ B ⌟) → y ≤α z → (x ⊗α y) ≡ (x ⊗α z) → y ≡ z
   ⊗α-injr-on-≤α _ (inl y) (inl z) _ p = p
   ⊗α-injr-on-≤α (inl x) (inr y) (inr z) y≤z p =
-    ap inr $ α.≤-implies-inj x y z y≤z (inl-inj p)
+    ap inr $ α.injr-on-related x y z y≤z (inl-inj p)
   ⊗α-injr-on-≤α (inr x) (inr y) (inr z) y≤z p =
-    ap inr $ B.injr-on-≤ y≤z (inr-inj p)
+    ap inr $ B.injr-on-related y≤z (inr-inj p)
 
 Const
   : ∀ {o r} {A : Poset o r} {B : Displacement-algebra o r}
@@ -93,8 +93,8 @@ Const {A = A} {B = B} α = to-displacement-algebra mk where
   mk .idl {x} = ⊗α-idl x
   mk .idr {x} = ⊗α-idr x
   mk .associative {x} {y} {z} = ⊗α-associative x y z
-  mk .≤-left-invariant {x} {y} {z} = ⊗α-left-invariant x y z
-  mk .injr-on-≤ {x} {y} {z} = ⊗α-injr-on-≤α x y z
+  mk .left-strict-invariant {x} {y} {z} p =
+    ⊗α-left-invariant x y z p , ⊗α-injr-on-≤α x y z p
 
 module ConstantProperties
   {o r}

@@ -45,6 +45,7 @@ module NearlyConst
   where
   private module 𝒟 = Displacement-algebra 𝒟
   open Idx Nat (λ _ → 𝒟)
+  module idx𝒟 = Displacement-algebra (IdxProd Nat (λ _ → 𝒟))
 
   --------------------------------------------------------------------------------
   -- Raw Support Lists
@@ -214,7 +215,7 @@ module NearlyConst
     -- Order
 
     _raw≤_ : RawList → RawList → Type r
-    xs raw≤ ys = index xs idx≤ index ys
+    xs raw≤ ys = index xs idx𝒟.≤ index ys
 
     index= : RawList → RawList → Type o
     index= xs ys = (n : Nat) → index xs n ≡ index ys n
@@ -308,12 +309,12 @@ module NearlyConst
   index xs = Raw.index (xs .list)
 
   abstract
-    index-merge-with : ∀ f xs ys n → index (merge-with f xs ys) n ≡ f (index xs n) (index ys n)
-    index-merge-with f xs ys n =
+    index-merge-with : ∀ f xs ys → index (merge-with f xs ys) ≡ map₂ f (index xs) (index ys)
+    index-merge-with f xs ys = funext λ n →
       Raw.index-compact (Raw.merge-with f (xs .list) (ys .list)) n
       ∙ Raw.index-merge-with f (xs .list) (ys .list) n
 
-    index-merge : ∀ xs ys n → index (merge xs ys) n ≡ (index xs n 𝒟.⊗ index ys n)
+    index-merge : ∀ xs ys → index (merge xs ys) ≡ (index xs idx⊗ index ys)
     index-merge = index-merge-with 𝒟._⊗_
 
     base-merge-with : ∀ f xs ys → merge-with f xs ys .base ≡ f (xs .base) (ys .base)
@@ -333,13 +334,14 @@ module NearlyConst
   -- XXX this will be replaced by the Immortal specification builders
   merge-left-invariant : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys supp≤ merge xs zs
   merge-left-invariant {xs} {ys} {zs} ys≤zs =
-    coe1→0 (λ i → (λ n → index-merge xs ys n i) idx≤ (λ n → index-merge xs zs n i)) $
-    idx⊗-left-invariant ys≤zs
+    coe1→0 (λ i → index-merge xs ys i idx𝒟.≤ index-merge xs zs i) $
+    idx𝒟.left-invariant ys≤zs
 
   -- XXX this will be replaced by the Immortal specification builders
   merge-injr-on-≤ : ∀ {xs ys zs} → ys supp≤ zs → merge xs ys ≡ merge xs zs → ys ≡ zs
-  merge-injr-on-≤ {xs} {ys} {zs} ys≤zs p = supp-ext λ n → 𝒟.injr-on-≤ (ys≤zs n) $
-    coe0→1 (λ i → index-merge xs ys n i ≡ index-merge xs zs n i) (ap (λ xs → index xs n) p)
+  merge-injr-on-≤ {xs} {ys} {zs} ys≤zs p = index-inj $ idx𝒟.injr-on-related ys≤zs $
+    coe0→1 (λ i → index-merge xs ys i ≡ index-merge xs zs i) (ap index p)
+
 
 --------------------------------------------------------------------------------
 -- Bundled Instances
@@ -363,25 +365,23 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
     mk : make-displacement-algebra (to-poset mk-poset)
     mk .ε = empty
     mk ._⊗_ = merge
-    mk .idl {xs} = supp-ext λ n →
-      index-merge empty xs n ∙ 𝒟.idl
-    mk .idr {xs} = supp-ext λ n →
-      index-merge xs empty n ∙ 𝒟.idr
-    mk .associative {xs} {ys} {zs} = supp-ext λ n →
-      index (merge xs (merge ys zs)) n
-        ≡⟨ index-merge xs (merge ys zs) n ⟩
-      (index xs n 𝒟.⊗ index (merge ys zs) n)
-        ≡⟨ ap (index xs n 𝒟.⊗_) $ index-merge ys zs n ⟩
-      (index xs n 𝒟.⊗ (index ys n 𝒟.⊗ index zs n))
-        ≡⟨ 𝒟.associative ⟩
-      ((index xs n 𝒟.⊗ index ys n) 𝒟.⊗ index zs n)
-        ≡˘⟨ ap (𝒟._⊗ index zs n) $ index-merge xs ys n ⟩
-      (index (merge xs ys) n 𝒟.⊗ index zs n)
-        ≡˘⟨ index-merge (merge xs ys) zs n ⟩
-      index (merge (merge xs ys) zs) n
+    mk .idl {xs} = index-inj $ index-merge empty xs ∙ idx⊗-idl {index xs}
+    mk .idr {xs} = index-inj $ index-merge xs empty ∙ idx⊗-idr {index xs}
+    mk .associative {xs} {ys} {zs} = index-inj $
+      index (merge xs (merge ys zs))
+        ≡⟨ index-merge xs (merge ys zs) ⟩
+      (index xs idx⊗ index (merge ys zs))
+        ≡⟨ ap (index xs idx⊗_) $ index-merge ys zs ⟩
+      (index xs idx⊗ (index ys idx⊗ index zs))
+        ≡⟨ idx⊗-associative ⟩
+      ((index xs idx⊗ index ys) idx⊗ index zs)
+        ≡˘⟨ ap (_idx⊗ index zs) $ index-merge xs ys ⟩
+      (index (merge xs ys) idx⊗ index zs)
+        ≡˘⟨ index-merge (merge xs ys) zs ⟩
+      index (merge (merge xs ys) zs)
         ∎
-    mk .≤-left-invariant {xs} {ys} {zs} = merge-left-invariant {xs = xs} {ys} {zs}
-    mk .injr-on-≤ = merge-injr-on-≤
+    mk .left-strict-invariant {xs} {ys} {zs} p =
+      merge-left-invariant {xs = xs} {ys} {zs} p , merge-injr-on-≤ {xs = xs} {ys} {zs} p
 
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
@@ -394,7 +394,7 @@ module _ {o r} {𝒟 : Displacement-algebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟
     mk : make-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
     mk .make-displacement-subalgebra.into = index
     mk .make-displacement-subalgebra.pres-ε = refl
-    mk .make-displacement-subalgebra.pres-⊗ xs ys = funext (index-merge xs ys)
+    mk .make-displacement-subalgebra.pres-⊗ xs ys = index-merge xs ys
     mk .make-displacement-subalgebra.mono xs ys xs≤ys = xs≤ys
     mk .make-displacement-subalgebra.inj = index-inj
 
@@ -408,13 +408,14 @@ module _
   (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
   private module 𝒟 = Displacement-algebra 𝒟
+  open Idx Nat (λ _ → 𝒟)
   open NearlyConst 𝒟 _≡?_
-  open is-ordered-monoid 𝒟-ordered-monoid
+  open is-ordered-monoid (idx⊗-has-ordered-monoid Nat (λ _ → 𝒟) (λ _ → 𝒟-ordered-monoid))
 
   supp≤-right-invariant : ∀ {xs ys zs} → xs supp≤ ys → merge xs zs supp≤ merge ys zs
-  supp≤-right-invariant {xs} {ys} {zs} xs≤ys n =
-    coe1→0 (λ i → index-merge xs zs n i 𝒟.≤ index-merge ys zs n i) $
-    right-invariant (xs≤ys n)
+  supp≤-right-invariant {xs} {ys} {zs} xs≤ys =
+    coe1→0 (λ i → index-merge xs zs i idx≤ index-merge ys zs i) $
+    right-invariant xs≤ys
 
   nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) $ λ {xs} {ys} {zs} →
@@ -429,30 +430,30 @@ module NearlyConstJoins
   (𝒟-joins : has-joins 𝒟)
   (_≡?_ : Discrete ⌞ 𝒟 ⌟)
   where
+  open Idx Nat (λ _ → 𝒟)
   open NearlyConst 𝒟 _≡?_
   private module 𝒟 = Displacement-algebra 𝒟
   private module 𝒥 = has-joins 𝒟-joins
+  private module idx𝒥 = has-joins (idx⊗-has-joins Nat (λ _ → 𝒟) (λ _ → 𝒟-joins))
 
   join : SupportList → SupportList → SupportList
   join = merge-with 𝒥.join
 
+  index-preserves-join : ∀ xs ys → index (join xs ys) ≡ idx𝒥.join (index xs) (index ys)
+  index-preserves-join = index-merge-with 𝒥.join
+
   nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 _≡?_)
   nearly-constant-has-joins .has-joins.join = join
   nearly-constant-has-joins .has-joins.joinl {xs} {ys} n =
-    𝒟.≤+=→≤ 𝒥.joinl (sym $ index-merge-with 𝒥.join xs ys n)
+    𝒟.≤+=→≤ 𝒥.joinl (sym $ happly (index-preserves-join xs ys) n)
   nearly-constant-has-joins .has-joins.joinr {xs} {ys} n =
-    𝒟.≤+=→≤ 𝒥.joinr (sym $ index-merge-with 𝒥.join xs ys n)
+    𝒟.≤+=→≤ 𝒥.joinr (sym $ happly (index-preserves-join xs ys) n)
   nearly-constant-has-joins .has-joins.universal {xs} {ys} {zs} xs≤zs ys≤zs n =
-    𝒟.=+≤→≤
-      (index-merge-with 𝒥.join xs ys n)
-      (𝒥.universal (xs≤zs n) (ys≤zs n))
-
-  index-preserves-join : ∀ xs ys n → index (join xs ys) n ≡ 𝒥.join (index xs n) (index ys n)
-  index-preserves-join = index-merge-with 𝒥.join
+    𝒟.=+≤→≤ (happly (index-preserves-join xs ys) n) (𝒥.universal (xs≤zs n) (ys≤zs n))
 
   nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (idx⊗-has-joins Nat (λ _ → 𝒟) (λ _ → 𝒟-joins))
   nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆IdxProd _≡?_
-  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = funext (index-preserves-join x y)
+  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = index-preserves-join x y
 
 --------------------------------------------------------------------------------
 -- Bottoms

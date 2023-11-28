@@ -108,8 +108,7 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
 
     ι₁-hom : Hom Δ Δ⁺
     ι₁-hom .hom = ι₁
-    ι₁-hom .mono α≤β = α≤β
-    ι₁-hom .inj-on-related _ = ι₁-inj
+    ι₁-hom .strict-mono α≤β = α≤β , ι₁-inj
 
     ι₁-monic : SOrd.is-monic ι₁-hom
     ι₁-monic g h p = ext λ α → ι₁-inj (p #ₚ α)
@@ -123,12 +122,9 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
   σ̅ σ .hom (ι₀ α) = H.unit.η _ # ι₀ α
   σ̅ σ .hom (ι₁ α) = H.M₁ ι₁-hom # (σ # (H.unit.η Δ # α))
   σ̅ σ .hom (ι₂ α) = H.unit.η _ # ι₂ α
-  σ̅ σ .mono {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl
-  σ̅ σ .mono {ι₁ α} {ι₁ β} α≤β = (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.unit.η Δ) .mono α≤β
-  σ̅ σ .mono {ι₂ α} {ι₂ β} α≤β = H.unit.η Δ⁺ .mono α≤β
-  σ̅ σ .inj-on-related {ι₀ ⋆} {ι₀ ⋆} _ _ = refl
-  σ̅ σ .inj-on-related {ι₁ α} {ι₁ β} α≤β p = ap ι₁ $ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.unit.η Δ) .inj-on-related α≤β p
-  σ̅ σ .inj-on-related {ι₂ α} {ι₂ β} α≤β p = H.unit.η Δ⁺ .inj-on-related α≤β p
+  σ̅ σ .strict-mono {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl , λ _ → refl
+  σ̅ σ .strict-mono {ι₁ α} {ι₁ β} α≤β = Σ-map₂ (ap ι₁ ⊙_) $ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.unit.η Δ) .strict-mono α≤β
+  σ̅ σ .strict-mono {ι₂ α} {ι₂ β} α≤β = H.unit.η Δ⁺ .strict-mono α≤β
 
   module _ where abstract
     σ̅-id : σ̅ SOrdᴴ.id ≡ H.unit.η _
@@ -187,10 +183,9 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
       functor : Functor (Endos SOrdᴴ Fᴴ⟨ Δ ⟩) (Endos SOrdᴹᴰ Fᴹᴰ⟨ Disc Ψ ⟩)
       functor .Functor.F₀ _ = tt
       functor .Functor.F₁ σ .morphism .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
-      functor .Functor.F₁ σ .morphism .mono {α , d1} {β , d2} p =
-        inc (biased (⋉-fst-invariant p) (𝒟.≤-left-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p)))
-      functor .Functor.F₁ σ .morphism .inj-on-related {α , d1} {β , d2} p q i =
-        fst (q i) , 𝒟.injr-on-≤ (⋉-snd-invariant p) (ap snd q) i
+      functor .Functor.F₁ σ .morphism .strict-mono {α , d1} {β , d2} p =
+        let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
+        inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → fst (q i) , injr (ap snd q) i
       functor .Functor.F₁ σ .commutes = trivial!
       functor .Functor.F-id = ext λ (α , d) →
         refl , λ β →
@@ -214,8 +209,9 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
   Uᴴ : ∀ {X} → Functor (Endos SOrdᴴ X) (Strict-orders (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r))
   Uᴴ {X} .Functor.F₀ _ = Lift≤ _ _ (fst X)
   Uᴴ .Functor.F₁ σ .hom (lift α) = lift (σ # α)
-  Uᴴ .Functor.F₁ σ .mono (lift α≤β) = lift (σ .morphism .mono α≤β)
-  Uᴴ .Functor.F₁ σ .inj-on-related (lift α≤β) p = ap lift (σ .morphism .inj-on-related α≤β (lift-inj p))
+  Uᴴ .Functor.F₁ σ .strict-mono (lift α≤β) =
+    let σα≤σβ , inj = (σ .morphism) .strict-mono α≤β in
+    lift σα≤σβ , λ p → ap lift (inj (lift-inj p))
   Uᴴ .Functor.F-id = ext λ _ → refl
   Uᴴ .Functor.F-∘ _ _ = ext λ _ → refl
 
@@ -236,16 +232,13 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
       ℓ̅ ℓ .hom (ι₀ _) = H.M₁ ι₁-hom # ℓ
       ℓ̅ ℓ .hom (ι₁ α) = H.unit.η _ # ι₂ α
       ℓ̅ ℓ .hom (ι₂ α) = H.unit.η _ # ι₂ α
-      ℓ̅ ℓ .mono {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl
-      ℓ̅ ℓ .mono {ι₁ α} {ι₁ β} α≤β = H.unit.η _ .mono α≤β
-      ℓ̅ ℓ .mono {ι₂ α} {ι₂ β} α≤β = H.unit.η _ .mono α≤β
-      ℓ̅ ℓ .inj-on-related {ι₀ ⋆} {ι₀ ⋆} α≤β _ = refl
-      ℓ̅ ℓ .inj-on-related {ι₁ α} {ι₁ β} α≤β p = ap ι₁ $ ι₂-inj $ H.unit.η _ .inj-on-related α≤β p
-      ℓ̅ ℓ .inj-on-related {ι₂ α} {ι₂ β} α≤β p = H.unit.η _ .inj-on-related α≤β p
+      ℓ̅ ℓ .strict-mono {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl , λ _ → refl
+      ℓ̅ ℓ .strict-mono {ι₁ α} {ι₁ β} α≤β = Σ-map₂ ((ap ι₁ ⊙ ι₂-inj) ⊙_) $ H.unit.η _ .strict-mono α≤β
+      ℓ̅ ℓ .strict-mono {ι₂ α} {ι₂ β} α≤β = H.unit.η _ .strict-mono α≤β
 
       module _ where abstract
         ℓ̅-mono : ∀ {ℓ ℓ′} → ℓ′ H⟨Δ⟩.≤ ℓ → ∀ (α :  ⌞ Δ⁺ ⌟) → ℓ̅ ℓ′ # α H⟨Δ⁺⟩.≤ ℓ̅ ℓ # α
-        ℓ̅-mono ℓ′≤ℓ (ι₀ _) = (H.M₁ ι₁-hom .mono ℓ′≤ℓ)
+        ℓ̅-mono ℓ′≤ℓ (ι₀ _) = (mono (H.M₁ ι₁-hom) ℓ′≤ℓ)
         ℓ̅-mono ℓ′≤ℓ (ι₁ _) = H⟨Δ⁺⟩.≤-refl
         ℓ̅-mono ℓ′≤ℓ (ι₂ _) = H⟨Δ⁺⟩.≤-refl
 
@@ -268,8 +261,8 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
             open Mugen.Order.Reasoning (H.M₀ Δ⁺)
 
       module _ where abstract
-        ν′-inj-on-≤ : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ ≡ ν′ ℓ → ℓ′ ≡ ℓ
-        ν′-inj-on-≤ {ℓ′} {ℓ} ℓ′≤ℓ p = (H.mult.η _ ∘ H.unit.η _ ∘ H.M₁ ι₁-hom) .inj-on-related ℓ′≤ℓ $
+        ν′-inj-on-related : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ ≡ ν′ ℓ → ℓ′ ≡ ℓ
+        ν′-inj-on-related {ℓ′} {ℓ} ℓ′≤ℓ p = inj-on-related (H.mult.η _ ∘ H.unit.η _ ∘ H.M₁ ι₁-hom) ℓ′≤ℓ $
           H.mult.η _ # (H.unit.η _ # (H.M₁ ι₁-hom # ℓ′))   ≡⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (ℓ̅ ℓ′) #ₚ _) ⟩
           H.mult.η _ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η _ # ι₀ ⋆)) ≡⟨ ap (_# (H.unit.η _ # ι₀ ⋆)) p ⟩
           H.mult.η _ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η _ # ι₀ ⋆))  ≡˘⟨ ap (H.mult.η _ #_) (H.unit.is-natural _ _ (ℓ̅ ℓ) #ₚ _) ⟩
@@ -295,8 +288,8 @@ module _ {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔
 
       nt : Uᴴ => Uᴹᴰ F∘ T
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
-      nt ._=>_.η _ .mono (lift ℓ≤ℓ′) = inc (biased refl (ν′-mono ℓ≤ℓ′))
-      nt ._=>_.η _ .inj-on-related (lift ℓ≤ℓ′) p = ap lift $ ν′-inj-on-≤ ℓ≤ℓ′ (ap snd p)
+      nt ._=>_.η _ .strict-mono (lift ℓ≤ℓ′) =
+        inc (biased refl (ν′-mono ℓ≤ℓ′)) , λ p → ap lift $ ν′-inj-on-related ℓ≤ℓ′ (ap snd p)
       nt ._=>_.is-natural _ _ σ = ext λ ℓ →
         refl , λ α →
           H.mult.η _ # (H.M₁ (ℓ̅ (σ # ℓ .Lift.lower)) # α)                                         ≡⟨ ap (λ e → (H.mult.η _ ∘ H.M₁ e) # α) (ℓ̅-σ̅ σ) ⟩
