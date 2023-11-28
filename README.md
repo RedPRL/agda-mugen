@@ -28,12 +28,12 @@ This is a formalization of the displacement algebras, their properties, and part
 
 ### Other Theorems
 
-| Theorems                              | Paper Section      | Agda Module                                                                                                                             |
-| :------------------------------------ | :----------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
-| Validity of McBride monads            | 3.1                | [Mugen.Cat.HierarchyTheory.McBride](./src/Mugen/Cat/HierarchyTheory/McBride.agda)                                                       |
-| Embedding of endomorphisms            | 3.4 (Lemma 3.8)    | [Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding](./src/Mugen/Cat/HierarchyTheory/Universality/EndomorphismEmbedding.agda) |
-| Embedding of small hierarchy theories | 3.4 (Lemma 3.9)    | _(TODO)_                                                                                                                                |
-| Universality of McBride monads        | 3.4 (Theorem 3.10) | _(TODO)_                                                                                                                                |
+| Theorems                              | Paper Section      | Agda Module                                                                                      |
+| :------------------------------------ | :----------------- | :----------------------------------------------------------------------------------------------- |
+| Validity of McBride monads            | 3.1                | [McBride](./src/Mugen/Cat/HierarchyTheory/McBride.agda)                                          |
+| Embedding of endomorphisms            | 3.4 (Lemma 3.8)    | [EndomorphismEmbedding](./src/Mugen/Cat/HierarchyTheory/Universality/EndomorphismEmbedding.agda) |
+| Embedding of small hierarchy theories | 3.4 (Lemma 3.9)    | _(TODO)_                                                                                         |
+| Universality of McBride monads        | 3.4 (Theorem 3.10) | _(TODO)_                                                                                         |
 
 ## Building
 
