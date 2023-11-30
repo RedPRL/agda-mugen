@@ -1,5 +1,7 @@
 module Mugen.Algebra.Displacement.Nat where
 
+open import Data.Int.Inductive
+
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Int
@@ -56,11 +58,11 @@ nat-+-has-bottom .has-bottom.is-bottom x = Nat.0≤x
 Nat+⊆Int+ : is-displacement-subalgebra Nat+ Int+
 Nat+⊆Int+ = to-displacement-subalgebra subalg where
     subalg : make-displacement-subalgebra _ _
-    subalg .make-displacement-subalgebra.into = Int.pos
+    subalg .make-displacement-subalgebra.into = pos
     subalg .make-displacement-subalgebra.pres-ε = refl
     subalg .make-displacement-subalgebra.pres-⊗ = Int.+ℤ-pos
     subalg .make-displacement-subalgebra.mono _ _ x≤y = x≤y
-    subalg .make-displacement-subalgebra.inj = Int.pos-inj
+    subalg .make-displacement-subalgebra.inj = pos-injective
 
 Nat-is-subsemilattice : is-displacement-subsemilattice nat-+-has-joins Int+-has-joins
 Nat-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = Nat+⊆Int+
