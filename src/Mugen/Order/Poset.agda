@@ -24,8 +24,11 @@ open Order.Base using
   ; Poset-on-path
   ) public
 
+strict-or : ∀ {o r r'} {A : Type o} (_≤_ : A → A → Type r) → A → A → Type r' → Type (o ⊔ r ⊔ r')
+strict-or _≤_ x y alt = (x ≤ y) × (x ≡ y → alt)
+
 strict : ∀ {o r} {A : Type o} (_≤_ : A → A → Type r) → A → A → Type (o ⊔ r)
-strict _≤_ x y = (x ≤ y) × (¬ (x ≡ y))
+strict _≤_ x y = strict-or _≤_ x y ⊥
 
 abstract
   strict-is-prop : ∀ {o r} {A : Type o} (_≤_ : A → A → Type r) {x y : A}
@@ -145,7 +148,7 @@ module _ {o r o' r'} (X : Poset o r) (Y : Poset o' r') where
   -- TODO: investigate why or why not this should agree with the nice definition
   -- in a displacement algebra.
   is-strictly-monotone : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → Type (o ⊔ r ⊔ o' ⊔ r')
-  is-strictly-monotone f = ∀ {x y} → x X.≤ y → (f x Y.≤ f y) × (f x ≡ f y → x ≡ y)
+  is-strictly-monotone f = ∀ {x y} → x X.≤ y → strict-or Y._≤_ (f x) (f y) (x ≡ y)
 
   abstract
     is-strictly-monotone-is-prop : ∀ (f : ⌞ X ⌟ → ⌞ Y ⌟) → is-prop (is-strictly-monotone f)

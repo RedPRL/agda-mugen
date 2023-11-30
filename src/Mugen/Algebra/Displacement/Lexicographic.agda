@@ -30,7 +30,7 @@ module Lex {o r} (𝒟₁ 𝒟₂ : Displacement-algebra o r) where
   -- Ordering
 
   lex≤ : ∀ (x : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) (y : ⌞ 𝒟₁ ⌟ × ⌞ 𝒟₂ ⌟) → Type (o ⊔ r)
-  lex≤ x y = (fst x 𝒟₁.≤ fst y) × (fst x ≡ fst y → snd x 𝒟₂.≤ snd y)
+  lex≤ x y = strict-or 𝒟₁._≤_ (x .fst) (y .fst) (snd x 𝒟₂.≤ snd y)
 
   lex≤-refl : ∀ x → lex≤ x x
   lex≤-refl x = 𝒟₁.≤-refl , λ _ → 𝒟₂.≤-refl
@@ -124,7 +124,7 @@ module LexProperties {o r} {𝒟₁ 𝒟₂ : Displacement-algebra o r} where
     → (∀ x y → Dec (x ≡ 𝒟₁-joins.join x y) × Dec (y ≡ 𝒟₁-joins.join x y))
     → (𝒟₂-joins : has-joins 𝒟₂) → has-bottom 𝒟₂
     → has-joins (Lex 𝒟₁ 𝒟₂)
-                
+
   lex-has-joins 𝒟₁-joins _≡∨₁?_ 𝒟₂-joins 𝒟₂-bottom = joins
     where
       module 𝒟₁-joins = has-joins 𝒟₁-joins

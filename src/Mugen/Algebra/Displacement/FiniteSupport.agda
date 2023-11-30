@@ -23,10 +23,10 @@ open import Mugen.Algebra.OrderedMonoid
 -- These are a special case of the Nearly Constant functions where the base is always ε
 -- and are implemented as such.
 
-module FinSupport {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
+module FinSupport {o r} (𝒟 : Displacement-algebra o r) ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄ where
   private
     module 𝒟 = Displacement-algebra 𝒟
-    open NearlyConst 𝒟 _≡?_
+    open NearlyConst 𝒟
 
   --------------------------------------------------------------------------------
   -- Finite Support Lists
@@ -78,10 +78,10 @@ module FinSupport {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞
 --------------------------------------------------------------------------------
 -- Displacement Algebra
 
-module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
-  open FinSupport 𝒟 _≡?_
+module _ {o r} (𝒟 : Displacement-algebra o r) ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄ where
+  open FinSupport 𝒟
   open FinSupportList
-  private module 𝒩 = Displacement-algebra (NearlyConstant 𝒟 _≡?_)
+  private module 𝒩 = Displacement-algebra (NearlyConstant 𝒟)
 
   FiniteSupport : Displacement-algebra o r
   FiniteSupport = to-displacement-algebra mk where
@@ -113,11 +113,11 @@ module _
   {o r}
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
-  open FinSupport 𝒟 _≡?_
+  open FinSupport 𝒟
 
-  FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (NearlyConstant 𝒟 _≡?_)
+  FinSupport⊆NearlyConstant : is-displacement-subalgebra (FiniteSupport 𝒟) (NearlyConstant 𝒟)
   FinSupport⊆NearlyConstant = to-displacement-subalgebra mk where
     mk : make-displacement-subalgebra _ _
     mk .make-displacement-subalgebra.into = FinSupportList.support
@@ -126,11 +126,11 @@ module _
     mk .make-displacement-subalgebra.mono _ _ xs<ys = xs<ys
     mk .make-displacement-subalgebra.inj = fin-support-list-path
 
-  FinSupport⊆IdxProd : is-displacement-subalgebra (FiniteSupport 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
+  FinSupport⊆IdxProd : is-displacement-subalgebra (FiniteSupport 𝒟) (IdxProd Nat λ _ → 𝒟)
   FinSupport⊆IdxProd =
     is-displacement-subalgebra-trans
       FinSupport⊆NearlyConstant
-      (NearlyConstant⊆IdxProd _≡?_)
+      NearlyConstant⊆IdxProd
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -140,14 +140,14 @@ module _
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
   (𝒟-ordered-monoid : has-ordered-monoid 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
-  open FinSupport 𝒟 _≡?_
+  open FinSupport 𝒟
   open FinSupportList
 
-  fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟 _≡?_)
-  fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟 _≡?_) λ {xs} {ys} {zs} xs≤ys →
-    supp≤-right-invariant {𝒟 = 𝒟} 𝒟-ordered-monoid _≡?_ {xs .support} {ys .support} {zs .support} xs≤ys
+  fin-support-ordered-monoid : has-ordered-monoid (FiniteSupport 𝒟)
+  fin-support-ordered-monoid = right-invariant→has-ordered-monoid (FiniteSupport 𝒟) λ {xs} {ys} {zs} xs≤ys →
+    supp≤-right-invariant {𝒟 = 𝒟} 𝒟-ordered-monoid {xs .support} {ys .support} {zs .support} xs≤ys
 
 --------------------------------------------------------------------------------
 -- Extensionality based on 'finite-support-list' and eventually 'index-inj'
@@ -156,10 +156,10 @@ module _
 module _ {o r}
   {𝒟 : Displacement-algebra o r}
   (let module 𝒟 = Displacement-algebra 𝒟)
-  {_≡?_ : Discrete ⌞ 𝒟 ⌟}
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
-  open NearlyConst 𝒟 _≡?_
-  open FinSupport 𝒟 _≡?_
+  open NearlyConst 𝒟
+  open FinSupport 𝒟
   open FinSupportList
 
   Extensional-FinSupportList : ∀ {ℓr} ⦃ s : Extensional SupportList ℓr ⦄ → Extensional FinSupportList ℓr

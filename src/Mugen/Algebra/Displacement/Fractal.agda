@@ -50,7 +50,8 @@ module _
 
   data fractal[_≤_] : List⁺ ⌞ 𝒟 ⌟ → List⁺ ⌞ 𝒟 ⌟ → Type (o ⊔ r) where
     single≤ : ∀ {x y} → x 𝒟.≤ y → fractal[ [ x ] ≤ [ y ] ]
-    tail≤   : ∀ {x xs y ys} → x 𝒟.≤ y → (x ≡ y → fractal[ xs ≤ ys ]) → fractal[ x ∷ xs ≤ y ∷ ys ]
+    tail≤'   : ∀ {x xs y ys} → strict-or 𝒟._≤_ x y fractal[ xs ≤ ys ] → fractal[ x ∷ xs ≤ y ∷ ys ]
+  pattern tail≤ α β = tail≤' (α , β)
 
   ≤ᶠ-refl : ∀ (xs : List⁺ ⌞ 𝒟 ⌟) → fractal[ xs ≤ xs ]
   ≤ᶠ-refl [ x ] = single≤ 𝒟.≤-refl

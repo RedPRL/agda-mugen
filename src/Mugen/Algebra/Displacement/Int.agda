@@ -1,5 +1,7 @@
 module Mugen.Algebra.Displacement.Int where
 
+open import Data.Int.Inductive
+
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 
