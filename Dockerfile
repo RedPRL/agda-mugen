@@ -6,7 +6,7 @@ ARG GHC_VERSION=9.4.7
 FROM fossa/haskell-static-alpine:ghc-${GHC_VERSION} AS agda
 
 WORKDIR /build/agda
-ARG AGDA_VERSION=5c8116227e2d9120267aed43f0e545a65d9c2fe2
+ARG AGDA_VERSION=8ede3561ae32257eb7a102b8301c61fae1debb23
 RUN \
   git init && \
   git remote add origin https://github.com/agda/agda.git && \
@@ -31,7 +31,7 @@ FROM alpine AS onelab
 RUN apk add --no-cache git
 
 WORKDIR /dist/1lab
-ARG ONELAB_VERSION=a84319a523d866afc828535ce669ed114fbb5fd1
+ARG ONELAB_VERSION=f75e9938d5001b67c72e3cf4b758e375d8e266e8
 RUN \
   git init && \
   git remote add origin https://github.com/plt-amy/1lab && \

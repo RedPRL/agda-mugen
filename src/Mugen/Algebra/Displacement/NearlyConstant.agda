@@ -41,7 +41,7 @@ open import Mugen.Algebra.OrderedMonoid
 module NearlyConst
   {o r}
   (𝒟 : Displacement-algebra o r)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
   private module 𝒟 = Displacement-algebra 𝒟
   open Idx Nat (λ _ → 𝒟)
@@ -254,11 +254,11 @@ module NearlyConst
       index-compacted-inj (raw (x ∷ xs) b1) (raw [] b2) x∷xs-compact []-compact p =
         let xs-compact = tail-is-compact x (raw xs b1) x∷xs-compact in
         let xs=[] = index-compacted-inj (raw xs b1) (raw [] b2) xs-compact []-compact (p ⊙ suc) in
-        absurd $ base-singleton-isnt-compact (p 0) xs=[] x∷xs-compact
+        absurd (base-singleton-isnt-compact (p 0) xs=[] x∷xs-compact)
       index-compacted-inj (raw [] b1) (raw (y ∷ ys) b2) []-compact y∷ys-compact p =
         let ys-compact = tail-is-compact y (raw ys b2) y∷ys-compact in
         let []=ys = index-compacted-inj (raw [] b1) (raw ys b2) []-compact ys-compact (p ⊙ suc) in
-        absurd $ base-singleton-isnt-compact (sym (p 0)) (sym []=ys) y∷ys-compact
+        absurd $ᵢ base-singleton-isnt-compact (sym (p 0)) (sym []=ys) y∷ys-compact
       index-compacted-inj (raw (x ∷ xs) b1) (raw (y ∷ ys) b2) x∷xs-compact y∷ys-compact p =
         let xs-compact = tail-is-compact x (raw xs b1) x∷xs-compact in
         let ys-compact = tail-is-compact y (raw ys b2) y∷ys-compact in
@@ -346,10 +346,10 @@ module NearlyConst
 --------------------------------------------------------------------------------
 -- Bundled Instances
 
-module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
+module _ {o r} (𝒟 : Displacement-algebra o r) ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄ where
   private module 𝒟 = Displacement-algebra 𝒟
   open Idx Nat (λ _ → 𝒟)
-  open NearlyConst 𝒟 _≡?_
+  open NearlyConst 𝒟
 
   NearlyConstant : Displacement-algebra o r
   NearlyConstant = to-displacement-algebra mk where
@@ -386,12 +386,12 @@ module _ {o r} (𝒟 : Displacement-algebra o r) (_≡?_ : Discrete ⌞ 𝒟 ⌟
 --------------------------------------------------------------------------------
 -- Subalgebra Structure
 
-module _ {o r} {𝒟 : Displacement-algebra o r} (_≡?_ : Discrete ⌞ 𝒟 ⌟) where
-  open NearlyConst 𝒟 _≡?_
+module _ {o r} {𝒟 : Displacement-algebra o r} ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄ where
+  open NearlyConst 𝒟
 
-  NearlyConstant⊆IdxProd : is-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
+  NearlyConstant⊆IdxProd : is-displacement-subalgebra (NearlyConstant 𝒟) (IdxProd Nat λ _ → 𝒟)
   NearlyConstant⊆IdxProd = to-displacement-subalgebra mk where
-    mk : make-displacement-subalgebra (NearlyConstant 𝒟 _≡?_) (IdxProd Nat λ _ → 𝒟)
+    mk : make-displacement-subalgebra (NearlyConstant 𝒟) (IdxProd Nat λ _ → 𝒟)
     mk .make-displacement-subalgebra.into = index
     mk .make-displacement-subalgebra.pres-ε = refl
     mk .make-displacement-subalgebra.pres-⊗ xs ys = index-merge xs ys
@@ -405,11 +405,11 @@ module _
   {o r}
   {𝒟 : Displacement-algebra o r}
   (𝒟-ordered-monoid : has-ordered-monoid 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
   private module 𝒟 = Displacement-algebra 𝒟
   open Idx Nat (λ _ → 𝒟)
-  open NearlyConst 𝒟 _≡?_
+  open NearlyConst 𝒟
   open is-ordered-monoid (idx⊗-has-ordered-monoid Nat (λ _ → 𝒟) (λ _ → 𝒟-ordered-monoid))
 
   supp≤-right-invariant : ∀ {xs ys zs} → xs supp≤ ys → merge xs zs supp≤ merge ys zs
@@ -417,8 +417,8 @@ module _
     coe1→0 (λ i → index-merge xs zs i idx≤ index-merge ys zs i) $
     right-invariant xs≤ys
 
-  nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟 _≡?_)
-  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟 _≡?_) $ λ {xs} {ys} {zs} →
+  nearly-constant-has-ordered-monoid : has-ordered-monoid (NearlyConstant 𝒟)
+  nearly-constant-has-ordered-monoid = right-invariant→has-ordered-monoid (NearlyConstant 𝒟) $ λ {xs} {ys} {zs} →
     supp≤-right-invariant {xs} {ys} {zs}
 
 --------------------------------------------------------------------------------
@@ -428,10 +428,10 @@ module NearlyConstJoins
   {o r}
   {𝒟 : Displacement-algebra o r}
   (𝒟-joins : has-joins 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
   open Idx Nat (λ _ → 𝒟)
-  open NearlyConst 𝒟 _≡?_
+  open NearlyConst 𝒟
   private module 𝒟 = Displacement-algebra 𝒟
   private module 𝒥 = has-joins 𝒟-joins
   private module idx𝒥 = has-joins (idx⊗-has-joins Nat (λ _ → 𝒟) (λ _ → 𝒟-joins))
@@ -442,7 +442,7 @@ module NearlyConstJoins
   index-preserves-join : ∀ xs ys → index (join xs ys) ≡ idx𝒥.join (index xs) (index ys)
   index-preserves-join = index-merge-with 𝒥.join
 
-  nearly-constant-has-joins : has-joins (NearlyConstant 𝒟 _≡?_)
+  nearly-constant-has-joins : has-joins (NearlyConstant 𝒟)
   nearly-constant-has-joins .has-joins.join = join
   nearly-constant-has-joins .has-joins.joinl {xs} {ys} n =
     𝒟.≤+=→≤ 𝒥.joinl (sym $ happly (index-preserves-join xs ys) n)
@@ -452,7 +452,7 @@ module NearlyConstJoins
     𝒟.=+≤→≤ (happly (index-preserves-join xs ys) n) (𝒥.universal (xs≤zs n) (ys≤zs n))
 
   nearly-constant-is-subsemilattice : is-displacement-subsemilattice nearly-constant-has-joins (idx⊗-has-joins Nat (λ _ → 𝒟) (λ _ → 𝒟-joins))
-  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆IdxProd _≡?_
+  nearly-constant-is-subsemilattice .is-displacement-subsemilattice.has-displacement-subalgebra = NearlyConstant⊆IdxProd
   nearly-constant-is-subsemilattice .is-displacement-subsemilattice.pres-joins x y = index-preserves-join x y
 
 --------------------------------------------------------------------------------
@@ -462,18 +462,18 @@ module _
   {o r}
   {𝒟 : Displacement-algebra o r}
   (𝒟-bottom : has-bottom 𝒟)
-  (_≡?_ : Discrete ⌞ 𝒟 ⌟)
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
   private module 𝒟 = Displacement-algebra 𝒟
-  open NearlyConst 𝒟 _≡?_
+  open NearlyConst 𝒟
   open has-bottom 𝒟-bottom
 
-  nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟 _≡?_)
+  nearly-constant-has-bottom : has-bottom (NearlyConstant 𝒟)
   nearly-constant-has-bottom .has-bottom.bot = support-list (raw [] bot) (lift tt)
   nearly-constant-has-bottom .has-bottom.is-bottom xs n = is-bottom _
 
   nearly-constant-is-bounded-subalgebra : is-bounded-displacement-subalgebra nearly-constant-has-bottom (idx⊗-has-bottom Nat (λ _ → 𝒟) (λ _ → 𝒟-bottom))
-  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆IdxProd _≡?_
+  nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.has-displacement-subalgebra = NearlyConstant⊆IdxProd
   nearly-constant-is-bounded-subalgebra .is-bounded-displacement-subalgebra.pres-bottom = refl
 
 --------------------------------------------------------------------------------
@@ -484,10 +484,10 @@ module _
 -- So we re-parametrize things with implicit '𝒟' and '_≡?_'.
 module _ {o r}
   {𝒟 : Displacement-algebra o r}
-  {_≡?_ : Discrete ⌞ 𝒟 ⌟}
+  ⦃ _ : Discrete ⌞ 𝒟 ⌟ ⦄
   where
   private module 𝒟 = Displacement-algebra 𝒟
-  open NearlyConst 𝒟 _≡?_
+  open NearlyConst 𝒟
 
   Extensional-SupportList : ∀ {ℓr} ⦃ s : Extensional ⌞ 𝒟 ⌟ ℓr ⦄ → Extensional SupportList ℓr
   Extensional-SupportList ⦃ s ⦄ .Pathᵉ xs ys =
