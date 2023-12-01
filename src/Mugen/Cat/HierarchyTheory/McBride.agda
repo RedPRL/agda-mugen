@@ -71,11 +71,9 @@ import Mugen.Order.Reasoning
 
           d2≤d1 : d2 ≤ d1
           d2≤d1 =
-            d2      ≐⟨ sym idr ⟩
-            d2 ⊗ ε  ≤⟨ left-invariant ε≤e2 ⟩
+            d2      ≤⟨ d2≤d2⊗e2 ⟩
             d2 ⊗ e2 ≐⟨ sym $ ap snd p ⟩
-            d1 ⊗ e1 ≤⟨ left-invariant e1≤ε ⟩
-            d1 ⊗ ε  ≐⟨ idr ⟩
+            d1 ⊗ e1 ≤⟨ d1⊗e1≤d1 ⟩
             d1      ≤∎
 
           d1=d2 : d1 ≡ d2
