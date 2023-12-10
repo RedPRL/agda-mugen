@@ -110,10 +110,15 @@ module _
 --------------------------------------------------------------------------------
 -- Extensionality
 
-module _ {A : Type o} ⦃ _ : H-Level A 2 ⦄ {ε : ⌞ A ⌟} {ℓr} ⦃ s : Extensional (BasedSupportList ⌞ A ⌟) ℓr ⦄ where
+module _ {A : Type o} {ε : ⌞ A ⌟} {ℓr} ⦃ s : Extensional (BasedSupportList ⌞ A ⌟) ℓr ⦄ where
 
-  Extensional-FiniteSupportList : Extensional (SupportList ε) ℓr
-  Extensional-FiniteSupportList = injection→extensional! (supp-to-based-is-injective hlevel!) s
+  Extensional-FiniteSupportList
+    : {@(tactic hlevel-tactic-worker) A-is-set : is-set A}
+    → Extensional (SupportList ε) ℓr
+  Extensional-FiniteSupportList {A-is-set} =
+    injection→extensional!
+      {sb = BasedSupportList-is-hlevel 0 A-is-set}
+      (supp-to-based-is-injective A-is-set) s
 
   instance
     extensionality-finite-support-list : Extensionality (SupportList ε)

@@ -362,11 +362,19 @@ module _
 --------------------------------------------------------------------------------
 -- Extensionality
 
-module _ {A : Type o} ⦃ _ : H-Level A 2 ⦄ {ℓr} ⦃ s : Extensional (Nat → ⌞ A ⌟) ℓr ⦄ where
+module _ {A : Type o} {ℓr} ⦃ s : Extensional (Nat → A) ℓr ⦄ where
 
-  Extensional-BasedSupportList : Extensional (BasedSupportList ⌞ A ⌟) ℓr
-  Extensional-BasedSupportList = injection→extensional! index-injective s
+  Extensional-BasedSupportList
+    : {@(tactic hlevel-tactic-worker) A-is-set : is-set A}
+    → Extensional (BasedSupportList A) ℓr
+  Extensional-BasedSupportList {A-is-set} =
+    injection→extensional! {sb = Π-is-hlevel 2 λ _ → A-is-set} index-injective s
 
   instance
     extensionality-based-support-list : Extensionality (BasedSupportList ⌞ A ⌟)
     extensionality-based-support-list = record { lemma = quote Extensional-BasedSupportList }
+
+private
+  open import Data.Nat
+  _ : (f : BasedSupportList Nat) → f ≡ f
+  _ = λ f → ext λ _ → refl
