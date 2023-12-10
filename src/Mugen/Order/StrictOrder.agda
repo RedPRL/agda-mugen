@@ -17,32 +17,36 @@ record Strictly-monotone (X : Poset o r) (Y : Poset o' r') : Type (o ⊔ o' ⊔ 
   field
     hom : ⌞ X ⌟ → ⌞ Y ⌟
 
-    -- Favonia: this definition is constructively stronger than preserving '<'
-    -- TODO: investigate why or why not this should agree with the nice definition
-    -- in a displacement algebra.
-    pres-< : ∀ {x y} → x X.≤ y → hom x Y.≤[ x ≡ y ] hom y
+    -- Preserving relative inequalities
+    --
+    -- This is morally '∀ {x y} → x X.≤[ x ≡ y ] y → hom x Y.≤[ x ≡ y ] hom y'
+    -- and is equivalent to pres-≤[] below.
+    pres-≤[]-equal : ∀ {x y} → x X.≤ y → hom x Y.≤[ x ≡ y ] hom y
 
   abstract
+    pres-≤[] : ∀ {K : Type r''} {x y} → x X.≤[ K ] y → hom x Y.≤[ K ] hom y
+    pres-≤[] x<y = Σ-map₂ (x<y .snd ⊙_) $ pres-≤[]-equal (x<y .fst)
+
     pres-≤ : ∀ {x y} → x X.≤ y → hom x Y.≤ hom y
-    pres-≤ x≤y = pres-< x≤y .fst
+    pres-≤ x≤y = Y.<→≤ $ pres-≤[] (X.≤→≤[]-equal x≤y)
 
     injective-on-related : ∀ {x y} → x X.≤ y → hom x ≡ hom y → x ≡ y
-    injective-on-related x≤y = pres-< x≤y .snd
+    injective-on-related x≤y = pres-≤[] (x≤y , λ p → p) .snd
 
 abstract
   Strictly-monotone-path
-    : ∀ {o r o' r'} {X : Poset o r} {Y : Poset o' r'}
+    : ∀ {X : Poset o r} {Y : Poset o' r'}
     → (f g : Strictly-monotone X Y)
     → f .Strictly-monotone.hom ≡ g .Strictly-monotone.hom
     → f ≡ g
   Strictly-monotone-path f g p i .Strictly-monotone.hom = p i
-  Strictly-monotone-path {X = X} {Y = Y} f g p i .Strictly-monotone.pres-< {x} {y} x≤y =
+  Strictly-monotone-path {X = X} {Y = Y} f g p i .Strictly-monotone.pres-≤[]-equal {x} {y} x<y =
     let module X = Reasoning X
         module Y = Reasoning Y
     in
     is-prop→pathp
       (λ i → Y.≤[]-is-hlevel {x = p i x} {y = p i y} 0 (X.Ob-is-set x y))
-      (f .Strictly-monotone.pres-< x≤y) (g .Strictly-monotone.pres-< x≤y) i
+      (f .Strictly-monotone.pres-≤[]-equal x<y) (g .Strictly-monotone.pres-≤[]-equal x<y) i
 
 module _ {X : Poset o r} {Y : Poset o' r'} where
   private
@@ -55,7 +59,7 @@ module _ {X : Poset o r} {Y : Poset o' r'} where
       where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone)
 
 Extensional-Strictly-monotone
-  : ∀ {o r o' r' ℓ} {X : Poset o r} {Y : Poset o' r'}
+  : ∀ {ℓ} {X : Poset o r} {Y : Poset o' r'}
   → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
   → Extensional (Strictly-monotone X Y) ℓ
 Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
@@ -71,30 +75,23 @@ instance
   Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
 
   extensionality-strictly-monotone
-    : ∀ {o r o' r'} {X : Poset o r} {Y : Poset o' r'}
+    : ∀ {X : Poset o r} {Y : Poset o' r'}
     → Extensionality (Strictly-monotone X Y)
   extensionality-strictly-monotone = record { lemma = quote Extensional-Strictly-monotone }
 
 strictly-monotone-id : ∀ {o r} {X : Poset o r} → Strictly-monotone X X
 strictly-monotone-id .Strictly-monotone.hom x = x
-strictly-monotone-id .Strictly-monotone.pres-< p .fst = p
-strictly-monotone-id .Strictly-monotone.pres-< p .snd q = q
+strictly-monotone-id .Strictly-monotone.pres-≤[]-equal p = p , λ p → p
 
 strictly-monotone-∘
-  : ∀ {o r o' r' o'' r''} {X : Poset o r} {Y : Poset o' r'} {Z : Poset o'' r''}
+  : ∀ {X : Poset o r} {Y : Poset o' r'} {Z : Poset o'' r''}
   → Strictly-monotone Y Z
   → Strictly-monotone X Y
   → Strictly-monotone X Z
 strictly-monotone-∘ f g .Strictly-monotone.hom x = f # (g # x)
-strictly-monotone-∘ {Z = Z} f g .Strictly-monotone.pres-< {x} {y} p = less where
-  module Z = Reasoning Z
-  gx≤gy = Strictly-monotone.pres-≤ g p
-  abstract
-    less : (f # (g # x)) Z.≤[ x ≡ y ] (f # (g # y))
-    less .fst = Strictly-monotone.pres-≤ f gx≤gy
-    less .snd q =
-      Strictly-monotone.injective-on-related g p $
-      Strictly-monotone.injective-on-related f gx≤gy q
+strictly-monotone-∘ {X = X} f g .Strictly-monotone.pres-≤[]-equal {x} {y} p =
+  Strictly-monotone.pres-≤[] f $ Strictly-monotone.pres-≤[] g (p , λ p → p)
+  where open Reasoning X
 
 --------------------------------------------------------------------------------
 -- A Subobject in StrictOrders
@@ -151,8 +148,8 @@ record represents-full-subposet
 
   strictly-monotone : Strictly-monotone poset B
   strictly-monotone .Strictly-monotone.hom = f
-  strictly-monotone .Strictly-monotone.pres-< p .fst = p
-  strictly-monotone .Strictly-monotone.pres-< p .snd = injective
+  strictly-monotone .Strictly-monotone.pres-≤[]-equal p .fst = p
+  strictly-monotone .Strictly-monotone.pres-≤[]-equal p .snd = injective
 
   has-is-full-subposet : is-full-subposet strictly-monotone
   has-is-full-subposet .is-full-subposet.injective = injective

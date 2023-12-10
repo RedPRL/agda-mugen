@@ -27,8 +27,8 @@ NonPositive = Opposite Nat-poset
 
 NonPositive→Int : Strictly-monotone NonPositive Int-poset
 NonPositive→Int .Strictly-monotone.hom x = - x
-NonPositive→Int .Strictly-monotone.pres-< p .fst = negate-anti-mono _ _ p
-NonPositive→Int .Strictly-monotone.pres-< p .snd = negate-injective _ _
+NonPositive→Int .Strictly-monotone.pres-≤[]-equal p .fst = negate-anti-mono _ _ p
+NonPositive→Int .Strictly-monotone.pres-≤[]-equal p .snd = negate-injective _ _
 
 abstract
   NonPositive→Int-is-full-subposet : is-full-subposet NonPositive→Int

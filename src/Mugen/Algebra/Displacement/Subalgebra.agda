@@ -106,10 +106,6 @@ record represents-full-subdisplacement
     pres-⊗ : ∀ {x y} → f # (x ⊗ y) ≡ f # x Y.⊗ f # y
 
   abstract
-    pres-< : ∀ {x y} → x A.≤ y → f # x B.≤[ x ≡ y ] f # y
-    pres-< {x} {y} x≤y .fst = f.pres-≤ x≤y
-    pres-< {x} {y} x≤y .snd = injective
-
     idl : ∀ {x} → ε ⊗ x ≡ x
     idl {x} = injective $ pres-⊗ ∙ ap (Y._⊗ f # x) pres-ε ∙ Y.idl
 

@@ -24,8 +24,8 @@ Nat-poset .Poset.≤-antisym = ≤-antisym
 
 Nat→Int : Strictly-monotone Nat-poset Int-poset
 Nat→Int .Strictly-monotone.hom = pos
-Nat→Int .Strictly-monotone.pres-< p .fst = p
-Nat→Int .Strictly-monotone.pres-< p .snd = pos-injective
+Nat→Int .Strictly-monotone.pres-≤[]-equal p .fst = p
+Nat→Int .Strictly-monotone.pres-≤[]-equal p .snd = pos-injective
 
 abstract
   Nat→Int-is-full-subposet : is-full-subposet Nat→Int

@@ -29,7 +29,7 @@ import Mugen.Order.Reasoning
   M : Functor (Strict-orders o o) (Strict-orders o o)
   M .F₀ L = L ⋉[ ε ] A
   M .F₁ f .hom (l , d) = (f .hom l) , d
-  M .F₁ {L} {N} f .pres-< {l1 , d1} {l2 , d2} =
+  M .F₁ {L} {N} f .pres-≤[]-equal {l1 , d1} {l2 , d2} =
     ∥-∥-rec (×-is-hlevel 1 squash $ Π-is-hlevel 1 λ _ → Poset.Ob-is-set (M .F₀ L) _ _) λ where
       (biased l1=l2 d1≤d2) → inc (biased (ap (f .hom) l1=l2) d1≤d2) , λ p → ap₂ _,_ l1=l2 (ap snd p)
       (centred l1≤l2 d1≤ε ε≤d2) → inc (centred (pres-≤ f l1≤l2) d1≤ε ε≤d2) , λ p →
@@ -39,12 +39,12 @@ import Mugen.Order.Reasoning
 
   unit : Id => M
   unit .η L .hom l = l , ε
-  unit .η L .pres-< l1≤l2 = inc (centred l1≤l2 ≤-refl ≤-refl) , ap fst
+  unit .η L .pres-≤[]-equal l1≤l2 = inc (centred l1≤l2 ≤-refl ≤-refl) , ap fst
   unit .is-natural L L' f = trivial!
 
   mult : M F∘ M => M
   mult .η L .hom ((l , x) , y) = l , (x ⊗ y)
-  mult .η L .pres-< {(a1 , d1) , e1} {(a2 , d2) , e2} =
+  mult .η L .pres-≤[]-equal {(a1 , d1) , e1} {(a2 , d2) , e2} =
     ∥-∥-rec (×-is-hlevel 1 squash $ Π-is-hlevel 1 λ _ → Poset.Ob-is-set (M .F₀ (M .F₀ L)) _ _) lemma where
       lemma : (M .F₀ L) ⋉[ ε ] A [ ((a1 , d1) , e1) raw≤ ((a2 , d2) , e2) ]
         → (L ⋉[ ε ] A [ (a1 , (d1 ⊗ e1)) ≤ (a2 , (d2 ⊗ e2)) ])
@@ -70,7 +70,7 @@ import Mugen.Order.Reasoning
           a1=a2 = ap fst p
 
           d2≤d1 : d2 ≤ d1
-          d2≤d1 = begin-≤[ lzero ]
+          d2≤d1 = begin-≤
             d2      ≤⟨ d2≤d2⊗e2 ⟩
             d2 ⊗ e2 ≐⟨ sym $ ap snd p ⟩
             d1 ⊗ e1 ≤⟨ d1⊗e1≤d1 ⟩
