@@ -5,7 +5,7 @@ import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
 open import Mugen.Cat.StrictOrders
-open import Mugen.Order.Poset
+open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------
 -- Heirarchy Theories

@@ -1,10 +1,10 @@
 module Mugen.Data.Int where
 
-open import Data.Int.Inductive
+open import Data.Nat
 
 open import Mugen.Prelude
-open import Mugen.Order.Poset
-open import Mugen.Data.Nat
+
+open import Data.Int.Inductive public
 
 --------------------------------------------------------------------------------
 -- General Facts
@@ -111,41 +111,41 @@ abstract
   +ℤ-pos zero y = refl
   +ℤ-pos (suc x) y = ap suc-int $ +ℤ-pos x y
 
-  negate-inj : ∀ x y → (- x) ≡ (- y) → x ≡ y
-  negate-inj zero zero p = refl
-  negate-inj zero (suc y) p = absurd (pos≠negsuc p)
-  negate-inj (suc x) zero p = absurd (pos≠negsuc (sym p))
-  negate-inj (suc x) (suc y) p = ap suc (negsuc-injective p)
+  negate-injective : ∀ x y → (- x) ≡ (- y) → x ≡ y
+  negate-injective zero zero p = refl
+  negate-injective zero (suc y) p = absurd (pos≠negsuc p)
+  negate-injective (suc x) zero p = absurd (pos≠negsuc (sym p))
+  negate-injective (suc x) (suc y) p = ap suc (negsuc-injective p)
 
-  suc-int-inj : ∀ x y → suc-int x ≡ suc-int y → x ≡ y
-  suc-int-inj (pos _) (pos _) p = ap pred-int p
-  suc-int-inj (pos _) (negsuc zero) p = ap pred-int p
-  suc-int-inj (pos _) (negsuc (suc _)) p = ap pred-int p
-  suc-int-inj (negsuc zero) (pos _) p = ap pred-int p
-  suc-int-inj (negsuc zero) (negsuc zero) p = ap pred-int p
-  suc-int-inj (negsuc zero) (negsuc (suc _)) p = ap pred-int p
-  suc-int-inj (negsuc (suc _)) (pos _) p = ap pred-int p
-  suc-int-inj (negsuc (suc _)) (negsuc zero) p = ap pred-int p
-  suc-int-inj (negsuc (suc _)) (negsuc (suc _)) p = ap pred-int p
+  suc-int-injective : ∀ x y → suc-int x ≡ suc-int y → x ≡ y
+  suc-int-injective (pos _) (pos _) p = ap pred-int p
+  suc-int-injective (pos _) (negsuc zero) p = ap pred-int p
+  suc-int-injective (pos _) (negsuc (suc _)) p = ap pred-int p
+  suc-int-injective (negsuc zero) (pos _) p = ap pred-int p
+  suc-int-injective (negsuc zero) (negsuc zero) p = ap pred-int p
+  suc-int-injective (negsuc zero) (negsuc (suc _)) p = ap pred-int p
+  suc-int-injective (negsuc (suc _)) (pos _) p = ap pred-int p
+  suc-int-injective (negsuc (suc _)) (negsuc zero) p = ap pred-int p
+  suc-int-injective (negsuc (suc _)) (negsuc (suc _)) p = ap pred-int p
 
-  pred-int-inj : ∀ x y → pred-int x ≡ pred-int y → x ≡ y
-  pred-int-inj (pos zero) (pos zero) p = ap suc-int p
-  pred-int-inj (pos zero) (pos (suc _)) p = ap suc-int p
-  pred-int-inj (pos zero) (negsuc _) p = ap suc-int p
-  pred-int-inj (pos (suc _)) (pos zero) p = ap suc-int p
-  pred-int-inj (pos (suc _)) (pos (suc _)) p = ap suc-int p
-  pred-int-inj (pos (suc _)) (negsuc _) p = ap suc-int p
-  pred-int-inj (negsuc _) (pos zero) p = ap suc-int p
-  pred-int-inj (negsuc _) (pos (suc _)) p = ap suc-int p
-  pred-int-inj (negsuc _) (negsuc _) p = ap suc-int p
+  pred-int-injective : ∀ x y → pred-int x ≡ pred-int y → x ≡ y
+  pred-int-injective (pos zero) (pos zero) p = ap suc-int p
+  pred-int-injective (pos zero) (pos (suc _)) p = ap suc-int p
+  pred-int-injective (pos zero) (negsuc _) p = ap suc-int p
+  pred-int-injective (pos (suc _)) (pos zero) p = ap suc-int p
+  pred-int-injective (pos (suc _)) (pos (suc _)) p = ap suc-int p
+  pred-int-injective (pos (suc _)) (negsuc _) p = ap suc-int p
+  pred-int-injective (negsuc _) (pos zero) p = ap suc-int p
+  pred-int-injective (negsuc _) (pos (suc _)) p = ap suc-int p
+  pred-int-injective (negsuc _) (negsuc _) p = ap suc-int p
 
-  +ℤ-injr : ∀ k x y → k +ℤ x ≡ k +ℤ y → x ≡ y
-  +ℤ-injr (pos zero) x y p = p
-  +ℤ-injr (pos (suc k)) x y p =
-    +ℤ-injr (pos k) x y $ suc-int-inj (pos k +ℤ x) (pos k +ℤ y) p
-  +ℤ-injr (negsuc zero) x y p = pred-int-inj x y p
-  +ℤ-injr (negsuc (suc k)) x y p =
-    +ℤ-injr (negsuc k) x y $ pred-int-inj (negsuc k +ℤ x) (negsuc k +ℤ y) p
+  +ℤ-injectiver : ∀ k x y → k +ℤ x ≡ k +ℤ y → x ≡ y
+  +ℤ-injectiver (pos zero) x y p = p
+  +ℤ-injectiver (pos (suc k)) x y p =
+    +ℤ-injectiver (pos k) x y $ suc-int-injective (pos k +ℤ x) (pos k +ℤ y) p
+  +ℤ-injectiver (negsuc zero) x y p = pred-int-injective x y p
+  +ℤ-injectiver (negsuc (suc k)) x y p =
+    +ℤ-injectiver (negsuc k) x y $ pred-int-injective (negsuc k +ℤ x) (negsuc k +ℤ y) p
 
 --------------------------------------------------------------------------------
 -- Order
@@ -156,14 +156,11 @@ pos x ≤ℤ negsuc y = ⊥
 negsuc x ≤ℤ pos y = ⊤
 negsuc x ≤ℤ negsuc y = y ≤ x
 
-_<ℤ_ : Int → Int → Type
-_<ℤ_ = strict _≤ℤ_
-
-≤ℤ-refl : ∀ x → x ≤ℤ x
-≤ℤ-refl (pos x) = ≤-refl
-≤ℤ-refl (negsuc x) = ≤-refl
-
 abstract
+  ≤ℤ-refl : ∀ x → x ≤ℤ x
+  ≤ℤ-refl (pos x) = ≤-refl
+  ≤ℤ-refl (negsuc x) = ≤-refl
+
   ≤ℤ-trans : ∀ x y z → x ≤ℤ y → y ≤ℤ z → x ≤ℤ z
   ≤ℤ-trans (pos x) (pos y) (pos z) x≤y y≤z = ≤-trans x≤y y≤z
   ≤ℤ-trans (negsuc x) (pos y) (pos z) x≤y y≤z = tt
@@ -245,15 +242,14 @@ abstract
   negate-anti-mono zero zero _ = 0≤x
   negate-anti-mono zero (suc y) x≤y = tt
   negate-anti-mono (suc x) (suc y) (s≤s x≤y) = x≤y
-
--------------------------------------------------------------------------------
--- Bundles
-
-ℤ-Strict-order : Poset lzero lzero
-ℤ-Strict-order = to-poset mk where
-  mk : make-poset _ _
-  mk .make-poset._≤_ = _≤ℤ_
-  mk .make-poset.≤-refl = ≤ℤ-refl _
-  mk .make-poset.≤-trans = ≤ℤ-trans _ _ _
-  mk .make-poset.≤-thin = ≤ℤ-is-prop _ _
-  mk .make-poset.≤-antisym = ≤ℤ-antisym _ _
+  
+  negate-anti-full : ∀ x y → (- y) ≤ℤ (- x) → x ≤ y
+  negate-anti-full zero _ _ = 0≤x
+  negate-anti-full (suc x) zero ()
+  negate-anti-full (suc x) (suc y) x≤y = (s≤s x≤y)
+  
+  negate-min : ∀ x y → - (min x y) ≡ maxℤ (- x) (- y)
+  negate-min zero zero = refl
+  negate-min zero (suc y) = refl
+  negate-min (suc x) zero = refl
+  negate-min (suc x) (suc y) = refl

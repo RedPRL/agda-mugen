@@ -5,10 +5,6 @@ open import Algebra.Monoid
 open import Algebra.Semigroup
 
 open import Mugen.Prelude
-open import Mugen.Order.Poset
-
-import Mugen.Data.Nat as Nat
-
 
 private variable
   o r : Level
@@ -26,7 +22,7 @@ record is-ordered-monoid {o r}
   open Poset A
   field
     has-is-monoid : is-monoid ε _⊗_
-    invariant     : ∀ {w x y z} → w ≤ y → x ≤ z → (w ⊗ x) ≤ (y ⊗ z)
+    invariant : ∀ {w x y z} → w ≤ y → x ≤ z → (w ⊗ x) ≤ (y ⊗ z)
 
   open is-monoid has-is-monoid public
 
