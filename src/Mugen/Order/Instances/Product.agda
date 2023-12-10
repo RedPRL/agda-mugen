@@ -17,9 +17,6 @@ module _ (A : Poset o r) (B : Poset o' r') where
     module A = Reasoning A
     module B = Reasoning B
 
-  Product : Poset (o ⊔ o') (r ⊔ r')
-  Product = poset where
-
     _≤_ : ∀ (x y :  ⌞ A ⌟ × ⌞ B ⌟) → Type (r ⊔ r')
     _≤_ x y = (x .fst A.≤ y .fst) × (x .snd B.≤ y .snd)
 
@@ -36,13 +33,13 @@ module _ (A : Poset o r) (B : Poset o' r') where
       ≤-antisym : ∀ x y → x ≤ y → y ≤ x → x ≡ y
       ≤-antisym _ _ (x1≤y1 , x2≤y2) (y1≤z1 , y2≤z2) i = A.≤-antisym x1≤y1 y1≤z1 i , B.≤-antisym x2≤y2 y2≤z2 i
 
-    poset : Poset _ _
-    poset .Poset.Ob = ⌞ A ⌟ × ⌞ B ⌟
-    poset .Poset._≤_ = _≤_
-    poset .Poset.≤-thin = ≤-thin _ _
-    poset .Poset.≤-refl = ≤-refl _
-    poset .Poset.≤-trans = ≤-trans _ _ _
-    poset .Poset.≤-antisym = ≤-antisym _ _
+  Product : Poset (o ⊔ o') (r ⊔ r')
+  Product .Poset.Ob = ⌞ A ⌟ × ⌞ B ⌟
+  Product .Poset._≤_ = _≤_
+  Product .Poset.≤-thin = ≤-thin _ _
+  Product .Poset.≤-refl = ≤-refl _
+  Product .Poset.≤-trans = ≤-trans _ _ _
+  Product .Poset.≤-antisym = ≤-antisym _ _
 
 module _ {A : Poset o r} {B : Poset o' r'} where
   private
