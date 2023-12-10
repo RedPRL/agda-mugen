@@ -4,7 +4,6 @@ open import Cat.Diagram.Monad
 import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
-open import Mugen.Order.Poset
 
 --------------------------------------------------------------------------------
 -- Misc. Lemmas for Monads

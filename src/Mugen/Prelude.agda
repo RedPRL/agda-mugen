@@ -1,6 +1,7 @@
 module Mugen.Prelude where
 
-open import Cat.Prelude public
+open import Cat.Prelude hiding (injective) public
+open import Order.Base hiding (Monotone; hom; pres-≤) public
 open import Data.Sum public
 open import Data.Dec public
 
@@ -26,13 +27,16 @@ dec-map : ∀ {ℓ ℓ′} {P : Type ℓ} {Q : Type ℓ′} → (P → Q) → (Q
 dec-map to from (yes p) = yes (to p)
 dec-map to from (no ¬p) = no (λ q → ¬p (from q))
 
+--------------------------------------------------------------------------------
+-- Actions
+
 record
   Right-actionlike {ℓ ℓ' ℓ''} {A : Type ℓ} {B : Type ℓ'}
     ⦃ au : Underlying A ⦄ ⦃ bu : Underlying B ⦄
     (F : A → B → Type ℓ'') : Typeω where
   field
     ⟦_⟧ʳ : ∀ {A B} → F A B → ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
-    extʳ : ∀ {A B} {f g : F A B} → (∀ x y → ⟦ f ⟧ʳ x y ≡ ⟦ g ⟧ʳ x y) → f ≡ g
+    extʳ : ∀ {A B} {f g : F A B} → (∀ {x y} → ⟦ f ⟧ʳ x y ≡ ⟦ g ⟧ʳ x y) → f ≡ g
 
 open Right-actionlike ⦃...⦄ public
 
