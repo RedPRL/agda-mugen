@@ -10,6 +10,8 @@ This is a formalization of the displacement algebras, their properties, and part
 
 ### Displacement Algebras
 
+🚧 The links are currently broken.
+
 | Displacements                         | Paper Section   | Agda Module                                                                         | OCaml Module(s)                                                                                                                                                     |
 | :------------------------------------ | :-------------- | :---------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Natural numbers                       | 3.3.1           | [Nat](src/Mugen/Algebra/Displacement/Nat.agda)                                      | [Nat](https://redprl.org/mugen/mugen/Mugen/Shift/Nat) and [Nat](https://redprl.org/mugen/mugen/Mugen/ShiftWithJoin/Nat)                                             |
@@ -27,6 +29,8 @@ This is a formalization of the displacement algebras, their properties, and part
 | Endomorphisms                         | 3.4 (Lemma 3.7) | [Endomorphism](src/Mugen/Algebra/Displacement/Endomorphism.agda)                    | _(not implementable)_                                                                                                                                               |
 
 ### Other Theorems
+
+🚧 The links are currently broken.
 
 | Theorems                              | Paper Section      | Agda Module                                                                                      |
 | :------------------------------------ | :----------------- | :----------------------------------------------------------------------------------------------- |
