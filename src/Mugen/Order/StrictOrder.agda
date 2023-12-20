@@ -69,10 +69,10 @@ Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
     (Strictly-monotone-path _ _) sa
 
 instance
-  Funlike-strictly-monotone : Funlike (Strictly-monotone {o} {r} {o'} {r'})
-  Funlike-strictly-monotone .Funlike.au = Underlying-Poset
-  Funlike-strictly-monotone .Funlike.bu = Underlying-Poset
-  Funlike-strictly-monotone .Funlike._#_ = Strictly-monotone.hom
+  Funlike-Strictly-monotone : Funlike (Strictly-monotone {o} {r} {o'} {r'})
+  Funlike-Strictly-monotone .Funlike.au = Underlying-Poset
+  Funlike-Strictly-monotone .Funlike.bu = Underlying-Poset
+  Funlike-Strictly-monotone .Funlike._#_ = Strictly-monotone.hom
 
   extensionality-strictly-monotone
     : ∀ {X : Poset o r} {Y : Poset o' r'}

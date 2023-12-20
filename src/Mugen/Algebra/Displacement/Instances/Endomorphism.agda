@@ -48,8 +48,8 @@ module _ (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
 
     ∘-left-strict-invariant : ∀ (σ δ τ : Endomorphism-type)
       → δ Endo.≤ τ → σ EM.∘ δ Endo.≤[ δ ≡ τ ] σ EM.∘ τ
-    ∘-left-strict-invariant σ δ τ (lift δ≤τ) =
-      (lift λ α → Strictly-monotone.pres-≤ (σ .morphism) (δ≤τ α)) ,
+    ∘-left-strict-invariant σ δ τ δ≤τ =
+      (λ α → Strictly-monotone.pres-≤ (σ .morphism) (δ≤τ α)) ,
       λ p → free-algebra-hom-path H $ ext λ α →
       Strictly-monotone.injective-on-related (σ .morphism) (δ≤τ α) (p #ₚ (H.unit.η Δ # α))
 

@@ -11,6 +11,9 @@ open import Mugen.Cat.Monad
 
 import Mugen.Order.Reasoning as Reasoning
 
+private variable
+  o o' r r' : Level
+
 --------------------------------------------------------------------------------
 -- Endomorphism Posets
 -- Section 3.4
@@ -20,7 +23,7 @@ import Mugen.Order.Reasoning as Reasoning
 -- free H-algebras in the Eilenberg-Moore category.
 open Algebra-hom
 
-module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
+module _ (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
 
   open Monad H renaming (M₀ to H₀; M₁ to H₁)
   open Cat (Eilenberg-Moore (Strict-orders o r) H)
@@ -36,28 +39,24 @@ module _ {o r} (H : Monad (Strict-orders o r)) (Δ : Poset o r) where
     --------------------------------------------------------------------------------
     -- Order
 
-    -- Favonia: the following "HACK" note was added when we were using records
-    -- to define 'endo[_≤_]'. The accuracy of the note should be checked again.
-    -- > HACK: We could make this live in a lower universe level,
-    -- > but then we can't construct a hierarchy theory from it without an annoying lift.
-    endo[_≤_] : ∀ (σ δ : Endomorphism-type) → Type (lsuc o ⊔ lsuc r)
-    endo[_≤_] σ δ = Lift _ ((α : ⌞ Δ ⌟) → σ # (unit.η Δ # α) H⟨Δ⟩.≤ δ # (unit.η Δ # α))
+    endo[_≤_] : ∀ (σ δ : Endomorphism-type) → Type (o ⊔ r)
+    endo[_≤_] σ δ = (α : ⌞ Δ ⌟) → σ # (unit.η Δ # α) H⟨Δ⟩.≤ δ # (unit.η Δ # α)
 
     abstract
       endo≤-thin : ∀ σ δ → is-prop endo[ σ ≤ δ ]
       endo≤-thin σ δ = hlevel 1
 
       endo≤-refl : ∀ σ → endo[ σ ≤ σ ]
-      endo≤-refl σ = lift λ _ → H⟨Δ⟩.≤-refl
+      endo≤-refl σ _ = H⟨Δ⟩.≤-refl
 
       endo≤-trans : ∀ σ δ τ → endo[ σ ≤ δ ] → endo[ δ ≤ τ ] → endo[ σ ≤ τ ]
-      endo≤-trans σ δ τ (lift σ≤δ) (lift δ≤τ) = lift λ α → H⟨Δ⟩.≤-trans (σ≤δ α) (δ≤τ α)
+      endo≤-trans σ δ τ σ≤δ δ≤τ α = H⟨Δ⟩.≤-trans (σ≤δ α) (δ≤τ α)
 
       endo≤-antisym : ∀ σ δ → endo[ σ ≤ δ ] → endo[ δ ≤ σ ] → σ ≡ δ
-      endo≤-antisym σ δ (lift σ≤δ) (lift δ≤σ) = free-algebra-hom-path H $ ext λ α →
+      endo≤-antisym σ δ σ≤δ δ≤σ = free-algebra-hom-path H $ ext λ α →
         H⟨Δ⟩.≤-antisym (σ≤δ α) (δ≤σ α)
 
-  Endomorphism : Poset (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r)
+  Endomorphism : Poset (lsuc o ⊔ lsuc r) (o ⊔ r)
   Endomorphism .Poset.Ob = Endomorphism-type
   Endomorphism .Poset._≤_ = endo[_≤_]
   Endomorphism .Poset.≤-thin {σ} {δ} = endo≤-thin σ δ
