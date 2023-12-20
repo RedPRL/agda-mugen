@@ -1,4 +1,6 @@
 -- vim: nowrap
+open import Order.Instances.Discrete
+
 open import Cat.Prelude
 open import Cat.Functor.Base
 open import Cat.Functor.Properties
@@ -23,7 +25,6 @@ open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomor
 open import Mugen.Order.Instances.Coproduct
 open import Mugen.Order.Instances.LeftInvariantRightCentered
 open import Mugen.Order.Instances.Singleton
-open import Mugen.Order.Instances.Discrete
 
 import Mugen.Order.Reasoning as Reasoning
 
