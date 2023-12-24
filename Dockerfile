@@ -31,7 +31,7 @@ FROM alpine AS onelab
 RUN apk add --no-cache git
 
 WORKDIR /dist/1lab
-ARG ONELAB_VERSION=47c2a96220b4d14419e5ddb973bc1fa06933e723
+ARG ONELAB_VERSION=299cddcece8b3914c1dd0ef499082ec36899eb0e
 RUN \
   git init && \
   git remote add origin https://github.com/plt-amy/1lab && \
