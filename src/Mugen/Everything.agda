@@ -27,7 +27,6 @@ import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
 import Mugen.Cat.Monad
 import Mugen.Cat.StrictOrders
-import Mugen.Data.Int
 import Mugen.Data.List
 import Mugen.Data.NonEmpty
 import Mugen.Order.Instances.BasedSupport

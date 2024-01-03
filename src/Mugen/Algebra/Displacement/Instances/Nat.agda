@@ -1,6 +1,7 @@
 module Mugen.Algebra.Displacement.Instances.Nat where
 
 open import Data.Nat
+open import Data.Int
 
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
@@ -9,8 +10,6 @@ open import Mugen.Algebra.Displacement.Instances.Int
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Nat
 open import Mugen.Order.Instances.Int
-
-open import Mugen.Data.Int
 
 --------------------------------------------------------------------------------
 -- Natural Numbers
@@ -47,7 +46,7 @@ Nat→Int-is-full-subdisplacement
 Nat→Int-is-full-subdisplacement = to-full-subdisplacement mk where
   mk : make-full-subdisplacement Nat-displacement Int-displacement Nat→Int
   mk .make-full-subdisplacement.injective = pos-injective
-  mk .make-full-subdisplacement.full p = p
+  mk .make-full-subdisplacement.full (pos≤pos p) = p
   mk .make-full-subdisplacement.pres-ε = refl
-  mk .make-full-subdisplacement.pres-⊗ {x} {y} = +ℤ-pos x y
-  mk .make-full-subdisplacement.pres-≤ p = p
+  mk .make-full-subdisplacement.pres-⊗ = refl
+  mk .make-full-subdisplacement.pres-≤ p = pos≤pos p

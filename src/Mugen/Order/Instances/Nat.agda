@@ -1,9 +1,10 @@
 module Mugen.Order.Instances.Nat where
 
 open import Data.Nat
+import Data.Int as Int
+open import Order.Instances.Int
 
 open import Mugen.Prelude
-open import Mugen.Data.Int
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Lattice
 open import Mugen.Order.Instances.Int
@@ -23,14 +24,14 @@ Nat-poset .Poset.≤-antisym = ≤-antisym
 -- Inclusion to Int-poset
 
 Nat→Int : Strictly-monotone Nat-poset Int-poset
-Nat→Int .Strictly-monotone.hom = pos
-Nat→Int .Strictly-monotone.pres-≤[]-equal p .fst = p
-Nat→Int .Strictly-monotone.pres-≤[]-equal p .snd = pos-injective
+Nat→Int .Strictly-monotone.hom = Int.Int.pos
+Nat→Int .Strictly-monotone.pres-≤[]-equal p .fst = Int.pos≤pos p
+Nat→Int .Strictly-monotone.pres-≤[]-equal p .snd = Int.pos-injective
 
 abstract
   Nat→Int-is-full-subposet : is-full-subposet Nat→Int
-  Nat→Int-is-full-subposet .is-full-subposet.injective = pos-injective
-  Nat→Int-is-full-subposet .is-full-subposet.full p = p
+  Nat→Int-is-full-subposet .is-full-subposet.injective = Int.pos-injective
+  Nat→Int-is-full-subposet .is-full-subposet.full (Int.pos≤pos p) = p
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -39,7 +40,7 @@ Nat-has-joins : has-joins Nat-poset
 Nat-has-joins .has-joins.join = max
 Nat-has-joins .has-joins.joinl = max-≤l _ _
 Nat-has-joins .has-joins.joinr = max-≤r _ _
-Nat-has-joins .has-joins.universal = max-is-lub _ _ _
+Nat-has-joins .has-joins.universal = max-univ _ _ _
 
 abstract
   Nat→Int-is-subsemilattice : is-full-subsemilattice Nat-has-joins Int-has-joins Nat→Int

@@ -1,5 +1,7 @@
 module Mugen.Algebra.Displacement.Instances.NonPositive where
 
+open import Data.Int
+
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Subalgebra
@@ -9,8 +11,6 @@ open import Mugen.Algebra.Displacement.Instances.Opposite
 
 open import Mugen.Order.Instances.NonPositive
   renaming (NonPositive to NonPositive-poset)
-
-open import Mugen.Data.Int
 
 --------------------------------------------------------------------------------
 -- The Non-Positive Integers
@@ -30,7 +30,8 @@ NonPositive→Int-is-full-subdisplacement
 NonPositive→Int-is-full-subdisplacement = to-full-subdisplacement subalg where
   subalg : make-full-subdisplacement NonPositive Int-displacement NonPositive→Int
   subalg .make-full-subdisplacement.pres-ε = refl
-  subalg .make-full-subdisplacement.pres-⊗ {x} {y} = +ℤ-negate x y
-  subalg .make-full-subdisplacement.pres-≤ {x} {y} = negate-anti-mono y x
-  subalg .make-full-subdisplacement.injective = negate-injective _ _
-  subalg .make-full-subdisplacement.full {x} {y} = negate-anti-full y x
+  subalg .make-full-subdisplacement.pres-⊗ {x} {y} = negℤ-distrib (pos x) (pos y)
+  subalg .make-full-subdisplacement.pres-≤ {x} {y} p = negℤ-anti (pos y) (pos x) (pos≤pos p)
+  subalg .make-full-subdisplacement.injective p = pos-injective $ negℤ-injective _ _ p
+  subalg .make-full-subdisplacement.full {x} {y} p
+    with pos≤pos y≤x ← negℤ-anti-full (pos y) (pos x) p = y≤x
