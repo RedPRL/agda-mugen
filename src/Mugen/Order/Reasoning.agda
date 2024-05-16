@@ -41,11 +41,13 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
     ≤[]-is-hlevel n hb =
       ×-is-hlevel (1 + n) (is-prop→is-hlevel-suc ≤-thin) $ Π-is-hlevel (1 + n) λ _ → hb
 
+  {-
   instance
     H-Level-≤[] : ∀ {r'} {K : Type r'} {n k : Nat} {x y}
       → ⦃ H-Level K (1 + n) ⦄ → H-Level (x ≤[ K ] y) (1 + n + k)
     H-Level-≤[] {n = n} ⦃ hb ⦄ =
       basic-instance (1 + n) $ ≤[]-is-hlevel n (hb .H-Level.has-hlevel)
+  -}
 
   _<_ : Ob → Ob → Type (o ⊔ r)
   x < y = x ≤[ ⊥ ] y
@@ -67,7 +69,7 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
     <-trans x<y y<z = Σ-map₂ (fst ⊙_) $ ≤[]-trans x<y y<z
 
     <-is-prop : ∀ {x y} → is-prop (x < y)
-    <-is-prop {x} {y} = hlevel!
+    <-is-prop {x} {y} = hlevel 1
 
     ≤[]-asym : ∀ {x y} {K K' : Type r'} → x ≤[ K ] y → y ≤[ K' ] x → K × K'
     ≤[]-asym x<y y<x = <-irrefl (≤[]-trans x<y y<x)

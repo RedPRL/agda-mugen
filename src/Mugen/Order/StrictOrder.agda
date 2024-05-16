@@ -55,29 +55,21 @@ module _ {X : Poset o r} {Y : Poset o' r'} where
 
   abstract instance
     H-Level-Strictly-monotone : ∀ {n} → H-Level (Strictly-monotone X Y) (2 + n)
-    H-Level-Strictly-monotone = basic-instance 2 $ Iso→is-hlevel 2 eqv hlevel!
+    H-Level-Strictly-monotone = basic-instance 2 $ Iso→is-hlevel 2 eqv (hlevel 2)
       where unquoteDecl eqv = declare-record-iso eqv (quote Strictly-monotone)
 
-Extensional-Strictly-monotone
-  : ∀ {ℓ} {X : Poset o r} {Y : Poset o' r'}
-  → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
-  → Extensional (Strictly-monotone X Y) ℓ
-Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
-  injection→extensional!
-    {sb = Π-is-hlevel 2 λ _ → Poset.Ob-is-set Y}
-    {f = Strictly-monotone.hom}
-    (Strictly-monotone-path _ _) sa
-
 instance
-  Funlike-Strictly-monotone : Funlike (Strictly-monotone {o} {r} {o'} {r'})
-  Funlike-Strictly-monotone .Funlike.au = Underlying-Poset
-  Funlike-Strictly-monotone .Funlike.bu = Underlying-Poset
-  Funlike-Strictly-monotone .Funlike._#_ = Strictly-monotone.hom
+  Extensional-Strictly-monotone
+    : ∀ {ℓ} {X : Poset o r} {Y : Poset o' r'}
+    → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
+    → Extensional (Strictly-monotone X Y) ℓ
+  Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
+    injection→extensional!
+      {f = Strictly-monotone.hom}
+      (Strictly-monotone-path _ _) sa
 
-  extensionality-strictly-monotone
-    : ∀ {X : Poset o r} {Y : Poset o' r'}
-    → Extensionality (Strictly-monotone X Y)
-  extensionality-strictly-monotone = record { lemma = quote Extensional-Strictly-monotone }
+  Funlike-Strictly-monotone : {X : Poset o r} {Y : Poset o' r'} → Funlike (Strictly-monotone X Y) ⌞ X ⌟ λ _ → ⌞ Y ⌟
+  Funlike-Strictly-monotone .Funlike._#_ = Strictly-monotone.hom
 
 strictly-monotone-id : ∀ {o r} {X : Poset o r} → Strictly-monotone X X
 strictly-monotone-id .Strictly-monotone.hom x = x

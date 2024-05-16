@@ -71,7 +71,7 @@ module List⁺-Path {ℓ} {A : Type ℓ} where
 open List⁺-Path
 
 List⁺-is-hlevel : (n : Nat) → is-hlevel A (2 + n) → is-hlevel (List⁺ A) (2 + n)
-List⁺-is-hlevel {A = A} n ahl x y = is-hlevel≃ (suc n) Path≃Code List⁺-Code-is-hlevel where
+List⁺-is-hlevel {A = A} n ahl x y = Equiv→is-hlevel (suc n) Path≃Code List⁺-Code-is-hlevel where
   List⁺-Code-is-hlevel : ∀ {xs ys : List⁺ A} → is-hlevel (Code xs ys) (suc n)
   List⁺-Code-is-hlevel {xs = [ x ]} {ys = [ y ]} = ahl x y
   List⁺-Code-is-hlevel {xs = [ x ]} {ys = y ∷ ys} = is-prop→is-hlevel-suc (λ x → absurd (Lift.lower x))

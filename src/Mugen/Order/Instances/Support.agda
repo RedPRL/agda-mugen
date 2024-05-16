@@ -43,11 +43,14 @@ module _ {A : Type o} (A-set : is-set A) {ε : ⌞ A ⌟} where
 
     SupportList-is-set : is-set (SupportList ε)
     SupportList-is-set =
-      is-hlevel≃ 2 (Iso→Equiv eqv) $
+      Equiv→is-hlevel 2 (Iso→Equiv eqv) $
       Σ-is-hlevel 2 (BasedSupportList-is-hlevel 0 A-set) λ _ →
       Path-is-hlevel 2 A-set
       where
         unquoteDecl eqv = declare-record-iso eqv (quote SupportList)
+
+  abstract instance
+
 
 module _ {A : Type o} where
   open SupportList
@@ -112,14 +115,9 @@ module _
 
 module _ {A : Type o} {ε : ⌞ A ⌟} {ℓr} ⦃ s : Extensional (BasedSupportList ⌞ A ⌟) ℓr ⦄ where
 
-  Extensional-FiniteSupportList
-    : {@(tactic hlevel-tactic-worker) A-is-set : is-set A}
-    → Extensional (SupportList ε) ℓr
-  Extensional-FiniteSupportList {A-is-set} =
-    injection→extensional!
-      {sb = BasedSupportList-is-hlevel 0 A-is-set}
-      (supp-to-based-is-injective A-is-set) s
-
   instance
-    extensionality-finite-support-list : Extensionality (SupportList ε)
-    extensionality-finite-support-list = record { lemma = quote Extensional-FiniteSupportList }
+    Extensional-FiniteSupportList
+      : ⦃ A-is-set : H-Level A 2 ⦄
+      → Extensional (SupportList ε) ℓr
+    Extensional-FiniteSupportList ⦃ hlevel-instance A-is-set ⦄ =
+      injection→extensional! (supp-to-based-is-injective A-is-set) s
