@@ -91,7 +91,6 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
     ht .Monad.M = M
     ht .Monad.unit = unit
     ht .Monad.mult = mult
-    ht .Monad.left-ident = ext λ (α , d) → (refl , idl {d})
-    ht .Monad.right-ident = ext λ (α , d) → (refl , idr {d})
-    ht .Monad.mult-assoc = ext λ where
-      (((α , d1) , d2) , d3) → (refl , sym (associative {d1} {d2} {d3}))
+    ht .Monad.left-ident = ext λ α d → (refl , idl {d})
+    ht .Monad.right-ident = ext λ α d → (refl , idr {d})
+    ht .Monad.mult-assoc = ext λ α d1 d2 d3 → (refl , sym (associative {d1} {d2} {d3}))

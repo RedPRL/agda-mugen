@@ -57,17 +57,12 @@ raw-path p q i .base = q i
 
 -- Lemmas about hlevel
 module _ {A : Type o} where
-  abstract
-    RawList-is-hlevel : (n : Nat) → is-hlevel A (2 + n) → is-hlevel (RawList A) (2 + n)
-    RawList-is-hlevel n A-is-hlevel =
-      is-hlevel≃ (2 + n) (Iso→Equiv raw-eqv) $
-      ×-is-hlevel (2 + n) (ListPath.List-is-hlevel n A-is-hlevel) A-is-hlevel
+  abstract instance
+    H-Level-RawList : {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (RawList A) (2 + n)
+    H-Level-RawList {n} = hlevel-instance $
+      Equiv→is-hlevel (2 + n) (Iso→Equiv raw-eqv) $ hlevel (2 + n)
       where
         unquoteDecl raw-eqv = declare-record-iso raw-eqv (quote RawList)
-
-  instance
-    decomp-RawList : hlevel-decomposition (RawList A)
-    decomp-RawList = decomp (quote RawList-is-hlevel) (`level-minus 2 ∷ `search ∷ [])
 
 -- Operations and properties for raw support lists
 module Raw {A : Type o} where
@@ -255,18 +250,14 @@ module _ {A : Type o} where
     based-support-list-path {xs = xs} {ys = ys} p i .has-is-compact =
       is-prop→pathp (λ i → Raw.is-compact-is-prop (p i)) (xs .has-is-compact) (ys .has-is-compact) i
 
-    BasedSupportList-is-hlevel : (n : Nat)
-      → is-hlevel A (2 + n) → is-hlevel (BasedSupportList A) (2 + n)
-    BasedSupportList-is-hlevel n A-is-hlevel =
-      is-hlevel≃ (2 + n) (Iso→Equiv eqv) $
-      Σ-is-hlevel (2 + n) (RawList-is-hlevel n A-is-hlevel) λ xs →
+  abstract instance
+    H-Level-BasedSupportList : ∀ {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (BasedSupportList A) (2 + n)
+    H-Level-BasedSupportList {n} = hlevel-instance $
+      Equiv→is-hlevel (2 + n) (Iso→Equiv eqv) $
+      Σ-is-hlevel (2 + n) (hlevel (2 + n)) λ xs →
       is-prop→is-hlevel-suc {n = 1 + n} (Raw.is-compact-is-prop xs)
       where
         unquoteDecl eqv = declare-record-iso eqv (quote BasedSupportList)
-
-  instance
-    decomp-BasedSupportList : hlevel-decomposition (BasedSupportList A)
-    decomp-BasedSupportList = decomp (quote BasedSupportList-is-hlevel) (`level-minus 2 ∷ `search ∷ [])
 
   index : BasedSupportList A → (Nat → A)
   index xs = Raw.index (xs .list)
@@ -364,15 +355,12 @@ module _
 
 module _ {A : Type o} {ℓr} ⦃ s : Extensional (Nat → A) ℓr ⦄ where
 
-  Extensional-BasedSupportList
-    : {@(tactic hlevel-tactic-worker) A-is-set : is-set A}
-    → Extensional (BasedSupportList A) ℓr
-  Extensional-BasedSupportList {A-is-set} =
-    injection→extensional! {sb = Π-is-hlevel 2 λ _ → A-is-set} index-injective s
-
   instance
-    extensionality-based-support-list : Extensionality (BasedSupportList ⌞ A ⌟)
-    extensionality-based-support-list = record { lemma = quote Extensional-BasedSupportList }
+    Extensional-BasedSupportList
+      : ⦃ A-is-set : H-Level A 2 ⦄
+      → Extensional (BasedSupportList A) ℓr
+    Extensional-BasedSupportList ⦃ A-is-set ⦄ =
+      injection→extensional! index-injective s
 
 private
   open import Data.Nat

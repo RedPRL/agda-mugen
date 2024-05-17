@@ -43,20 +43,6 @@ open Right-actionlike ⦃...⦄ public
 --------------------------------------------------------------------------------
 -- Misc.
 
-subst₂ : ∀ {ℓ₁ ℓ₂ ℓ₃} {A : Type ℓ₁} {B : Type ℓ₂} (P : A → B → Type ℓ₃) {a1 a2 : A} {b1 b2 : B}
-       → a1 ≡ a2 → b1 ≡ b2 → P a1 b1 → P a2 b2
-subst₂ P p q x = coe0→1 (λ i → P (p i) (q i)) x
-
-record Reveal_·_is_ {a b} {A : Type a} {B : A → Type b}
-                    (f : (x : A) → B x) (x : A) (y : B x) :
-                    Type (a ⊔ b) where
-  constructor evidence
-  field eq : f x ≡ y
-
-remember : ∀ {a b} {A : Type a} {B : A → Type b}
-          (f : (x : A) → B x) (x : A) → Reveal f · x is f x
-remember f x = evidence refl
-
 infixr -1 _|>_
 
 _|>_ : ∀ {ℓ₁ ℓ₂} {A : Type ℓ₁} {B : A → Type ℓ₂} → (x : A) → ((x : A) → B x) → B x
@@ -74,4 +60,4 @@ identity-system-hlevel
   → is-hlevel A (suc n)
   → ∀ {x y : A} → is-hlevel (R x y) n
 identity-system-hlevel n ids hl {x} {y} =
-  is-hlevel≃ n (identity-system-gives-path ids) (Path-is-hlevel' n hl x y)
+  Equiv→is-hlevel n (identity-system-gives-path ids) (Path-is-hlevel' n hl x y)

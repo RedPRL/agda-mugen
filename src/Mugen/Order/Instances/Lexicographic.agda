@@ -28,7 +28,7 @@ module _ (A : Poset o r) (B : Poset o' r') where
 
     abstract
       ≤-thin : ∀ x y → is-prop (x ≤ y)
-      ≤-thin x y = hlevel!
+      ≤-thin x y = hlevel 1
 
       ≤-refl : ∀ x → x ≤ x
       ≤-refl x = A.≤-refl , λ _ → B.≤-refl
