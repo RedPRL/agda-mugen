@@ -1,5 +1,6 @@
 -- vim: nowrap
 open import Order.Instances.Discrete
+open import Order.Instances.Coproduct
 
 open import Cat.Prelude
 open import Cat.Functor.Base
@@ -22,7 +23,6 @@ open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
-open import Mugen.Order.Instances.Coproduct
 open import Mugen.Order.Instances.LeftInvariantRightCentered
 open import Mugen.Order.Instances.Singleton
 
@@ -57,7 +57,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     module H = Monad H
 
     Δ⁺ : Poset o r
-    Δ⁺ = Coproduct ◆ (Coproduct Δ Δ)
+    Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
 
     H⟨Δ⟩ : Poset o r
     H⟨Δ⟩ = H.M₀ Δ

@@ -31,7 +31,6 @@ import Mugen.Data.List
 import Mugen.Data.NonEmpty
 import Mugen.Order.Instances.BasedSupport
 import Mugen.Order.Instances.Copower
-import Mugen.Order.Instances.Coproduct
 import Mugen.Order.Instances.Endomorphism
 import Mugen.Order.Instances.Fractal
 import Mugen.Order.Instances.Int

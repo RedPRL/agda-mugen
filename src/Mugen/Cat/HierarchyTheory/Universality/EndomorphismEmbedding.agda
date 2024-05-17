@@ -1,5 +1,6 @@
 -- vim: nowrap
 open import Order.Instances.Discrete
+open import Order.Instances.Coproduct
 
 open import Cat.Prelude
 open import Cat.Functor.Base
@@ -21,7 +22,6 @@ open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
-open import Mugen.Order.Instances.Coproduct
 open import Mugen.Order.Instances.LeftInvariantRightCentered
 open import Mugen.Order.Instances.Singleton
 
@@ -54,7 +54,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     module H = Monad H
 
     Δ⁺ : Poset o r
-    Δ⁺ = Coproduct ◆ (Coproduct Δ Δ)
+    Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
 
     H⟨Δ⁺⟩ : Poset o r
     H⟨Δ⁺⟩ = H.M₀ Δ⁺
@@ -106,11 +106,11 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 
   ι₀-hom : Hom ◆ Δ⁺
   ι₀-hom .hom = ι₀
-  ι₀-hom .pres-≤[]-equal α≤β = α≤β , λ _ → refl
+  ι₀-hom .pres-≤[]-equal α≤β = lift α≤β , λ _ → refl
 
   ι₁-hom : Hom Δ Δ⁺
   ι₁-hom .hom = ι₁
-  ι₁-hom .pres-≤[]-equal α≤β = α≤β , ι₁-inj
+  ι₁-hom .pres-≤[]-equal α≤β = lift (lift α≤β) , ι₁-inj
 
   ι₁-monic : SOrd.is-monic ι₁-hom
   ι₁-monic g h p = ext λ α → ι₁-inj (p #ₚ α)
@@ -125,7 +125,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   σ̅ σ .hom (ι₁ α) = H.M₁ ι₁-hom # (σ # (H.unit.η Δ # α))
   σ̅ σ .hom (ι₂ α) = H.unit.η _ # ι₂ α
   σ̅ σ .pres-≤[]-equal {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl , λ _ → refl
-  σ̅ σ .pres-≤[]-equal {ι₁ α} {ι₁ β} α≤β = Σ-map₂ (ap ι₁ ⊙_) $ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.unit.η Δ) .pres-≤[]-equal α≤β
+  σ̅ σ .pres-≤[]-equal {ι₁ α} {ι₁ β} (lift (lift α≤β)) = Σ-map₂ (ap ι₁ ⊙_) $ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.unit.η Δ) .pres-≤[]-equal α≤β
   σ̅ σ .pres-≤[]-equal {ι₂ α} {ι₂ β} α≤β = H.unit.η Δ⁺ .pres-≤[]-equal α≤β
 
   abstract
