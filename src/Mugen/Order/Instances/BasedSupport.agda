@@ -58,8 +58,8 @@ raw-path p q i .base = q i
 -- Lemmas about hlevel
 module _ {A : Type o} where
   abstract instance
-    H-Level-RawList : (n : Nat) ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (RawList A) (2 + n)
-    H-Level-RawList n ⦃ A-is-hlevel ⦄ = hlevel-instance $
+    H-Level-RawList : {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (RawList A) (2 + n)
+    H-Level-RawList {n} = hlevel-instance $
       Equiv→is-hlevel (2 + n) (Iso→Equiv raw-eqv) $ hlevel (2 + n)
       where
         unquoteDecl raw-eqv = declare-record-iso raw-eqv (quote RawList)
@@ -251,10 +251,10 @@ module _ {A : Type o} where
       is-prop→pathp (λ i → Raw.is-compact-is-prop (p i)) (xs .has-is-compact) (ys .has-is-compact) i
 
   abstract instance
-    H-Level-BasedSupportList : ∀ {n} ⦃ p : 2 ≤ n ⦄ ⦃ _ : H-Level A n ⦄ → H-Level (BasedSupportList A) n
-    H-Level-BasedSupportList = hlevel-instance $
-      Equiv→is-hlevel n (Iso→Equiv eqv) $
-      Σ-is-hlevel n (hlevel 2) λ xs →
+    H-Level-BasedSupportList : ∀ {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (BasedSupportList A) (2 + n)
+    H-Level-BasedSupportList {n} = hlevel-instance $
+      Equiv→is-hlevel (2 + n) (Iso→Equiv eqv) $
+      Σ-is-hlevel (2 + n) (hlevel (2 + n)) λ xs →
       is-prop→is-hlevel-suc {n = 1 + n} (Raw.is-compact-is-prop xs)
       where
         unquoteDecl eqv = declare-record-iso eqv (quote BasedSupportList)

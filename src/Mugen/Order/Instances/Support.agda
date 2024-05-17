@@ -30,7 +30,7 @@ record SupportList {A : Type o} (ε : ⌞ A ⌟) : Type o where
   field
     base-is-ε : base ≡ ε
 
-module _ {A : Type o} (A-set : is-set A) {ε : ⌞ A ⌟} where
+module _ {A : Type o} ⦃ A-set : H-Level A 2 ⦄ {ε : ⌞ A ⌟} where
   open SupportList
 
   abstract
@@ -38,18 +38,20 @@ module _ {A : Type o} (A-set : is-set A) {ε : ⌞ A ⌟} where
       → xs .based-support ≡ ys .based-support → xs ≡ ys
     support-list-path p i .based-support = p i
     support-list-path {xs} {ys} p i .base-is-ε =
-      is-prop→pathp (λ i → A-set (p i .BasedSupportList.base) ε)
+      is-prop→pathp (λ i → hlevel 2 (p i .BasedSupportList.base) ε)
         (xs .base-is-ε) (ys .base-is-ε) i
 
     SupportList-is-set : is-set (SupportList ε)
     SupportList-is-set =
       Equiv→is-hlevel 2 (Iso→Equiv eqv) $
-      Σ-is-hlevel 2 (BasedSupportList-is-hlevel 0 A-set) λ _ →
-      Path-is-hlevel 2 A-set
+      Σ-is-hlevel 2 (hlevel 2) λ _ →
+      Path-is-hlevel 2 (hlevel 2)
       where
         unquoteDecl eqv = declare-record-iso eqv (quote SupportList)
 
   abstract instance
+    H-Level-SupportList : ∀ {n} → H-Level (SupportList ε) (2 + n)
+    H-Level-SupportList {n} = basic-instance 2 SupportList-is-set
 
 
 module _ {A : Type o} where
@@ -58,15 +60,15 @@ module _ {A : Type o} where
   supp-to-based : (ε : ⌞ A ⌟) → SupportList ε → BasedSupportList A
   supp-to-based ε xs = xs .based-support
 
-  supp-to-based-is-injective : ∀ (A-set : is-set A) {ε : A} {xs ys : SupportList ε}
+  supp-to-based-is-injective : ∀ ⦃ A-set : H-Level A 2 ⦄ {ε : A} {xs ys : SupportList ε}
     → supp-to-based ε xs ≡ supp-to-based ε ys → xs ≡ ys
-  supp-to-based-is-injective A-set p = support-list-path A-set p
+  supp-to-based-is-injective p = support-list-path p
 
 module _ (A : Poset o r) where
   private
     module A = Reasoning A
     rep : ∀ ε → represents-full-subposet (BasedSupport A) (supp-to-based ε)
-    rep ε .represents-full-subposet.injective = supp-to-based-is-injective A.Ob-is-set
+    rep ε .represents-full-subposet.injective = supp-to-based-is-injective ⦃ hlevel-instance A.Ob-is-set ⦄
     module rep (ε : ⌞ A ⌟) = represents-full-subposet (rep ε)
 
   Support : ⌞ A ⌟ → Poset o r
@@ -119,5 +121,5 @@ module _ {A : Type o} {ε : ⌞ A ⌟} {ℓr} ⦃ s : Extensional (BasedSupportL
     Extensional-FiniteSupportList
       : ⦃ A-is-set : H-Level A 2 ⦄
       → Extensional (SupportList ε) ℓr
-    Extensional-FiniteSupportList ⦃ hlevel-instance A-is-set ⦄ =
-      injection→extensional! (supp-to-based-is-injective A-is-set) s
+    Extensional-FiniteSupportList =
+      injection→extensional! supp-to-based-is-injective s

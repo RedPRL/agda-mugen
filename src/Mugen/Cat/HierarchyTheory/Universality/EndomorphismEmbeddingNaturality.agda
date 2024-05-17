@@ -186,7 +186,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
       nt ._=>_.η _ .pres-≤[]-equal (lift ℓ≤ℓ′) =
         inc (biased refl (ν′-mono ℓ≤ℓ′)) , λ p → ap lift $ ν′-injective-on-related ℓ≤ℓ′ (ap snd p)
-      nt ._=>_.is-natural _ _ σ = ext λ (lift ℓ) →
+      nt ._=>_.is-natural _ _ σ = ext λ ℓ →
         refl , λ α →
           H.mult.η _ # (H.M₁ (ℓ̅ (σ # ℓ)) # α)                                       ≡⟨ ap (λ e → (H.mult.η _ ∘ H.M₁ e) # α) (ℓ̅-σ̅ σ) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ) # α)                   ≡⟨ ap# (H.mult.η _) (H.M-∘ _ _ #ₚ α) ⟩

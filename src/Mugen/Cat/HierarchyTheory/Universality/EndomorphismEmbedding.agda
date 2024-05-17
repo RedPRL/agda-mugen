@@ -189,12 +189,12 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
         let d1≤d2 , injr = H⟨Δ⁺⟩→.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
         inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
       functor .Functor.F₁ σ .commutes = trivial!
-      functor .Functor.F-id = ext λ (α , d) →
+      functor .Functor.F-id = ext λ α d →
         refl , λ β →
           H.mult.η _ # (H.M₁ (σ̅ SOrdᴴ.id) # (d # β)) ≡⟨ ap (λ e → H.mult.η _ # (H.M₁ e # (d # β))) σ̅-id ⟩
           H.mult.η _ # (H.M₁ (H.unit.η _) # (d # β)) ≡⟨ H.left-ident #ₚ _ ⟩
           d # β ∎
-      functor .Functor.F-∘ σ δ = ext λ (α , d) →
+      functor .Functor.F-∘ σ δ = ext λ α d →
         refl , λ β →
           H.mult.η _ # (H.M₁ (σ̅ (σ SOrdᴴ.∘ δ)) # (d # β))                                 ≡⟨ ap (λ e → H.mult.η _ # (H.M₁ e # (d # β))) (σ̅-∘ σ δ) ⟩
           H.mult.η _ # (H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) # (d # β))                   ≡⟨ ap (λ e → H.mult.η _ # (e # (d # β))) (H.M-∘ _ _) ⟩
