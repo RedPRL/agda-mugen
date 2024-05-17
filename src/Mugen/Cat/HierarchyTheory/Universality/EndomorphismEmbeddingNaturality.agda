@@ -24,6 +24,7 @@ open import Mugen.Cat.HierarchyTheory.McBride
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
 open import Mugen.Order.Instances.LeftInvariantRightCentered
+open import Mugen.Order.Instances.Lift
 open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
@@ -65,7 +66,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
 
     H⟨Δ⁺⟩ : Poset o r
     H⟨Δ⁺⟩ = H.M₀ Δ⁺
-    module H⟨Δ⁺⟩ = Poset H⟨Δ⁺⟩
+    module H⟨Δ⁺⟩ = Reasoning H⟨Δ⁺⟩
 
     H⟨Δ⁺⟩→-poset : Poset (lsuc (o ⊔ r)) (o ⊔ r)
     H⟨Δ⁺⟩→-poset = Endomorphism-poset H Δ⁺
@@ -91,8 +92,11 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride H⟨Δ⁺⟩→)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
-    Fᴴ⟨_⟩ : Poset o r → Algebra SOrd H
-    Fᴴ⟨_⟩ = Functor.F₀ (Free SOrd H)
+    Fᴴ₀ : Poset o r → Algebra SOrd H
+    Fᴴ₀ = Functor.F₀ (Free SOrd H)
+
+    Fᴴ₁ : {X Y : Poset o r} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
+    Fᴴ₁ = Functor.F₁ (Free SOrd H)
 
   --------------------------------------------------------------------------------
   -- NOTE: Forgetful Functors + Levels
@@ -124,11 +128,11 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     where
       ℓ̅ : ⌞ H.M₀ Δ ⌟ → Hom Δ⁺ (H.M₀ Δ⁺)
       ℓ̅ ℓ .hom (ι₀ _) = H.M₁ ι₁-hom # ℓ
-      ℓ̅ ℓ .hom (ι₁ α) = H.unit.η _ # ι₂ α
-      ℓ̅ ℓ .hom (ι₂ α) = H.unit.η _ # ι₂ α
+      ℓ̅ ℓ .hom (ι₁ α) = H.η _ # ι₂ α
+      ℓ̅ ℓ .hom (ι₂ α) = H.η _ # ι₂ α
       ℓ̅ ℓ .pres-≤[]-equal {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl , λ _ → refl
-      ℓ̅ ℓ .pres-≤[]-equal {ι₁ α} {ι₁ β} α≤β = Σ-map₂ ((ap ι₁ ⊙ ι₂-inj) ⊙_) $ H.unit.η _ .pres-≤[]-equal α≤β
-      ℓ̅ ℓ .pres-≤[]-equal {ι₂ α} {ι₂ β} α≤β = H.unit.η _ .pres-≤[]-equal α≤β
+      ℓ̅ ℓ .pres-≤[]-equal {ι₁ α} {ι₁ β} α≤β = H⟨Δ⁺⟩.≤[]-map (ap ι₁ ⊙ ι₂-inj) $ H.η _ .pres-≤[]-equal α≤β
+      ℓ̅ ℓ .pres-≤[]-equal {ι₂ α} {ι₂ β} α≤β = H.η _ .pres-≤[]-equal α≤β
 
       abstract
         ℓ̅-pres-≤ : ∀ {ℓ ℓ′}
@@ -138,49 +142,46 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
         ℓ̅-pres-≤ ℓ′≤ℓ (ι₁ _) = H⟨Δ⁺⟩.≤-refl
         ℓ̅-pres-≤ ℓ′≤ℓ (ι₂ _) = H⟨Δ⁺⟩.≤-refl
 
-      ν′ : ⌞ H.M₀ Δ ⌟ → Algebra-hom SOrd H Fᴴ⟨ Δ⁺ ⟩ Fᴴ⟨ Δ⁺ ⟩
-      ν′ ℓ .morphism = H.mult.η Δ⁺ ∘ H.M₁ (ℓ̅ ℓ)
+      ν′ : ⌞ H.M₀ Δ ⌟ → SOrdᴴ.Hom (Fᴴ₀ Δ⁺) (Fᴴ₀ Δ⁺)
+      ν′ ℓ .morphism = H.μ Δ⁺ ∘ H.M₁ (ℓ̅ ℓ)
       ν′ ℓ .commutes = ext λ α →
-        H.mult.η Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.mult.η Δ⁺ # α))               ≡˘⟨ ap# (H.mult.η _) (H.mult.is-natural _ _ (ℓ̅ ℓ) #ₚ α) ⟩
-        H.mult.η Δ⁺ # (H.mult.η (H.M₀ Δ⁺) # (H.M₁ (H.M₁ (ℓ̅ ℓ)) # α)) ≡˘⟨ H.mult-assoc #ₚ _ ⟩
-        H.mult.η Δ⁺ # (H.M₁ (H.mult.η Δ⁺) # (H.M₁ (H.M₁ (ℓ̅ ℓ)) # α)) ≡˘⟨ ap# (H.mult.η _) (H.M-∘ _ _ #ₚ α) ⟩
-        H.mult.η Δ⁺ # (H.M₁ (H.mult.η Δ⁺ ∘ H.M₁ (ℓ̅ ℓ)) # α)          ∎
+        H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.μ Δ⁺ # α))               ≡˘⟨ ap# (H.μ _) (H.mult.is-natural _ _ (ℓ̅ ℓ) #ₚ α) ⟩
+        H.μ Δ⁺ # (H.μ (H.M₀ Δ⁺) # (H.M₁ (H.M₁ (ℓ̅ ℓ)) # α)) ≡˘⟨ μ-M-∘-μ H (H.M₁ (ℓ̅ ℓ)) #ₚ α ⟩
+        H.μ Δ⁺ # (H.M₁ (H.μ Δ⁺ ∘ H.M₁ (ℓ̅ ℓ)) # α)          ∎
 
       abstract
         ν′-mono : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ H⟨Δ⁺⟩→-poset.≤ ν′ ℓ
         ν′-mono {ℓ′} {ℓ} ℓ′≤ℓ α = begin-≤
-          H.mult.η Δ⁺ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η Δ⁺ # α)) ≐⟨ ap# (H.mult.η _) (sym $ H.unit.is-natural _ _ (ℓ̅ ℓ′) #ₚ α) ⟩
-          H.mult.η Δ⁺ # (H.unit.η (H.M₀ Δ⁺) # (ℓ̅ ℓ′ # α)) ≤⟨ pres-≤ (H.mult.η _ ∘ H.unit.η _) (ℓ̅-pres-≤ ℓ′≤ℓ α) ⟩
-          H.mult.η Δ⁺ # (H.unit.η (H.M₀ Δ⁺) # (ℓ̅ ℓ # α))  ≐⟨ ap# (H.mult.η _) (H.unit.is-natural _ _ (ℓ̅ ℓ) #ₚ α) ⟩
-          H.mult.η Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η Δ⁺ # α))  ≤∎
+          H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ′) # (H.η Δ⁺ # α)) ≐⟨ μ-η H (ℓ̅ ℓ′) #ₚ α ⟩
+          ℓ̅ ℓ′ # α                              ≤⟨ ℓ̅-pres-≤ ℓ′≤ℓ α ⟩
+          ℓ̅ ℓ # α                               ≐⟨ sym $ μ-η H (ℓ̅ ℓ) #ₚ α ⟩
+          H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.η Δ⁺ # α))  ≤∎
           where
             open Reasoning (H.M₀ Δ⁺)
 
       abstract
         ν′-injective-on-related : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ ≡ ν′ ℓ → ℓ′ ≡ ℓ
-        ν′-injective-on-related {ℓ′} {ℓ} ℓ′≤ℓ p = injective-on-related (H.mult.η _ ∘ H.unit.η _ ∘ H.M₁ ι₁-hom) ℓ′≤ℓ $
-          H.mult.η Δ⁺ # (H.unit.η (H.M₀ Δ⁺) # (H.M₁ ι₁-hom # ℓ′)) ≡⟨ ap# (H.mult.η _) (H.unit.is-natural _ _ (ℓ̅ ℓ′) #ₚ _) ⟩
-          H.mult.η Δ⁺ # (H.M₁ (ℓ̅ ℓ′) # (H.unit.η Δ⁺ # ι₀ ⋆))      ≡⟨ p #ₚ (H.unit.η _ # ι₀ ⋆) ⟩
-          H.mult.η Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.unit.η Δ⁺ # ι₀ ⋆))       ≡˘⟨ ap# (H.mult.η _) (H.unit.is-natural _ _ (ℓ̅ ℓ) #ₚ _) ⟩
-          H.mult.η Δ⁺ # (H.unit.η (H.M₀ Δ⁺) # (H.M₁ ι₁-hom # ℓ))  ∎
+        ν′-injective-on-related {ℓ′} {ℓ} ℓ′≤ℓ p = injective-on-related (H.M₁ ι₁-hom) ℓ′≤ℓ $
+          H.M₁ ι₁-hom # ℓ′                         ≡˘⟨ μ-η H (ℓ̅ ℓ′) #ₚ _ ⟩
+          H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ′) # (H.η Δ⁺ # ι₀ ⋆)) ≡⟨ p #ₚ (H.η _ # ι₀ ⋆) ⟩
+          H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ) # (H.η Δ⁺ # ι₀ ⋆))  ≡⟨ μ-η H (ℓ̅ ℓ) #ₚ _ ⟩
+          H.M₁ ι₁-hom # ℓ                          ∎
 
       abstract
-        ℓ̅-σ̅ : ∀ {ℓ : ⌞ Fᴴ⟨ Δ ⟩ ⌟} (σ : Algebra-hom _ _ Fᴴ⟨ Δ ⟩ Fᴴ⟨ Δ ⟩) → ℓ̅ (σ # ℓ) ≡ H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ
+        ℓ̅-σ̅ : ∀ {ℓ : ⌞ Fᴴ₀ Δ ⌟} (σ : SOrdᴴ.Hom (Fᴴ₀ Δ) (Fᴴ₀ Δ)) → ℓ̅ (σ # ℓ) ≡ H.μ _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ
         ℓ̅-σ̅ {ℓ} σ = ext λ where
           (ι₀ ⋆) →
-            H.M₁ ι₁-hom # (σ # ℓ)                                                              ≡˘⟨ ap (λ e → H.M₁ ι₁-hom # (σ # e)) (H.left-ident #ₚ ℓ) ⟩
-            H.M₁ ι₁-hom # (σ # (H.mult.η _ # (H.M₁ (H.unit.η _) # ℓ)))                         ≡⟨ ap# (H.M₁ ι₁-hom) (σ .commutes #ₚ _) ⟩
-            H.M₁ ι₁-hom # (H.mult.η _ # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η _) # ℓ)))        ≡˘⟨ H.mult.is-natural _ _ ι₁-hom #ₚ _ ⟩
-            H.mult.η _ # (H.M₁ (H.M₁ ι₁-hom) # (H.M₁ (σ .morphism) # (H.M₁ (H.unit.η Δ) # ℓ))) ≡⟨ ap# (H.mult.η _) (σ̅-ι σ ℓ) ⟩
-            H.mult.η _ # (H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # ℓ))                                      ∎
+            H.M₁ ι₁-hom # (σ # ℓ)                                    ≡˘⟨ ap# (H.M₁ ι₁-hom ∘ σ .morphism) $ H.left-ident #ₚ ℓ ⟩
+            H.M₁ ι₁-hom # (σ # (H.μ _ # (H.M₁ (H.η _) # ℓ)))         ≡˘⟨ ap# (H.M₁ ι₁-hom) $ μ-M-∘-Algebraic H σ (H.η Δ) #ₚ _ ⟩
+            H.M₁ ι₁-hom # (H.μ _ # (H.M₁ (σ .morphism ∘ H.η _) # ℓ)) ≡˘⟨ μ-M-∘-M H ι₁-hom (σ .morphism ∘ H.η Δ) #ₚ _ ⟩
+            H.μ _ # (H.M₁ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.η Δ) # ℓ)   ≡⟨ ap# (H.μ _) (σ̅-ι σ ℓ) ⟩
+            H.μ _ # (H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # ℓ))                 ∎
           (ι₁ α) →
-            H.unit.η _ # ι₂ α                               ≡˘⟨ H.right-ident #ₚ _ ⟩
-            H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₂ α)) ≡⟨ ap# (H.mult.η _) (H.unit.is-natural _ _ (σ̅ σ) #ₚ (ι₂ α)) ⟩
-            H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # ι₂ α)) ∎
+            H.η _ # ι₂ α                          ≡˘⟨ μ-η H (σ̅ σ) #ₚ _ ⟩
+            H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₂ α)) ∎
           (ι₂ α) →
-            H.unit.η _ # ι₂ α                               ≡˘⟨ H.right-ident #ₚ _ ⟩
-            H.mult.η _ # (H.unit.η _ # (H.unit.η _ # ι₂ α)) ≡⟨ ap# (H.mult.η _) (H.unit.is-natural _ _ (σ̅ σ) #ₚ (ι₂ α)) ⟩
-            H.mult.η _ # (H.M₁ (σ̅ σ) # (H.unit.η _ # ι₂ α)) ∎
+            H.η _ # ι₂ α                          ≡˘⟨ μ-η H (σ̅ σ) #ₚ _ ⟩
+            H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₂ α)) ∎
 
       nt : Uᴴ => Uᴹᴰ F∘ T
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
@@ -188,9 +189,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
         inc (biased refl (ν′-mono ℓ≤ℓ′)) , λ p → ap lift $ ν′-injective-on-related ℓ≤ℓ′ (ap snd p)
       nt ._=>_.is-natural _ _ σ = ext λ ℓ →
         refl , λ α →
-          H.mult.η _ # (H.M₁ (ℓ̅ (σ # ℓ)) # α)                                       ≡⟨ ap (λ e → (H.mult.η _ ∘ H.M₁ e) # α) (ℓ̅-σ̅ σ) ⟩
-          H.mult.η _ # (H.M₁ (H.mult.η _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ) # α)                   ≡⟨ ap# (H.mult.η _) (H.M-∘ _ _ #ₚ α) ⟩
-          H.mult.η _ # ((H.M₁ (H.mult.η _) ∘ H.M₁ (H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ)) # α)          ≡⟨ ap (λ e → H.mult.η _ # ((H.M₁ (H.mult.η _) ∘ e) # α)) (H.M-∘ (H.M₁ (σ̅ σ)) (ℓ̅ ℓ)) ⟩
-          H.mult.η _ # (H.M₁ (H.mult.η _) # (H.M₁ (H.M₁ (σ̅ σ)) # (H.M₁ (ℓ̅ ℓ) # α))) ≡⟨ H.mult-assoc #ₚ _ ⟩
-          H.mult.η _ # (H.mult.η _ # (H.M₁ (H.M₁ (σ̅ σ)) # (H.M₁ (ℓ̅ ℓ) # α)))        ≡⟨ ap# (H.mult.η _) (H.mult.is-natural _ _ (σ̅ σ) #ₚ _) ⟩
-          H.mult.η _ # (H.M₁ (σ̅ σ) # (H.mult.η _ # (H.M₁ (ℓ̅ ℓ) # α)))               ∎
+          H.μ _ # (H.M₁ (ℓ̅ (σ # ℓ)) # α)                    ≡⟨ ap (λ m → (H.μ _ ∘ H.M₁ m) # α) (ℓ̅-σ̅ σ) ⟩
+          H.μ _ # (H.M₁ (H.μ _ ∘ H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ) # α)     ≡⟨ μ-M-∘-μ H (H.M₁ (σ̅ σ) ∘ ℓ̅ ℓ) #ₚ α ⟩
+          H.μ _ # (H.μ _ # (H.M₁ (H.M₁ (σ̅ σ) ∘ (ℓ̅ ℓ)) # α)) ≡⟨ ap# (H.μ _) $ μ-M-∘-M H (σ̅ σ) (ℓ̅ ℓ) #ₚ α ⟩
+          H.μ _ # (H.M₁ (σ̅ σ) # (H.μ _ # (H.M₁ (ℓ̅ ℓ) # α))) ∎

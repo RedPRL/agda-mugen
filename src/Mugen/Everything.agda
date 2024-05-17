@@ -36,6 +36,7 @@ import Mugen.Order.Instances.Fractal
 import Mugen.Order.Instances.Int
 import Mugen.Order.Instances.LeftInvariantRightCentered
 import Mugen.Order.Instances.Lexicographic
+import Mugen.Order.Instances.Lift
 import Mugen.Order.Instances.Nat
 import Mugen.Order.Instances.NonPositive
 import Mugen.Order.Instances.Opposite
