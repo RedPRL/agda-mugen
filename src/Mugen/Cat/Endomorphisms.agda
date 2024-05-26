@@ -21,3 +21,9 @@ Endos X .Precategory._∘_ = _∘_
 Endos X .Precategory.idr = idr
 Endos X .Precategory.idl = idl
 Endos X .Precategory.assoc = assoc
+
+Endos-include : ∀ (X : Ob) → Functor (Endos X) 𝒞
+Endos-include X .Functor.F₀ _ = X
+Endos-include X .Functor.F₁ σ = σ
+Endos-include X .Functor.F-id = refl
+Endos-include X .Functor.F-∘ _ _ = refl
