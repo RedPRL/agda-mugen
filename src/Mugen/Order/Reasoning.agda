@@ -41,13 +41,17 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
     ≤[]-is-hlevel n hb =
       ×-is-hlevel (1 + n) (is-prop→is-hlevel-suc ≤-thin) $ Π-is-hlevel (1 + n) λ _ → hb
 
+  -- This overlaps with the H-Level instance for Σ
   {-
-  instance
+  abstract instance
     H-Level-≤[] : ∀ {r'} {K : Type r'} {n k : Nat} {x y}
       → ⦃ H-Level K (1 + n) ⦄ → H-Level (x ≤[ K ] y) (1 + n + k)
     H-Level-≤[] {n = n} ⦃ hb ⦄ =
       basic-instance (1 + n) $ ≤[]-is-hlevel n (hb .H-Level.has-hlevel)
   -}
+
+  ≤[]-map : ∀ {x y} {K : Type r'} {K' : Type r''} → (K → K') → x ≤[ K ] y → x ≤[ K' ] y
+  ≤[]-map f p = Σ-map₂ (f ⊙_) p
 
   _<_ : Ob → Ob → Type (o ⊔ r)
   x < y = x ≤[ ⊥ ] y
@@ -66,7 +70,7 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
       y<z .snd (≤-antisym'-r (x<y .fst) (y<z .fst) x=z)
 
     <-trans : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≤[ K ] z → x ≤[ K ] z
-    <-trans x<y y<z = Σ-map₂ (fst ⊙_) $ ≤[]-trans x<y y<z
+    <-trans x<y y<z = ≤[]-map fst $ ≤[]-trans x<y y<z
 
     <-is-prop : ∀ {x y} → is-prop (x < y)
     <-is-prop {x} {y} = hlevel 1
@@ -104,44 +108,40 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
     <+≤→< x<y y≤z .snd x=z = <→≱ x<y (≤+=→≤ y≤z (sym x=z))
 
   private
-    data Related (r' : Level) : ⌞ A ⌟ → ⌞ A ⌟ → Type (o ⊔ r ⊔ lsuc r') where
-      strict : ∀ {x y} (K : Type r') → x ≤[ K ] y → Related r' x y
-      non-strict : ∀ {x y} → x ≤ y → Related r' x y
+    data Related {r' : Level} (K : Type r') : ⌞ A ⌟ → ⌞ A ⌟ → Type (o ⊔ r ⊔ lsuc r') where
+      strict : ∀ {x y} → x ≤[ K ] y → Related K x y
+      non-strict : ∀ {x y} → x ≤ y → Related K x y
 
-    NonStrict : ∀ {r' x y} → Related r' x y → Type
-    NonStrict (strict _ _) = ⊥
+    NonStrict : ∀ {x y} → Related ⊤ x y → Type
+    NonStrict (strict _) = ⊥
     NonStrict (non-strict _) = ⊤
 
-    Strict : ∀ {r' x y} → Related r' x y → Type
-    Strict (strict _ _) = ⊤
+    Strict : ∀ {r'} {K : Type r'} {x y} → Related K x y → Type
+    Strict (strict _) = ⊤
     Strict (non-strict _) = ⊥
 
-    Proj : ∀ {r' x y} → Related r' x y → Type r'
-    Proj (strict K _) = K
-    Proj (non-strict _) = Lift _ ⊤
+  begin-≤[_]_ : ∀ {r' x y} (K : Type r') (x<y : Related K x y) → {Strict x<y} → x ≤[ K ] y
+  begin-≤[ K ] (strict x<y) = x<y
 
-  begin-<_ : ∀ {r' x y} → (x<y : Related r' x y) → {Strict x<y} → x ≤[ Proj x<y ] y
-  begin-< (strict _ x<y) = x<y
-
-  begin-≤_ : ∀ {x y} → (x≤y : Related lzero x y) → {NonStrict x≤y} → x ≤ y
+  begin-≤_ : ∀ {x y} (x≤y : Related ⊤ x y) → {NonStrict x≤y} → x ≤ y
   begin-≤ (non-strict x≤y) = x≤y
 
-  step-< : ∀ {r'} {K : Type r'} x {y z} → x ≤[ K ] y → Related r' y z → Related r' x z
-  step-< {K = K} x x<y (non-strict y≤z) = strict K (<+≤→< x<y y≤z)
-  step-< {K = K} x x<y (strict K' y<z) = strict (K × K') (≤[]-trans x<y y<z)
+  step-< : ∀ {r'} {K : Type r'} x {y z} → x ≤[ K ] y → Related K y z → Related K x z
+  step-< {K = K} x x<y (non-strict y≤z) = strict (<+≤→< x<y y≤z)
+  step-< {K = K} x x<y (strict y<z) = strict (<-trans x<y y<z)
 
-  step-≤ : ∀ {r'} x {y z} → x ≤ y → Related r' y z → Related r' x z
+  step-≤ : ∀ {r'} {K : Type r'} x {y z} → x ≤ y → Related K y z → Related K x z
   step-≤ x x≤y (non-strict y≤z) = non-strict (≤-trans x≤y y≤z)
-  step-≤ x x≤y (strict K y<z) = strict K (≤+<→< x≤y y<z)
+  step-≤ x x≤y (strict y<z) = strict (≤+<→< x≤y y<z)
 
-  step-≡ : ∀ {r'} x {y z} → x ≡ y → Related r' y z → Related r' x z
+  step-≡ : ∀ {r'} {K : Type r'} x {y z} → x ≡ y → Related K y z → Related K x z
   step-≡ x x≡y (non-strict y≤z) = non-strict (=+≤→≤ x≡y y≤z)
-  step-≡ x x≡y (strict K y<z) = strict K (=+<→< x≡y y<z)
+  step-≡ x x≡y (strict y<z) = strict (=+<→< x≡y y<z)
 
-  _≤∎ : ∀ {r'} x → Related r' x x
+  _≤∎ : ∀ {r'} {K : Type r'} x → Related K x x
   _≤∎ x = non-strict ≤-refl
 
-  infix  1 begin-<_ begin-≤_
+  infix  1 begin-≤[_]_ begin-≤_
   infixr 2 step-< step-≤ step-≡
   infix  3 _≤∎
 

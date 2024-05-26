@@ -25,7 +25,7 @@ record Strictly-monotone (X : Poset o r) (Y : Poset o' r') : Type (o ⊔ o' ⊔ 
 
   abstract
     pres-≤[] : ∀ {K : Type r''} {x y} → x X.≤[ K ] y → hom x Y.≤[ K ] hom y
-    pres-≤[] x<y = Σ-map₂ (x<y .snd ⊙_) $ pres-≤[]-equal (x<y .fst)
+    pres-≤[] x<y = Y.≤[]-map (x<y .snd) $ pres-≤[]-equal (x<y .fst)
 
     pres-≤ : ∀ {x y} → x X.≤ y → hom x Y.≤ hom y
     pres-≤ x≤y = Y.<→≤ $ pres-≤[] (X.≤→≤[]-equal x≤y)
