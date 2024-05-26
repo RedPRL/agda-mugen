@@ -204,9 +204,9 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 
   abstract
     T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
-    T-faithful pt H-preserves-monos {x} {y} {σ} {δ} p =
+    T-faithful pt H-preserves-monos {x} {y} {σ} {δ} eq =
       free-algebra-hom-path H $ H-preserves-monos ι₁-hom ι₁-monic _ _ $ ext λ α →
       σ̅ σ # ι₁ α                            ≡˘⟨ μ-η H (σ̅ σ) #ₚ ι₁ α ⟩
-      H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₁ α)) ≡⟨ ap snd (p #ₚ (pt , SOrdᴴ.id)) #ₚ _ ⟩
+      H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₁ α)) ≡⟨ ap snd (eq #ₚ (pt , SOrdᴴ.id)) #ₚ (H.η _ # ι₁ α) ⟩
       H.μ _ # (H.M₁ (σ̅ δ) # (H.η _ # ι₁ α)) ≡⟨ μ-η H (σ̅ δ) #ₚ ι₁ α ⟩
       σ̅ δ # ι₁ α                            ∎
