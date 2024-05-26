@@ -16,6 +16,7 @@ open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Instances.Endomorphism
 
 open import Mugen.Cat.Endomorphisms
+open import Mugen.Cat.Indexed
 open import Mugen.Cat.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
@@ -107,7 +108,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   ι-hom n i .pres-≤[]-equal α≤β = (reflᵢ , (reflᵢ , α≤β)) , ι-inj
 
   ι-monic : ∀ {n : Nat} {i : I} → SOrd.is-monic (ι-hom n i)
-  ι-monic g h p = ext λ α → ι-inj (p #ₚ α)
+  ι-monic g h eq = ext λ α → ι-inj (eq #ₚ α)
 
   --------------------------------------------------------------------------------
   -- Construction of the functor T
@@ -281,27 +282,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
     ... | no  l≠i   | n     | no  l≠j   | yes reflᵢ = sym $ H-σ̅-η-ι-ik n σ l≠j α
     ... | no  l≠i   | n     | no  l≠j   | no  l≠k   = sym $ H-σ̅-η-ι-ij n σ l≠j l≠k α
 
-  -- Instead of the full subcategory, use the category of indexes, along with a full inclusion.
-  Index : Precategory o (lsuc o)
-  Index .Precategory.Ob          = I
-  Index .Precategory.Hom i j     = SOrdᴴ.Hom (FᴴΔ₋ i) (FᴴΔ₋ j)
-  Index .Precategory.Hom-set _ _ = SOrdᴴ.Hom-set _ _
-  Index .Precategory.id          = SOrdᴴ.id
-  Index .Precategory._∘_         = SOrdᴴ._∘_
-  Index .Precategory.idr         = SOrdᴴ.idr
-  Index .Precategory.idl         = SOrdᴴ.idl
-  Index .Precategory.assoc       = SOrdᴴ.assoc
-
-  Index-include : Functor Index SOrdᴴ
-  Index-include .Functor.F₀ i = FᴴΔ₋ i
-  Index-include .Functor.F₁ σ = σ
-  Index-include .Functor.F-id = refl
-  Index-include .Functor.F-∘ _ _ = refl
-
-
-  -- TODO: Construct the functor from the actual full subcategory
-
-  T : Functor Index (Endos SOrdᴴ (Fᴴ₀ Δ))
+  T : Functor (Indexed SOrdᴴ FᴴΔ₋) (Endos SOrdᴴ (Fᴴ₀ Δ))
   T .Functor.F₀ i = tt
   T .Functor.F₁ σ .morphism = H.μ Δ ∘ H.M₁ (σ̅ σ)
   T .Functor.F₁ σ .commutes = ext λ α →
@@ -322,7 +303,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   -- Constructing the natural transformation ν
   -- Section 3.4, Lemma 3.8
 
-  ν : Uᴴ F∘ Index-include => Uᴴ F∘ Endos-include SOrdᴴ (Fᴴ₀ Δ) F∘ T
+  ν : Uᴴ F∘ Indexed-include SOrdᴴ FᴴΔ₋ => Uᴴ F∘ Endos-include SOrdᴴ (Fᴴ₀ Δ) F∘ T
   ν ._=>_.η i = H.M₁ (ι-hom 0 i)
   ν ._=>_.is-natural i j σ = sym $ ext $ H-σ̅-ι-k0j σ
 
@@ -330,7 +311,11 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   -- Faithfulness of T
   -- Section 3.4, Lemma 3.9
 
-  {- TODO
   abstract
     T-faithful : preserves-monos H → is-faithful T
-  -}
+    T-faithful H-preserves-monos {i} {j} {σ} {δ} eq =
+      Algebra-hom-path _ $ H-preserves-monos (ι-hom 0 j) ι-monic _ _ $ ext λ α →
+      H.M₁ (ι-hom 0 j) # (σ # α)                    ≡˘⟨ H-σ̅-ι-k0j σ α ⟩
+      H.μ Δ # (H.M₁ (σ̅ σ) # (H.M₁ (ι-hom 0 i) # α)) ≡⟨ eq #ₚ (H.M₁ (ι-hom 0 i) # α) ⟩
+      H.μ Δ # (H.M₁ (σ̅ δ) # (H.M₁ (ι-hom 0 i) # α)) ≡⟨ H-σ̅-ι-k0j δ α ⟩
+      H.M₁ (ι-hom 0 j) # (δ # α)                    ∎
