@@ -27,11 +27,10 @@ import Mugen.Order.Reasoning as Reasoning
 --------------------------------------------------------------------------------
 -- The Universal Embedding Theorem
 -- Section 3.4, Lemma 3.9
---
--- Naturality is in a different file
 
-module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding
-  {o} (H : Hierarchy-theory o o) {I : Type o} ⦃ Discrete-I : Discrete I ⦄ (Δ₋ : ⌞ I ⌟ → Poset o o) where
+module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
+  (H : Hierarchy-theory (o ⊔ o') (r ⊔ o')) {I : Type o'} ⦃ Discrete-I : Discrete I ⦄
+  (Δ₋ : ⌞ I ⌟ → Poset (o ⊔ o') (r ⊔ o')) where
 
   --------------------------------------------------------------------------------
   -- Notation
@@ -41,30 +40,30 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding
   private
     open Strictly-monotone
     open Algebra-hom
-    open Cat (Strict-orders o o)
+    open Cat (Strict-orders (o ⊔ o') (r ⊔ o'))
     module Δ₋ i = Poset (Δ₋ i)
     module H = Monad H
 
-    ⌞Δ₋⌟ : I → Type o
+    ⌞Δ₋⌟ : I → Type (o ⊔ o')
     ⌞Δ₋⌟ i = ⌞ Δ₋ i ⌟
 
     abstract instance 
       H-Level-I : H-Level I 2
       H-Level-I = hlevel-instance $ Discrete→is-set Discrete-I
 
-    Δ : Poset o o
+    Δ : Poset (o ⊔ o') (r ⊔ o')
     Δ = Copower (el! Nat) (Disjoint (el! I) Δ₋)
     module Δ = Poset Δ
 
-    H⟨Δ⟩ : Poset o o
+    H⟨Δ⟩ : Poset (o ⊔ o') (r ⊔ o')
     H⟨Δ⟩ = H.M₀ Δ
     module H⟨Δ⟩ = Reasoning H⟨Δ⟩
 
-    SOrd : Precategory (lsuc o) o
-    SOrd = Strict-orders o o
+    SOrd : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
+    SOrd = Strict-orders (o ⊔ o') (r ⊔ o')
     module SOrd = Cat SOrd
 
-    SOrdᴴ : Precategory (lsuc o) (lsuc o)
+    SOrdᴴ : Precategory (lsuc (o ⊔ r ⊔ o')) (lsuc (o ⊔ r ⊔ o'))
     SOrdᴴ = Eilenberg-Moore SOrd H
     module SOrdᴴ = Cat SOrdᴴ
 
@@ -74,10 +73,10 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding
     Fᴴ : Functor SOrd SOrdᴴ
     Fᴴ = Free SOrd H
 
-    Fᴴ₀ : Poset o o → Algebra SOrd H
+    Fᴴ₀ : Poset (o ⊔ o') (r ⊔ o') → Algebra SOrd H
     Fᴴ₀ = Fᴴ .Functor.F₀
 
-    Fᴴ₁ : {X Y : Poset o o} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
+    Fᴴ₁ : {X Y : Poset (o ⊔ o') (r ⊔ o')} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
     Fᴴ₁ = Fᴴ .Functor.F₁
 
     FᴴΔ₋ : I → Algebra SOrd H
