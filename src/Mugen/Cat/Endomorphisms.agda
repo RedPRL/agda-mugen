@@ -1,6 +1,6 @@
 open import Cat.Prelude
 
-module Mugen.Cat.Endomorphisms {o ℓ} (𝒞 : Precategory o ℓ) (X : 𝒞 .Precategory.Ob) where
+module Mugen.Cat.Endomorphisms {o ℓ} where
 
 --------------------------------------------------------------------------------
 -- The category of endomorphisms on an object.
@@ -10,5 +10,8 @@ module Mugen.Cat.Endomorphisms {o ℓ} (𝒞 : Precategory o ℓ) (X : 𝒞 .Pre
 
 open import Mugen.Cat.Indexed
 
-Endos = Indexed 𝒞 {I = ⊤} λ _ → X
-Endos-include = Indexed-include 𝒞 {I = ⊤} λ _ → X
+Endos : (𝒞 : Precategory o ℓ) (X : 𝒞 .Precategory.Ob) → Precategory lzero ℓ
+Endos 𝒞 X = Indexed {I = ⊤} 𝒞 λ _ → X
+
+Endos-include : {𝒞 : Precategory o ℓ} {X : 𝒞 .Precategory.Ob} → Functor (Endos 𝒞 X) 𝒞
+Endos-include = Indexed-include

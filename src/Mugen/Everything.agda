@@ -25,7 +25,7 @@ import Mugen.Cat.HierarchyTheory
 import Mugen.Cat.HierarchyTheory.McBride
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
-import Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
+import Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding
 import Mugen.Cat.Indexed
 import Mugen.Cat.Monad
 import Mugen.Cat.StrictOrders
