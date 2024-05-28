@@ -51,10 +51,12 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
       H-Level-I : H-Level I 2
       H-Level-I = hlevel-instance $ Discrete→is-set Discrete-I
 
-    Δ : Poset (o ⊔ o') (r ⊔ o')
-    Δ = Copower (el! Nat) (Disjoint (el! I) Δ₋)
-    module Δ = Poset Δ
+  -- Δ is made public for proving the main theorem
+  Δ : Poset (o ⊔ o') (r ⊔ o')
+  Δ = Copower (el! Nat) (Disjoint (el! I) Δ₋)
+  module Δ = Poset Δ
 
+  private
     H⟨Δ⟩ : Poset (o ⊔ o') (r ⊔ o')
     H⟨Δ⟩ = H.M₀ Δ
     module H⟨Δ⟩ = Reasoning H⟨Δ⟩

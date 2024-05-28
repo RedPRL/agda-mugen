@@ -41,7 +41,7 @@ import Mugen.Order.Reasoning as Reasoning
 -- This file covers the naturality
 
 module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
-  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
+  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc (o ⊔ r))) where
 
   open import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding H Δ Ψ
 

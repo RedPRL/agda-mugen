@@ -39,7 +39,7 @@ import Mugen.Order.Reasoning as Reasoning
 -- Naturality is in a different file
 
 module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
-  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
+  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc (o ⊔ r))) where
 
   --------------------------------------------------------------------------------
   -- Notation
