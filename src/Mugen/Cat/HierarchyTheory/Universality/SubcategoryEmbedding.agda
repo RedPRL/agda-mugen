@@ -12,19 +12,14 @@ import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
 
-open import Mugen.Algebra.Displacement
-open import Mugen.Algebra.Displacement.Instances.Endomorphism
-
 open import Mugen.Cat.Endomorphisms
 open import Mugen.Cat.Indexed
 open import Mugen.Cat.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
-open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Copower
-open import Mugen.Order.Instances.Lift
 open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
@@ -32,13 +27,10 @@ import Mugen.Order.Reasoning as Reasoning
 --------------------------------------------------------------------------------
 -- The Universal Embedding Theorem
 -- Section 3.4, Lemma 3.9
---
--- Naturality is in a different file
 
-module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
-  {o} (H : Hierarchy-theory o o) {I : Type o}
-  ⦃ Discrete-I : Discrete I ⦄
-  (Δ₋ : ⌞ I ⌟ → Poset o o) where
+module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
+  (H : Hierarchy-theory (o ⊔ o') (r ⊔ o')) {I : Type o'} ⦃ Discrete-I : Discrete I ⦄
+  (Δ₋ : ⌞ I ⌟ → Poset (o ⊔ o') (r ⊔ o')) where
 
   --------------------------------------------------------------------------------
   -- Notation
@@ -48,34 +40,32 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   private
     open Strictly-monotone
     open Algebra-hom
-    open Cat (Strict-orders o o)
+    open Cat (Strict-orders (o ⊔ o') (r ⊔ o'))
     module Δ₋ i = Poset (Δ₋ i)
     module H = Monad H
 
-    ⌞Δ₋⌟ : I → Type o
+    ⌞Δ₋⌟ : I → Type (o ⊔ o')
     ⌞Δ₋⌟ i = ⌞ Δ₋ i ⌟
 
     abstract instance 
       H-Level-I : H-Level I 2
       H-Level-I = hlevel-instance $ Discrete→is-set Discrete-I
 
-    Δ' : Poset o o
-    Δ' = Disjoint (el! I) Δ₋
-    module Δ' = Poset Δ'
+  -- Δ is made public for proving the main theorem
+  Δ : Poset (o ⊔ o') (r ⊔ o')
+  Δ = Copower (el! Nat) (Disjoint (el! I) Δ₋)
+  module Δ = Poset Δ
 
-    Δ : Poset o o
-    Δ = Copower (el! Nat) Δ'
-    module Δ = Poset Δ
-
-    H⟨Δ⟩ : Poset o o
+  private
+    H⟨Δ⟩ : Poset (o ⊔ o') (r ⊔ o')
     H⟨Δ⟩ = H.M₀ Δ
     module H⟨Δ⟩ = Reasoning H⟨Δ⟩
 
-    SOrd : Precategory (lsuc o) o
-    SOrd = Strict-orders o o
+    SOrd : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
+    SOrd = Strict-orders (o ⊔ o') (r ⊔ o')
     module SOrd = Cat SOrd
 
-    SOrdᴴ : Precategory (lsuc o) (lsuc o)
+    SOrdᴴ : Precategory (lsuc (o ⊔ r ⊔ o')) (lsuc (o ⊔ r ⊔ o'))
     SOrdᴴ = Eilenberg-Moore SOrd H
     module SOrdᴴ = Cat SOrdᴴ
 
@@ -85,10 +75,10 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
     Fᴴ : Functor SOrd SOrdᴴ
     Fᴴ = Free SOrd H
 
-    Fᴴ₀ : Poset o o → Algebra SOrd H
+    Fᴴ₀ : Poset (o ⊔ o') (r ⊔ o') → Algebra SOrd H
     Fᴴ₀ = Fᴴ .Functor.F₀
 
-    Fᴴ₁ : {X Y : Poset o o} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
+    Fᴴ₁ : {X Y : Poset (o ⊔ o') (r ⊔ o')} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
     Fᴴ₁ = Fᴴ .Functor.F₁
 
     FᴴΔ₋ : I → Algebra SOrd H
@@ -128,7 +118,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   ... | no _      | n     | yes _ = H⟨Δ⟩.≤[]-map (ap (ι n k)) $ (H.η Δ ∘ ι-hom (suc n) k) .pres-≤[]-equal α≤β
   ... | no _      | n     | no _  = H.η Δ .pres-≤[]-equal (reflᵢ , reflᵢ , α≤β)
 
-  -- all raw β rules
+  -- Raw β rules of σ̅ σ matching its five cases
   module _ where
     abstract
       σ̅-ι-k0j-ext : ∀ {i j k : I} (σ : SOrdᴴ.Hom (FᴴΔ₋ i) (FᴴΔ₋ j))
@@ -136,11 +126,10 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
         → (α : ⌞ Δ₋ k ⌟)
         → σ̅ σ # ι 0 k α ≡ H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # substᵢ ⌞Δ₋⌟ p α))
       σ̅-ι-k0j-ext {i = i} {j} {k} σ p α with k ≡ᵢ? i
-      ... | no  k≠ᵢi = absurd (k≠ᵢi p)
-      ... | yes k=ᵢi =
-        H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # substᵢ ⌞Δ₋⌟ k=ᵢi α))
-         ≡⟨ ap# (H.M₁ (ι-hom 0 j) ∘ σ .morphism ∘ H.η (Δ₋ i))
-              (λ l → substᵢ ⌞Δ₋⌟ (hlevel 1 k=ᵢi p l) α) ⟩
+      ... | no  k≠ᵢi  = absurd (k≠ᵢi p)
+      ... | yes reflᵢ =
+        H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # α))
+         ≡⟨ ap# (H.M₁ (ι-hom 0 j) ∘ σ .morphism ∘ H.η (Δ₋ i)) $ substᵢ-filler-set ⌞Δ₋⌟ (hlevel 2) p α ⟩
         H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # substᵢ ⌞Δ₋⌟ p α))
           ∎
 
@@ -184,7 +173,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
       ... | no  _    | yes k=ᵢj = absurd (k≠ᵢj k=ᵢj)
       ... | no  _    | no  _    = refl
 
-  -- all wrapped β rules
+  -- Wrapped β rules of H.M₁ (σ̅ σ)
   module _ where
     abstract
       H-σ̅-ι-k0j : ∀ {k j : I} (σ : SOrdᴴ.Hom (FᴴΔ₋ k) (FᴴΔ₋ j)) (α : ⌞ H.M₀ (Δ₋ k) ⌟)
@@ -273,6 +262,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
       ≡ (H.μ Δ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) # ι n l α
     σ̅-∘ {i = i} {j} {k} σ δ n l α with l ≡ᵢ? i | n | l ≡ᵢ? j | l ≡ᵢ? k
     ... | yes reflᵢ | 0     | _         | _         = sym $ H-σ̅-ι-k0j σ (δ # (H.η (Δ₋ i) # α))
+    -- Note: the following eight cases correspond to the table in the paper with eight rows.
     ... | yes reflᵢ | suc n | yes reflᵢ | yes reflᵢ = sym $ H-σ̅-η-ι-k1k n σ α
     ... | yes reflᵢ | suc n | yes reflᵢ | no  l≠k   = sym $ H-σ̅-η-ι-k1j n σ l≠k α
     ... | yes reflᵢ | suc n | no  l≠j   | yes reflᵢ = sym $ H-σ̅-η-ι-ik n σ l≠j α
@@ -303,7 +293,7 @@ module Mugen.Cat.HierarchyTheory.Universality.HeterogeneousEmbedding
   -- Constructing the natural transformation ν
   -- Section 3.4, Lemma 3.8
 
-  ν : Uᴴ F∘ Indexed-include SOrdᴴ FᴴΔ₋ => Uᴴ F∘ Endos-include SOrdᴴ (Fᴴ₀ Δ) F∘ T
+  ν : Uᴴ F∘ Indexed-include => Uᴴ F∘ Endos-include F∘ T
   ν ._=>_.η i = H.M₁ (ι-hom 0 i)
   ν ._=>_.is-natural i j σ = sym $ ext $ H-σ̅-ι-k0j σ
 

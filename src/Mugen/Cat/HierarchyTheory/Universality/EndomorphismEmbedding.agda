@@ -39,7 +39,7 @@ import Mugen.Order.Reasoning as Reasoning
 -- Naturality is in a different file
 
 module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
-  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
+  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc (o ⊔ r))) where
 
   --------------------------------------------------------------------------------
   -- Notation
@@ -84,11 +84,14 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride H⟨Δ⁺⟩→)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
+    Fᴴ : Functor SOrd SOrdᴴ
+    Fᴴ = Free SOrd H
+
     Fᴴ₀ : Poset o r → Algebra SOrd H
-    Fᴴ₀ = Functor.F₀ (Free SOrd H)
+    Fᴴ₀ = Fᴴ .Functor.F₀
 
     Fᴴ₁ : {X Y : Poset o r} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
-    Fᴴ₁ = Functor.F₁ (Free SOrd H)
+    Fᴴ₁ = Fᴴ .Functor.F₁
 
     Endoᴴ⟨Δ⟩ : Type (o ⊔ r)
     Endoᴴ⟨Δ⟩ = Hom (H.M₀ Δ) (H.M₀ Δ)

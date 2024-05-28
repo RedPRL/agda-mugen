@@ -41,7 +41,7 @@ import Mugen.Order.Reasoning as Reasoning
 -- This file covers the naturality
 
 module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
-  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc o ⊔ lsuc r)) where
+  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc (o ⊔ r))) where
 
   open import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding H Δ Ψ
 
@@ -92,38 +92,28 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride H⟨Δ⁺⟩→)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
+    Uᴴ : Functor SOrdᴴ SOrd
+    Uᴴ = Forget SOrd H
+
+    Fᴴ : Functor SOrd SOrdᴴ
+    Fᴴ = Free SOrd H
+
     Fᴴ₀ : Poset o r → Algebra SOrd H
-    Fᴴ₀ = Functor.F₀ (Free SOrd H)
+    Fᴴ₀ = Fᴴ .Functor.F₀
 
     Fᴴ₁ : {X Y : Poset o r} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
-    Fᴴ₁ = Functor.F₁ (Free SOrd H)
+    Fᴴ₁ = Fᴴ .Functor.F₁
 
-  --------------------------------------------------------------------------------
-  -- NOTE: Forgetful Functors + Levels
-  --
-  -- To avoid dealing with an annoying level shifting functor, we bake in the
-  -- required lifts into Uᴴ instead.
-
-  Uᴴ : ∀ {X} → Functor (Endos SOrdᴴ X) SOrd↑
-  Uᴴ {X} .Functor.F₀ _ = Lift≤ _ _ (X .fst)
-  Uᴴ .Functor.F₁ σ .hom (lift α) = lift (σ # α)
-  Uᴴ .Functor.F₁ σ .pres-≤[]-equal (lift α≤β) =
-    let σα≤σβ , inj = σ .morphism .pres-≤[]-equal α≤β in
-    lift σα≤σβ , λ p → ap lift $ inj $ lift-inj p
-  Uᴴ .Functor.F-id = ext λ _ → refl
-  Uᴴ .Functor.F-∘ _ _ = ext λ _ → refl
-
-  Uᴹᴰ : ∀ {X} → Functor (Endos SOrdᴹᴰ X) SOrd↑
-  Uᴹᴰ {X} .Functor.F₀ _ = X .fst
-  Uᴹᴰ .Functor.F₁ σ = σ .morphism
-  Uᴹᴰ .Functor.F-id = refl
-  Uᴹᴰ .Functor.F-∘ _ _ = refl
+    Uᴹᴰ : Functor SOrdᴹᴰ SOrd↑
+    Uᴹᴰ = Forget SOrd↑ (McBride H⟨Δ⁺⟩→)
 
   --------------------------------------------------------------------------------
   -- Constructing the natural transformation ν
   -- Section 3.4, Lemma 3.8
 
-  ν : (pt : ∣ Ψ ∣) → Uᴴ => Uᴹᴰ F∘ T
+  ν : (pt : ∣ Ψ ∣)
+    →  liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include
+    => Uᴹᴰ F∘ Endos-include F∘ T
   ν pt = nt
     where
       ℓ̅ : ⌞ H.M₀ Δ ⌟ → Hom Δ⁺ (H.M₀ Δ⁺)
@@ -183,7 +173,8 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
             H.η _ # ι₂ α                          ≡˘⟨ μ-η H (σ̅ σ) #ₚ _ ⟩
             H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₂ α)) ∎
 
-      nt : Uᴴ => Uᴹᴰ F∘ T
+      nt : liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include
+        => Uᴹᴰ F∘ Endos-include F∘ T
       nt ._=>_.η _ .hom (lift ℓ) = pt , ν′ ℓ
       nt ._=>_.η _ .pres-≤[]-equal (lift ℓ≤ℓ′) =
         inc (biased refl (ν′-mono ℓ≤ℓ′)) , λ p → ap lift $ ν′-injective-on-related ℓ≤ℓ′ (ap snd p)

@@ -30,10 +30,10 @@ module Mugen.Order.Reasoning {o r} (A : Poset o r) where
     ≤-antisym'-r : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → y ≡ z
     ≤-antisym'-r {y = y} x≤y y≤z x=z = ≤-antisym y≤z $ subst (_≤ y) x=z x≤y
 
-  RelativeInequality : ∀ {r'} (x y : Ob) (K : Type r') → Type (o ⊔ r ⊔ r')
-  RelativeInequality x y K = (x ≤ y) × (x ≡ y → K)
+  ParametrizedInequality : ∀ {r'} (x y : Ob) (K : Type r') → Type (o ⊔ r ⊔ r')
+  ParametrizedInequality x y K = (x ≤ y) × (x ≡ y → K)
 
-  syntax RelativeInequality x y K = x ≤[ K ] y
+  syntax ParametrizedInequality x y K = x ≤[ K ] y
 
   abstract
     ≤[]-is-hlevel : ∀ {x y : Ob} {K : Type r'}

@@ -1,23 +1,24 @@
 open import Cat.Prelude
 
-module Mugen.Cat.Indexed {o o' ℓ} (𝒞 : Precategory o ℓ) {I : Type o'} (F : I → 𝒞 .Precategory.Ob) where
+module Mugen.Cat.Indexed {o o' ℓ} {I : Type o'} where
 
 import Cat.Reasoning as Cat
 
-open Cat 𝒞
+Indexed : (𝒞 : Precategory o ℓ) (F : I → 𝒞 .Precategory.Ob) → Precategory o' ℓ
+Indexed 𝒞 F = C where
+  open Cat 𝒞
+  C : Precategory o' ℓ
+  C .Precategory.Ob          = I
+  C .Precategory.Hom i j     = Hom (F i) (F j)
+  C .Precategory.Hom-set _ _ = Hom-set _ _
+  C .Precategory.id          = id
+  C .Precategory._∘_         = _∘_
+  C .Precategory.idr         = idr
+  C .Precategory.idl         = idl
+  C .Precategory.assoc       = assoc
 
-Indexed : Precategory o' ℓ
-Indexed .Precategory.Ob          = I
-Indexed .Precategory.Hom i j     = Hom (F i) (F j)
-Indexed .Precategory.Hom-set _ _ = Hom-set _ _
-Indexed .Precategory.id          = id
-Indexed .Precategory._∘_         = _∘_
-Indexed .Precategory.idr         = idr
-Indexed .Precategory.idl         = idl
-Indexed .Precategory.assoc       = assoc
-
-Indexed-include : Functor Indexed 𝒞
-Indexed-include .Functor.F₀ = F
+Indexed-include : ∀ {𝒞} {F : I → 𝒞 .Precategory.Ob} → Functor (Indexed 𝒞 F) 𝒞
+Indexed-include {F = F} .Functor.F₀ = F
 Indexed-include .Functor.F₁ σ = σ
 Indexed-include .Functor.F-id = refl
 Indexed-include .Functor.F-∘ _ _ = refl
