@@ -53,21 +53,24 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     module Δ = Poset Δ
     module H = Monad H
 
-    Δ⁺ : Poset o r
-    Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
+  -- made public for the naturality proof in a different file
+  Δ⁺ : Poset o r
+  Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
 
+  private
     H⟨Δ⁺⟩ : Poset o r
     H⟨Δ⁺⟩ = H.M₀ Δ⁺
     module H⟨Δ⁺⟩ = Reasoning H⟨Δ⁺⟩
 
-    H⟨Δ⁺⟩→-poset : Poset (lsuc (o ⊔ r)) (o ⊔ r)
-    H⟨Δ⁺⟩→-poset = Endomorphism-poset H Δ⁺
-    module H⟨Δ⁺⟩→-poset = Reasoning H⟨Δ⁺⟩→-poset
+    H⟨Δ⁺⟩→ : Poset (lsuc (o ⊔ r)) (o ⊔ r)
+    H⟨Δ⁺⟩→ = Endomorphism-poset H Δ⁺
+    module H⟨Δ⁺⟩→ = Reasoning H⟨Δ⁺⟩→
 
-    H⟨Δ⁺⟩→ : Displacement-on H⟨Δ⁺⟩→-poset
-    H⟨Δ⁺⟩→ = Endomorphism H Δ⁺
-    module H⟨Δ⁺⟩→ = Displacement-on H⟨Δ⁺⟩→
+  𝒟 : Displacement-on H⟨Δ⁺⟩→
+  𝒟 = Endomorphism H Δ⁺
+  module 𝒟 = Displacement-on 𝒟
 
+  private
     SOrd : Precategory (lsuc (o ⊔ r)) (o ⊔ r)
     SOrd = Strict-orders o r
     module SOrd = Cat SOrd
@@ -81,7 +84,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     SOrd↑ = Strict-orders (lsuc (o ⊔ r)) (lsuc (o ⊔ r))
 
     SOrdᴹᴰ : Precategory (lsuc (lsuc (o ⊔ r))) (lsuc (lsuc (o ⊔ r)))
-    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride H⟨Δ⁺⟩→)
+    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride 𝒟)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
     Fᴴ : Functor SOrd SOrdᴴ
@@ -96,8 +99,8 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     Endoᴴ⟨Δ⟩ : Type (o ⊔ r)
     Endoᴴ⟨Δ⟩ = Hom (H.M₀ Δ) (H.M₀ Δ)
 
-    Fᴹᴰ₀ : Poset (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r) → Algebra SOrd↑ (McBride H⟨Δ⁺⟩→)
-    Fᴹᴰ₀ = Functor.F₀ (Free SOrd↑ (McBride H⟨Δ⁺⟩→))
+    Fᴹᴰ₀ : Poset (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r) → Algebra SOrd↑ (McBride 𝒟)
+    Fᴹᴰ₀ = Functor.F₀ (Free SOrd↑ (McBride 𝒟))
 
   -- These patterns and definitions are exported for the naturality proof
   -- in another file.
@@ -186,7 +189,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   T .Functor.F₀ _ = tt
   T .Functor.F₁ σ .morphism .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
   T .Functor.F₁ σ .morphism .pres-≤[]-equal {α , d1} {β , d2} p =
-    let d1≤d2 , injr = H⟨Δ⁺⟩→.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
+    let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
     inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
   T .Functor.F₁ σ .commutes = trivial!
   T .Functor.F-id = ext λ α d →
