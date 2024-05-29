@@ -57,9 +57,6 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     module Δ = Poset Δ
     module H = Monad H
 
-    Δ⁺ : Poset o r
-    Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
-
     H⟨Δ⟩ : Poset o r
     H⟨Δ⟩ = H.M₀ Δ
     module H⟨Δ⟩ = Poset H⟨Δ⟩
@@ -68,13 +65,9 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     H⟨Δ⁺⟩ = H.M₀ Δ⁺
     module H⟨Δ⁺⟩ = Reasoning H⟨Δ⁺⟩
 
-    H⟨Δ⁺⟩→-poset : Poset (lsuc (o ⊔ r)) (o ⊔ r)
-    H⟨Δ⁺⟩→-poset = Endomorphism-poset H Δ⁺
-    module H⟨Δ⁺⟩→-poset = Reasoning H⟨Δ⁺⟩→-poset
-
-    H⟨Δ⁺⟩→ : Displacement-on H⟨Δ⁺⟩→-poset
-    H⟨Δ⁺⟩→ = Endomorphism H Δ⁺
-    module H⟨Δ⁺⟩→ = Displacement-on H⟨Δ⁺⟩→
+    H⟨Δ⁺⟩→ : Poset (lsuc (o ⊔ r)) (o ⊔ r)
+    H⟨Δ⁺⟩→ = Endomorphism-poset H Δ⁺
+    module H⟨Δ⁺⟩→ = Reasoning H⟨Δ⁺⟩→
 
     SOrd : Precategory (lsuc (o ⊔ r)) (o ⊔ r)
     SOrd = Strict-orders o r
@@ -89,7 +82,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     SOrd↑ = Strict-orders (lsuc (o ⊔ r)) (lsuc (o ⊔ r))
 
     SOrdᴹᴰ : Precategory (lsuc (lsuc (o ⊔ r))) (lsuc (lsuc (o ⊔ r)))
-    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride H⟨Δ⁺⟩→)
+    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride 𝒟)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
     Uᴴ : Functor SOrdᴴ SOrd
@@ -105,13 +98,13 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
     Fᴴ₁ = Fᴴ .Functor.F₁
 
     Uᴹᴰ : Functor SOrdᴹᴰ SOrd↑
-    Uᴹᴰ = Forget SOrd↑ (McBride H⟨Δ⁺⟩→)
+    Uᴹᴰ = Forget SOrd↑ (McBride 𝒟)
 
   --------------------------------------------------------------------------------
   -- Constructing the natural transformation ν
   -- Section 3.4, Lemma 3.8
 
-  ν : (pt : ∣ Ψ ∣)
+  ν : ∣ Ψ ∣
     →  liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include
     => Uᴹᴰ F∘ Endos-include F∘ T
   ν pt = nt
@@ -140,7 +133,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
         H.μ Δ⁺ # (H.M₁ (H.μ Δ⁺ ∘ H.M₁ (ℓ̅ ℓ)) # α)          ∎
 
       abstract
-        ν′-mono : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ H⟨Δ⁺⟩→-poset.≤ ν′ ℓ
+        ν′-mono : ∀ {ℓ′ ℓ : ⌞ H.M₀ Δ ⌟} → ℓ′ H⟨Δ⟩.≤ ℓ → ν′ ℓ′ H⟨Δ⁺⟩→.≤ ν′ ℓ
         ν′-mono {ℓ′} {ℓ} ℓ′≤ℓ α = begin-≤
           H.μ Δ⁺ # (H.M₁ (ℓ̅ ℓ′) # (H.η Δ⁺ # α)) ≐⟨ μ-η H (ℓ̅ ℓ′) #ₚ α ⟩
           ℓ̅ ℓ′ # α                              ≤⟨ ℓ̅-pres-≤ ℓ′≤ℓ α ⟩

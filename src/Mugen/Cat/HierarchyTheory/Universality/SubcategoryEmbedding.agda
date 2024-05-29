@@ -84,10 +84,6 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
     FᴴΔ₋ : I → Algebra SOrd H
     FᴴΔ₋ i =  Fᴴ₀ (Δ₋ i)
 
-    -- '↑' for lifting
-    SOrd↑ : Precategory (lsuc (lsuc o)) (lsuc o)
-    SOrd↑ = Strict-orders (lsuc o) (lsuc o)
-
   pattern ι n i α = (n , i , α)
 
   ι-inj : ∀ {n : Nat} {i : I} {x y : ⌞ Δ₋ i ⌟} → _≡_ {A = ⌞ Δ ⌟} (ι n i x) (ι n i y) → x ≡ y
