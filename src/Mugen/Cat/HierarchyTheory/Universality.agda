@@ -16,18 +16,12 @@ open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Instances.Endomorphism
 
-open import Mugen.Cat.Endomorphisms
-open import Mugen.Cat.Indexed
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.Endomorphisms
+open import Mugen.Cat.Instances.Indexed
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
 open import Mugen.Cat.HierarchyTheory.McBride
-
-open import Mugen.Order.StrictOrder
-open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
-open import Mugen.Order.Instances.LeftInvariantRightCentered
-open import Mugen.Order.Instances.Lift
-open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
 
@@ -53,7 +47,6 @@ module Mugen.Cat.HierarchyTheory.Universality {o o' r}
   -- Notation
 
   private
-    open Strictly-monotone
     open Algebra-hom
     module H = Monad H
 

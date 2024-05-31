@@ -6,7 +6,7 @@ open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 open import Mugen.Order.Instances.LeftInvariantRightCentered
 open import Mugen.Order.StrictOrder
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Cat.HierarchyTheory
 
 import Mugen.Order.Reasoning

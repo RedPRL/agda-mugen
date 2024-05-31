@@ -1,5 +1,6 @@
 -- vim: nowrap
 open import Data.Nat
+
 open import Order.Instances.Discrete
 open import Order.Instances.Disjoint
 
@@ -12,15 +13,14 @@ import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
 
-open import Mugen.Cat.Endomorphisms
-open import Mugen.Cat.Indexed
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.Endomorphisms
+open import Mugen.Cat.Instances.Indexed
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Copower
-open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
 

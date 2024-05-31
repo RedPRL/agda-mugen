@@ -1,4 +1,4 @@
-module Mugen.Cat.StrictOrders where
+module Mugen.Cat.Instances.StrictOrders where
 
 open import Mugen.Prelude
 open import Mugen.Order.StrictOrder

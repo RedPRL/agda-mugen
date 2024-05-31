@@ -14,8 +14,8 @@ open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Instances.Endomorphism
 
-open import Mugen.Cat.Endomorphisms
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.Endomorphisms
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Cat.Monad
 open import Mugen.Cat.HierarchyTheory
 open import Mugen.Cat.HierarchyTheory.McBride

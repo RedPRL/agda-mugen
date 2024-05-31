@@ -4,7 +4,7 @@ open import Cat.Diagram.Monad
 import Cat.Reasoning as Cat
 
 open import Mugen.Prelude
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Order.StrictOrder
 
 --------------------------------------------------------------------------------

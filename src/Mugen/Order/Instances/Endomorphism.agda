@@ -6,8 +6,8 @@ import Cat.Reasoning as Cat
 open import Mugen.Prelude
 
 open import Mugen.Order.StrictOrder
-open import Mugen.Cat.StrictOrders
 open import Mugen.Cat.Monad
+open import Mugen.Cat.Instances.StrictOrders
 
 import Mugen.Order.Reasoning as Reasoning
 

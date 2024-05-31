@@ -1,6 +1,6 @@
 open import Cat.Prelude
 
-module Mugen.Cat.Indexed {o o' ℓ} {I : Type o'} where
+module Mugen.Cat.Instances.Indexed {o o' ℓ} {I : Type o'} where
 
 import Cat.Reasoning as Cat
 

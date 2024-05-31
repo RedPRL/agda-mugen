@@ -12,7 +12,7 @@ open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
 open import Mugen.Cat.Monad
-open import Mugen.Cat.StrictOrders
+open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism
   renaming (Endomorphism to Endomorphism-poset)
