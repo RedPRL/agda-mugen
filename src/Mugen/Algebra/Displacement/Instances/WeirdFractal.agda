@@ -1,4 +1,4 @@
-module Mugen.Algebra.Displacement.Instances.IncorrectFractal where
+module Mugen.Algebra.Displacement.Instances.WeirdFractal where
 
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
@@ -11,7 +11,7 @@ variable
   o r : Level
 
 --------------------------------------------------------------------------------
--- "Incorrect" Fractal Displacements from our previous incorrect Agda
+-- Weird Fractal Displacements from our previous incorrect Agda
 -- formalization of Section 3.3.7 of the POPL 2023 paper. They come with
 -- a different composition operator. Miraculously, it leads to a valid
 -- (but different) displacement algebra.
