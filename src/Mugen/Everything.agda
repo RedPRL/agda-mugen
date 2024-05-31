@@ -8,6 +8,7 @@ import Mugen.Algebra.Displacement.Action
 import Mugen.Algebra.Displacement.Instances.Constant
 import Mugen.Algebra.Displacement.Instances.Endomorphism
 import Mugen.Algebra.Displacement.Instances.Fractal
+import Mugen.Algebra.Displacement.Instances.IncorrectFractal
 import Mugen.Algebra.Displacement.Instances.IndexedProduct
 import Mugen.Algebra.Displacement.Instances.Int
 import Mugen.Algebra.Displacement.Instances.Lexicographic
