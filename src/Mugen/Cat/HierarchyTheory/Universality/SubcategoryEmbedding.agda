@@ -289,8 +289,8 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
   -- Constructing the natural transformation ν
   -- Section 3.4, Lemma 3.8
 
-  ν : Uᴴ F∘ Indexed-include => Uᴴ F∘ Endos-include F∘ T
-  ν ._=>_.η i = H.M₁ (ι-hom 0 i)
+  ν : Indexed-include => Endos-include F∘ T
+  ν ._=>_.η i = Fᴴ₁ (ι-hom 0 i)
   ν ._=>_.is-natural i j σ = sym $ ext $ H-σ̅-ι-k0j σ
 
   --------------------------------------------------------------------------------

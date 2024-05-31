@@ -105,7 +105,7 @@ module Mugen.Cat.HierarchyTheory.Universality {o o' r}
   ν pt = lemma-assoc₂
     ∘nt  (EEN.ν pt ◂ SE.T)
     ∘nt  lemma-assoc₁
-    ∘nt  (liftᶠ-strict-orders ▸ SE.ν)
+    ∘nt  (liftᶠ-strict-orders ▸ (Uᴴ ▸ SE.ν))
     where
       lemma-assoc₁
         :  liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include F∘ SE.T
