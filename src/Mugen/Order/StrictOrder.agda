@@ -106,14 +106,14 @@ module _
   where
   open is-full-subposet
 
-  full-subposet-∘
+  ∘-is-full-subposet
     : {f : Strictly-monotone B C} {g : Strictly-monotone A B}
     → is-full-subposet f
     → is-full-subposet g
     → is-full-subposet (strictly-monotone-∘ f g)
-  full-subposet-∘ {f = f} {g = g} f-sub g-sub .is-full-subposet.injective =
+  ∘-is-full-subposet {f = f} {g = g} f-sub g-sub .is-full-subposet.injective =
     g-sub .is-full-subposet.injective ⊙ f-sub .is-full-subposet.injective
-  full-subposet-∘ {f = f} {g = g} f-sub g-sub .is-full-subposet.full =
+  ∘-is-full-subposet {f = f} {g = g} f-sub g-sub .is-full-subposet.full =
     g-sub .is-full-subposet.full ⊙ f-sub .is-full-subposet.full
 
 --------------------------------------------------------------------------------

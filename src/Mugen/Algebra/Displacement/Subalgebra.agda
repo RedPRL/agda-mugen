@@ -33,15 +33,15 @@ module _
   where
   open is-full-subdisplacement
 
-  full-subdisplacement-∘
+  ∘-is-full-subdisplacement
     : {f : Strictly-monotone B C} {g : Strictly-monotone A B}
     → is-full-subdisplacement Y Z f
     → is-full-subdisplacement X Y g
     → is-full-subdisplacement X Z (strictly-monotone-∘ f g)
-  full-subdisplacement-∘ {f = f} {g = g} f-sub g-sub .has-is-full-subposet =
-    full-subposet-∘ (f-sub .has-is-full-subposet) (g-sub .has-is-full-subposet)
-  full-subdisplacement-∘ {f = f} {g = g} f-sub g-sub .has-is-displacement-hom =
-    displacement-hom-∘ (f-sub .has-is-displacement-hom) (g-sub .has-is-displacement-hom)
+  ∘-is-full-subdisplacement {f = f} {g = g} f-sub g-sub .has-is-full-subposet =
+    ∘-is-full-subposet (f-sub .has-is-full-subposet) (g-sub .has-is-full-subposet)
+  ∘-is-full-subdisplacement {f = f} {g = g} f-sub g-sub .has-is-displacement-hom =
+    ∘-is-displacement-hom (f-sub .has-is-displacement-hom) (g-sub .has-is-displacement-hom)
 
 --------------------------------------------------------------------------------
 -- Builders for Subalgebras

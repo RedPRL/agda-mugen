@@ -89,16 +89,30 @@ module _
       Π-is-hlevel' 1 λ _ → Π-is-hlevel' 1 λ _ → B.Ob-is-set _ _
       where unquoteDecl eqv = declare-record-iso eqv (quote is-displacement-hom)
 
-displacement-hom-∘
+abstract instance
+  H-Level-is-displacement : ∀ {n}
+    {A : Poset o r} {B : Poset o' r'}
+    {X : Displacement-on A} {Y : Displacement-on B}
+    {f : Strictly-monotone A B} →
+    H-Level (is-displacement-hom X Y f) (suc n)
+  H-Level-is-displacement {X = X} {Y} {f} = prop-instance (is-displacement-hom-is-prop X Y f)
+
+id-is-displacement-hom
+  : {A : Poset o r} (X : Displacement-on A)
+  → is-displacement-hom X X strictly-monotone-id
+id-is-displacement-hom X .is-displacement-hom.pres-ε = refl
+id-is-displacement-hom X .is-displacement-hom.pres-⊗ = refl
+
+∘-is-displacement-hom
   : {A : Poset o r} {B : Poset o' r'} {C : Poset o'' r''}
   {X : Displacement-on A} {Y : Displacement-on B} {Z : Displacement-on C}
   {f : Strictly-monotone B C} {g : Strictly-monotone A B}
   → is-displacement-hom Y Z f
   → is-displacement-hom X Y g
   → is-displacement-hom X Z (strictly-monotone-∘ f g)
-displacement-hom-∘ {f = f} f-disp g-disp .is-displacement-hom.pres-ε =
+∘-is-displacement-hom {f = f} f-disp g-disp .is-displacement-hom.pres-ε =
   ap# f (g-disp .is-displacement-hom.pres-ε) ∙ f-disp .is-displacement-hom.pres-ε
-displacement-hom-∘ {f = f} {g = g} f-disp g-disp .is-displacement-hom.pres-⊗ {x} {y} =
+∘-is-displacement-hom {f = f} {g = g} f-disp g-disp .is-displacement-hom.pres-⊗ {x} {y} =
   ap# f (g-disp .is-displacement-hom.pres-⊗ {x} {y}) ∙ f-disp .is-displacement-hom.pres-⊗ {g # x} {g # y}
 
 --------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ import Mugen.Cat.HierarchyTheory.Universality
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
 import Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding
+import Mugen.Cat.Instances.Displacements
 import Mugen.Cat.Instances.Endomorphisms
 import Mugen.Cat.Instances.Indexed
 import Mugen.Cat.Instances.StrictOrders

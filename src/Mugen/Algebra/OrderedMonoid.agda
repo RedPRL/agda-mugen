@@ -40,41 +40,19 @@ record Ordered-monoid-on {o r : Level} (A : Poset o r) : Type (o ⊔ lsuc r) whe
 
   open is-ordered-monoid has-ordered-monoid public
 
-record Ordered-monoid (o r : Level) : Type (lsuc (o ⊔ r)) where
-  field
-    poset : Poset o r
-    ordered-monoid : Ordered-monoid-on poset
-
-  open Poset poset public
-  open Ordered-monoid-on ordered-monoid hiding (has-is-set) public
-
-instance
-  Underlying-ordered-monoid : ∀ {o r} → Underlying (Ordered-monoid o r)
-  Underlying-ordered-monoid .Underlying.ℓ-underlying = _
-  Underlying.⌞ Underlying-ordered-monoid ⌟ M = ⌞ Ordered-monoid.poset M ⌟
-
 --------------------------------------------------------------------------------
 -- Ordered Monoid Actions
 
 record is-right-ordered-monoid-action
-  {o r o′ r′} (A : Poset o r) (B : Ordered-monoid o′ r′)
+  {o r o′ r′} (A : Poset o r) {B : Poset o′ r′} (M : Ordered-monoid-on B)
   (α : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟)
   : Type (o ⊔ r ⊔ o′ ⊔ r′)
   where
   no-eta-equality
   private
     module A = Poset A
-    module B = Ordered-monoid B
+    module M = Ordered-monoid-on M
   field
-    identity : ∀ (a : ⌞ A ⌟) → α a B.ε ≡ a
-    compat : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x B.⊗ y)
+    identity : ∀ (a : ⌞ A ⌟) → α a M.ε ≡ a
+    compat : ∀ (a : ⌞ A ⌟) (x y : ⌞ B ⌟) → α (α a x) y ≡ α a (x M.⊗ y)
     invariant : ∀ (a b : ⌞ A ⌟) (x : ⌞ B ⌟) → a A.≤ b → α a x A.≤ α b x
-
-record Right-ordered-monoid-action
-  {o o' r r'} (A : Poset o r) (B : Ordered-monoid o' r')
-  : Type (o ⊔ o' ⊔ r ⊔ r')
-  where
-  no-eta-equality
-  field
-    hom : ⌞ A ⌟ → ⌞ B ⌟ → ⌞ A ⌟
-    has-is-action : is-right-ordered-monoid-action A B hom
