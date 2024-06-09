@@ -47,13 +47,12 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
     ⌞Δ₋⌟ : I → Type (o ⊔ o')
     ⌞Δ₋⌟ i = ⌞ Δ₋ i ⌟
 
-    abstract instance 
-      H-Level-I : H-Level I 2
-      H-Level-I = hlevel-instance $ Discrete→is-set Discrete-I
+    I-is-set : is-set I
+    I-is-set = Discrete→is-set Discrete-I
 
   -- Δ is made public for proving the main theorem
   Δ : Poset (o ⊔ o') (r ⊔ o')
-  Δ = Copower (el! Nat) (Disjoint (el! I) Δ₋)
+  Δ = Copower (el! Nat) (Disjoint (el I I-is-set) Δ₋)
   module Δ = Poset Δ
 
   private
@@ -87,7 +86,7 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
   pattern ι n i α = (n , i , α)
 
   ι-inj : ∀ {n : Nat} {i : I} {x y : ⌞ Δ₋ i ⌟} → _≡_ {A = ⌞ Δ ⌟} (ι n i x) (ι n i y) → x ≡ y
-  ι-inj p = is-set→cast-pathp ⌞Δ₋⌟ (hlevel 2) λ j → p j .snd .snd
+  ι-inj p = is-set→cast-pathp ⌞Δ₋⌟ I-is-set λ j → p j .snd .snd
 
   ι-hom : ∀ (n : Nat) (i : I) → Hom (Δ₋ i) Δ
   ι-hom n i .hom = ι n i
@@ -125,7 +124,7 @@ module Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding {o o' r}
       ... | no  k≠ᵢi  = absurd (k≠ᵢi p)
       ... | yes reflᵢ =
         H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # α))
-         ≡⟨ ap# (H.M₁ (ι-hom 0 j) ∘ σ .morphism ∘ H.η (Δ₋ i)) $ substᵢ-filler-set ⌞Δ₋⌟ (hlevel 2) p α ⟩
+         ≡⟨ ap# (H.M₁ (ι-hom 0 j) ∘ σ .morphism ∘ H.η (Δ₋ i)) $ substᵢ-filler-set ⌞Δ₋⌟ I-is-set p α ⟩
         H.M₁ (ι-hom 0 j) # (σ # (H.η (Δ₋ i) # substᵢ ⌞Δ₋⌟ p α))
           ∎
 
