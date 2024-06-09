@@ -23,16 +23,14 @@ abstract
   ≤-antisym'-r : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → y ≡ z
   ≤-antisym'-r {y = y} x≤y y≤z x=z = ≤-antisym y≤z $ subst (_≤ y) x=z x≤y
 
-ParametrizedInequality : ∀ (x y : Ob) (K : Type r') → Type (o ⊔ r ⊔ r')
-ParametrizedInequality x y K = (x ≤ y) × (x ≡ y → K)
-
-syntax ParametrizedInequality x y K = x ≤[ K ] y
+_≤[_]_ : ∀ (x : Ob) (K : Type r') (y : Ob) → Type (o ⊔ r ⊔ r')
+x ≤[ K ] y = (x ≤ y) × (x ≡ y → K)
 
 abstract
   ≤[]-is-hlevel : ∀ {x y : Ob} {K : Type r'}
     → (n : Nat) → is-hlevel K (1 + n) → is-hlevel (x ≤[ K ] y) (1 + n)
   ≤[]-is-hlevel n hb =
-    ×-is-hlevel (1 + n) (is-prop→is-hlevel-suc ≤-thin) $ Π-is-hlevel (1 + n) λ _ → hb
+    ×-is-hlevel (1 + n) (hlevel (1 + n)) $ Π-is-hlevel (1 + n) λ _ → hb
 
 ≤[]-map : ∀ {x y} {K : Type r'} {K' : Type r''} → (K → K') → x ≤[ K ] y → x ≤[ K' ] y
 ≤[]-map f p = Σ-map₂ (f ⊙_) p

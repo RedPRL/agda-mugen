@@ -26,7 +26,7 @@ record Right-displacement-action
     invariant : ∀ {a x y} → x B.≤ y → (a ⋆ x) A.≤ (a ⋆ y)
     invariant {a} {x} {y} x≤y = strict-invariant {a} {x} {y} x≤y .fst
 
-    injectiver-on-related : ∀ {a} {x} {y} → x B.≤ y → (a ⋆ x) ≡ (a ⋆ y) → x ≡ y
+    injectiver-on-related : ∀ {a x y} → x B.≤ y → (a ⋆ x) ≡ (a ⋆ y) → x ≡ y
     injectiver-on-related {a} {x} {y} x≤y = strict-invariant {a} {x} {y} x≤y .snd
 
 module _ where
@@ -40,20 +40,15 @@ module _ where
       → (∀ {a b} → (α ._⋆_ a b) ≡ (β ._⋆_ a b))
       → α ≡ β
     Right-displacement-action-path α β p i ._⋆_ a b = p {a} {b} i
-    Right-displacement-action-path {A = A} {Y = Y} α β p i .identity {a} =
+    Right-displacement-action-path α β p i .identity =
+      is-prop→pathp (λ i → hlevel 2 (p i) _) (α .identity) (β .identity) i
+    Right-displacement-action-path α β p i .compatible =
+      is-prop→pathp (λ i → hlevel 2 (p i) (p {p i} i)) (α .compatible) (β .compatible) i
+    Right-displacement-action-path {A = A} α β p i .strict-invariant q =
+      let module A = Reasoning A in
       is-prop→pathp
-        (λ i → Poset.Ob-is-set A (p {a} {Y .Displacement-on.ε} i) _)
-        (α .identity {a}) (β .identity {a}) i
-    Right-displacement-action-path {A = A} {Y = Y} α β p i .compatible {a} {x} {y} =
-      is-prop→pathp
-        (λ i → Poset.Ob-is-set A
-          (p {a} {Y .Displacement-on._⊗_ x y} i)
-          (p {p {a} {x} i} {y} i))
-        (α .compatible {a} {x} {y}) (β .compatible {a} {x} {y}) i
-    Right-displacement-action-path {A = A} {B = B} α β p i .strict-invariant {a} {x} {y} q =
-      is-prop→pathp
-        (λ i → Reasoning.≤[]-is-hlevel A {x = p {a} {x} i} {y = p {a} {y} i} 0 (Poset.Ob-is-set B _ _))
-        (α .strict-invariant {a} {x} {y} q) (β .strict-invariant {a} {x} {y} q) i
+        (λ i → A.≤[]-is-hlevel {x = p i} {y = p i} 0 $ hlevel 1)
+        (α .strict-invariant q) (β .strict-invariant q) i
 
 instance
   Right-actionlike-displacement-action

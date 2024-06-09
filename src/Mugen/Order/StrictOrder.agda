@@ -17,7 +17,7 @@ record Strictly-monotone (X : Poset o r) (Y : Poset o' r') : Type (o ⊔ o' ⊔ 
   field
     hom : ⌞ X ⌟ → ⌞ Y ⌟
 
-    -- Preserving relative inequalities
+    -- Preserving parametrized inequalities
     --
     -- This is morally '∀ {x y} → x X.≤[ x ≡ y ] y → hom x Y.≤[ x ≡ y ] hom y'
     -- and is equivalent to pres-≤[] below.
@@ -40,13 +40,11 @@ abstract
     → f .Strictly-monotone.hom ≡ g .Strictly-monotone.hom
     → f ≡ g
   Strictly-monotone-path f g p i .Strictly-monotone.hom = p i
-  Strictly-monotone-path {X = X} {Y = Y} f g p i .Strictly-monotone.pres-≤[]-equal {x} {y} x<y =
-    let module X = Reasoning X
-        module Y = Reasoning Y
-    in
+  Strictly-monotone-path {X = X} {Y = Y} f g p i .Strictly-monotone.pres-≤[]-equal {x} {y} x≤y =
+    let module Y = Reasoning Y in
     is-prop→pathp
-      (λ i → Y.≤[]-is-hlevel {x = p i x} {y = p i y} 0 (X.Ob-is-set x y))
-      (f .Strictly-monotone.pres-≤[]-equal x<y) (g .Strictly-monotone.pres-≤[]-equal x<y) i
+      (λ i → Y.≤[]-is-hlevel {x = p i x} {y = p i y} 0 (hlevel 1))
+      (f .Strictly-monotone.pres-≤[]-equal x≤y) (g .Strictly-monotone.pres-≤[]-equal x≤y) i
 
 module _ {X : Poset o r} {Y : Poset o' r'} where
   private
