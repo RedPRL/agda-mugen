@@ -2,149 +2,133 @@ open import Mugen.Prelude
 
 module Mugen.Order.Reasoning {o r} (A : Poset o r) where
 
-  private variable
-    o' o'' r' r'' : Level
+private variable
+  o' r' r'' : Level
 
-  open Poset A public
+open Poset A public
 
-  instance
-    H-Level-Ob : ∀ {n} → H-Level Ob (2 + n)
-    H-Level-Ob {n = n} = basic-instance 2 Ob-is-set
+abstract
+  =→≤ : ∀ {x y} → x ≡ y → x ≤ y
+  =→≤ x=y = subst (_ ≤_) x=y ≤-refl
 
-    H-Level-≤ : ∀ {x y} {n} → H-Level (x ≤ y) (1 + n)
-    H-Level-≤ {n = n} = prop-instance ≤-thin
+  ≤+=→≤ : ∀ {x y z} → x ≤ y → y ≡ z → x ≤ z
+  ≤+=→≤ x≤y y≡z = subst (_ ≤_) y≡z x≤y
 
-  abstract
-    =→≤ : ∀ {x y} → x ≡ y → x ≤ y
-    =→≤ x=y = subst (_ ≤_) x=y ≤-refl
+  =+≤→≤ : ∀ {x y z} → x ≡ y → y ≤ z → x ≤ z
+  =+≤→≤ x≡y y≤z = subst (_≤ _) (sym x≡y) y≤z
 
-    ≤+=→≤ : ∀ {x y z} → x ≤ y → y ≡ z → x ≤ z
-    ≤+=→≤ x≤y y≡z = subst (_ ≤_) y≡z x≤y
+  ≤-antisym'-l : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → x ≡ y
+  ≤-antisym'-l {y = y} x≤y y≤z x=z = ≤-antisym x≤y $ subst (y ≤_) (sym x=z) y≤z
 
-    =+≤→≤ : ∀ {x y z} → x ≡ y → y ≤ z → x ≤ z
-    =+≤→≤ x≡y y≤z = subst (_≤ _) (sym x≡y) y≤z
+  ≤-antisym'-r : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → y ≡ z
+  ≤-antisym'-r {y = y} x≤y y≤z x=z = ≤-antisym y≤z $ subst (_≤ y) x=z x≤y
 
-    ≤-antisym'-l : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → x ≡ y
-    ≤-antisym'-l {y = y} x≤y y≤z x=z = ≤-antisym x≤y $ subst (y ≤_) (sym x=z) y≤z
+ParametrizedInequality : ∀ (x y : Ob) (K : Type r') → Type (o ⊔ r ⊔ r')
+ParametrizedInequality x y K = (x ≤ y) × (x ≡ y → K)
 
-    ≤-antisym'-r : ∀ {x y z} → x ≤ y → y ≤ z → x ≡ z → y ≡ z
-    ≤-antisym'-r {y = y} x≤y y≤z x=z = ≤-antisym y≤z $ subst (_≤ y) x=z x≤y
+syntax ParametrizedInequality x y K = x ≤[ K ] y
 
-  ParametrizedInequality : ∀ {r'} (x y : Ob) (K : Type r') → Type (o ⊔ r ⊔ r')
-  ParametrizedInequality x y K = (x ≤ y) × (x ≡ y → K)
+abstract
+  ≤[]-is-hlevel : ∀ {x y : Ob} {K : Type r'}
+    → (n : Nat) → is-hlevel K (1 + n) → is-hlevel (x ≤[ K ] y) (1 + n)
+  ≤[]-is-hlevel n hb =
+    ×-is-hlevel (1 + n) (is-prop→is-hlevel-suc ≤-thin) $ Π-is-hlevel (1 + n) λ _ → hb
 
-  syntax ParametrizedInequality x y K = x ≤[ K ] y
+≤[]-map : ∀ {x y} {K : Type r'} {K' : Type r''} → (K → K') → x ≤[ K ] y → x ≤[ K' ] y
+≤[]-map f p = Σ-map₂ (f ⊙_) p
 
-  abstract
-    ≤[]-is-hlevel : ∀ {x y : Ob} {K : Type r'}
-      → (n : Nat) → is-hlevel K (1 + n) → is-hlevel (x ≤[ K ] y) (1 + n)
-    ≤[]-is-hlevel n hb =
-      ×-is-hlevel (1 + n) (is-prop→is-hlevel-suc ≤-thin) $ Π-is-hlevel (1 + n) λ _ → hb
+_<_ : Ob → Ob → Type (o ⊔ r)
+x < y = x ≤[ ⊥ ] y
 
-  -- This overlaps with the H-Level instance for Σ
-  {-
-  abstract instance
-    H-Level-≤[] : ∀ {r'} {K : Type r'} {n k : Nat} {x y}
-      → ⦃ H-Level K (1 + n) ⦄ → H-Level (x ≤[ K ] y) (1 + n + k)
-    H-Level-≤[] {n = n} ⦃ hb ⦄ =
-      basic-instance (1 + n) $ ≤[]-is-hlevel n (hb .H-Level.has-hlevel)
-  -}
+abstract
+  ≤→≤[]-equal : ∀ {x y} → x ≤ y → x ≤[ x ≡ y ] y
+  ≤→≤[]-equal x≤y = x≤y , λ p → p
 
-  ≤[]-map : ∀ {x y} {K : Type r'} {K' : Type r''} → (K → K') → x ≤[ K ] y → x ≤[ K' ] y
-  ≤[]-map f p = Σ-map₂ (f ⊙_) p
+  <-irrefl : ∀ {x} {K : Type r'} → x ≤[ K ] x → K
+  <-irrefl x<x = x<x .snd refl
 
-  _<_ : Ob → Ob → Type (o ⊔ r)
-  x < y = x ≤[ ⊥ ] y
+  ≤[]-trans : ∀ {x y z} {K K' : Type r'} → x ≤[ K ] y → y ≤[ K' ] z → x ≤[ K × K' ] z
+  ≤[]-trans {y = y} x<y y<z .fst = ≤-trans (x<y .fst) (y<z .fst)
+  ≤[]-trans {y = y} x<y y<z .snd x=z =
+    x<y .snd (≤-antisym'-l (x<y .fst) (y<z .fst) x=z) ,
+    y<z .snd (≤-antisym'-r (x<y .fst) (y<z .fst) x=z)
 
-  abstract
-    ≤→≤[]-equal : ∀ {x y} → x ≤ y → x ≤[ x ≡ y ] y
-    ≤→≤[]-equal x≤y = x≤y , λ p → p
+  <-trans : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≤[ K ] z → x ≤[ K ] z
+  <-trans x<y y<z = ≤[]-map fst $ ≤[]-trans x<y y<z
 
-    <-irrefl : ∀ {x} {K : Type r'} → x ≤[ K ] x → K
-    <-irrefl x<x = x<x .snd refl
+  <-is-prop : ∀ {x y} → is-prop (x < y)
+  <-is-prop {x} {y} = hlevel 1
 
-    ≤[]-trans : ∀ {x y z} {K K' : Type r'} → x ≤[ K ] y → y ≤[ K' ] z → x ≤[ K × K' ] z
-    ≤[]-trans {y = y} x<y y<z .fst = ≤-trans (x<y .fst) (y<z .fst)
-    ≤[]-trans {y = y} x<y y<z .snd x=z =
-      x<y .snd (≤-antisym'-l (x<y .fst) (y<z .fst) x=z) ,
-      y<z .snd (≤-antisym'-r (x<y .fst) (y<z .fst) x=z)
+  ≤[]-asym : ∀ {x y} {K K' : Type r'} → x ≤[ K ] y → y ≤[ K' ] x → K × K'
+  ≤[]-asym x<y y<x = <-irrefl (≤[]-trans x<y y<x)
 
-    <-trans : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≤[ K ] z → x ≤[ K ] z
-    <-trans x<y y<z = ≤[]-map fst $ ≤[]-trans x<y y<z
+  <-asym : ∀ {x y} {K : Type r'} → x ≤[ K ] y → y ≤[ K ] x → K
+  <-asym x<y y<x = <-irrefl (<-trans x<y y<x)
 
-    <-is-prop : ∀ {x y} → is-prop (x < y)
-    <-is-prop {x} {y} = hlevel 1
+  =+<→< : ∀ {x y z} {K : Type r'} → x ≡ y → y ≤[ K ] z → x ≤[ K ] z
+  =+<→< {K = K} x≡y y<z = subst (λ ϕ → ϕ ≤[ K ] _) (sym x≡y) y<z
 
-    ≤[]-asym : ∀ {x y} {K K' : Type r'} → x ≤[ K ] y → y ≤[ K' ] x → K × K'
-    ≤[]-asym x<y y<x = <-irrefl (≤[]-trans x<y y<x)
+  <+=→< : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≡ z → x ≤[ K ] z
+  <+=→< {K = K} x<y y≡z = subst (λ ϕ → _ ≤[ K ] ϕ) y≡z x<y
 
-    <-asym : ∀ {x y} {K : Type r'} → x ≤[ K ] y → y ≤[ K ] x → K
-    <-asym x<y y<x = <-irrefl (<-trans x<y y<x)
+  <→≱ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → y ≤ x → K
+  <→≱ x<y y≤x = x<y .snd $ ≤-antisym (x<y .fst) y≤x
 
-    =+<→< : ∀ {x y z} {K : Type r'} → x ≡ y → y ≤[ K ] z → x ≤[ K ] z
-    =+<→< {K = K} x≡y y<z = subst (λ ϕ → ϕ ≤[ K ] _) (sym x≡y) y<z
+  ≤→≯ : ∀ {x y} {K : Type r'} → x ≤ y → y ≤[ K ] x → K
+  ≤→≯ x≤y y<x = y<x .snd $ ≤-antisym (y<x .fst) x≤y
 
-    <+=→< : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≡ z → x ≤[ K ] z
-    <+=→< {K = K} x<y y≡z = subst (λ ϕ → _ ≤[ K ] ϕ) y≡z x<y
+  <→≠ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → x ≡ y → K
+  <→≠ {K = K} x<y x≡y = x<y .snd x≡y
 
-    <→≱ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → y ≤ x → K
-    <→≱ x<y y≤x = x<y .snd $ ≤-antisym (x<y .fst) y≤x
+  <→≤ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → x ≤ y
+  <→≤ x<y = x<y .fst
 
-    ≤→≯ : ∀ {x y} {K : Type r'} → x ≤ y → y ≤[ K ] x → K
-    ≤→≯ x≤y y<x = y<x .snd $ ≤-antisym (y<x .fst) x≤y
+  ≤+<→< : ∀ {x y z} {K : Type r'} → x ≤ y → y ≤[ K ] z → x ≤[ K ] z
+  ≤+<→< x≤y y<z .fst = ≤-trans x≤y (y<z .fst)
+  ≤+<→< x≤y y<z .snd x=z = <→≱ y<z (=+≤→≤ (sym x=z) x≤y)
 
-    <→≠ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → x ≡ y → K
-    <→≠ {K = K} x<y x≡y = x<y .snd x≡y
+  <+≤→< : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≤ z → x ≤[ K ] z
+  <+≤→< x<y y≤z .fst = ≤-trans (x<y .fst) y≤z
+  <+≤→< x<y y≤z .snd x=z = <→≱ x<y (≤+=→≤ y≤z (sym x=z))
 
-    <→≤ : ∀ {x y} {K : Type r'} → x ≤[ K ] y → x ≤ y
-    <→≤ x<y = x<y .fst
+private
+  data Related (K : Type r') : ⌞ A ⌟ → ⌞ A ⌟ → Type (o ⊔ r ⊔ lsuc r') where
+    strict : ∀ {x y} → x ≤[ K ] y → Related K x y
+    non-strict : ∀ {x y} → x ≤ y → Related K x y
 
-    ≤+<→< : ∀ {x y z} {K : Type r'} → x ≤ y → y ≤[ K ] z → x ≤[ K ] z
-    ≤+<→< x≤y y<z .fst = ≤-trans x≤y (y<z .fst)
-    ≤+<→< x≤y y<z .snd x=z = <→≱ y<z (=+≤→≤ (sym x=z) x≤y)
+  NonStrict : ∀ {x y} → Related ⊤ x y → Type
+  NonStrict (strict _) = ⊥
+  NonStrict (non-strict _) = ⊤
 
-    <+≤→< : ∀ {x y z} {K : Type r'} → x ≤[ K ] y → y ≤ z → x ≤[ K ] z
-    <+≤→< x<y y≤z .fst = ≤-trans (x<y .fst) y≤z
-    <+≤→< x<y y≤z .snd x=z = <→≱ x<y (≤+=→≤ y≤z (sym x=z))
+  Strict : ∀ {K : Type r'} {x y} → Related K x y → Type
+  Strict (strict _) = ⊤
+  Strict (non-strict _) = ⊥
 
-  private
-    data Related {r' : Level} (K : Type r') : ⌞ A ⌟ → ⌞ A ⌟ → Type (o ⊔ r ⊔ lsuc r') where
-      strict : ∀ {x y} → x ≤[ K ] y → Related K x y
-      non-strict : ∀ {x y} → x ≤ y → Related K x y
+begin-≤[_]_ : ∀ {x y} (K : Type r') (x<y : Related K x y) → {Strict x<y} → x ≤[ K ] y
+begin-≤[ K ] (strict x<y) = x<y
 
-    NonStrict : ∀ {x y} → Related ⊤ x y → Type
-    NonStrict (strict _) = ⊥
-    NonStrict (non-strict _) = ⊤
+begin-≤_ : ∀ {x y} (x≤y : Related ⊤ x y) → {NonStrict x≤y} → x ≤ y
+begin-≤ (non-strict x≤y) = x≤y
 
-    Strict : ∀ {r'} {K : Type r'} {x y} → Related K x y → Type
-    Strict (strict _) = ⊤
-    Strict (non-strict _) = ⊥
+step-< : ∀ {K : Type r'} x {y z} → x ≤[ K ] y → Related K y z → Related K x z
+step-< {K = K} x x<y (non-strict y≤z) = strict (<+≤→< x<y y≤z)
+step-< {K = K} x x<y (strict y<z) = strict (<-trans x<y y<z)
 
-  begin-≤[_]_ : ∀ {r' x y} (K : Type r') (x<y : Related K x y) → {Strict x<y} → x ≤[ K ] y
-  begin-≤[ K ] (strict x<y) = x<y
+step-≤ : ∀ {K : Type r'} x {y z} → x ≤ y → Related K y z → Related K x z
+step-≤ x x≤y (non-strict y≤z) = non-strict (≤-trans x≤y y≤z)
+step-≤ x x≤y (strict y<z) = strict (≤+<→< x≤y y<z)
 
-  begin-≤_ : ∀ {x y} (x≤y : Related ⊤ x y) → {NonStrict x≤y} → x ≤ y
-  begin-≤ (non-strict x≤y) = x≤y
+step-≡ : ∀ {K : Type r'} x {y z} → x ≡ y → Related K y z → Related K x z
+step-≡ x x≡y (non-strict y≤z) = non-strict (=+≤→≤ x≡y y≤z)
+step-≡ x x≡y (strict y<z) = strict (=+<→< x≡y y<z)
 
-  step-< : ∀ {r'} {K : Type r'} x {y z} → x ≤[ K ] y → Related K y z → Related K x z
-  step-< {K = K} x x<y (non-strict y≤z) = strict (<+≤→< x<y y≤z)
-  step-< {K = K} x x<y (strict y<z) = strict (<-trans x<y y<z)
+_≤∎ : ∀ {K : Type r'} x → Related K x x
+_≤∎ x = non-strict ≤-refl
 
-  step-≤ : ∀ {r'} {K : Type r'} x {y z} → x ≤ y → Related K y z → Related K x z
-  step-≤ x x≤y (non-strict y≤z) = non-strict (≤-trans x≤y y≤z)
-  step-≤ x x≤y (strict y<z) = strict (≤+<→< x≤y y<z)
+infix  1 begin-≤[_]_ begin-≤_
+infixr 2 step-< step-≤ step-≡
+infix  3 _≤∎
 
-  step-≡ : ∀ {r'} {K : Type r'} x {y z} → x ≡ y → Related K y z → Related K x z
-  step-≡ x x≡y (non-strict y≤z) = non-strict (=+≤→≤ x≡y y≤z)
-  step-≡ x x≡y (strict y<z) = strict (=+<→< x≡y y<z)
-
-  _≤∎ : ∀ {r'} {K : Type r'} x → Related K x x
-  _≤∎ x = non-strict ≤-refl
-
-  infix  1 begin-≤[_]_ begin-≤_
-  infixr 2 step-< step-≤ step-≡
-  infix  3 _≤∎
-
-  syntax step-< x p q = x <⟨ p ⟩ q
-  syntax step-≤ x p q = x ≤⟨ p ⟩ q
-  syntax step-≡ x p q = x ≐⟨ p ⟩ q
+syntax step-< x p q = x <⟨ p ⟩ q
+syntax step-≤ x p q = x ≤⟨ p ⟩ q
+syntax step-≡ x p q = x ≐⟨ p ⟩ q
