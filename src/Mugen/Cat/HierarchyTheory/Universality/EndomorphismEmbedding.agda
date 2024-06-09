@@ -188,7 +188,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   T : Functor (Endos SOrdᴴ (Fᴴ₀ Δ)) (Endos SOrdᴹᴰ (Fᴹᴰ₀ (Disc Ψ)))
   T .Functor.F₀ _ = tt
   T .Functor.F₁ σ .morphism .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
-  T .Functor.F₁ σ .morphism .pres-≤[]-equal {α , d1} {β , d2} p =
+  T .Functor.F₁ σ .morphism .pres-≤[]-equal {α1 , d1} {α2 , d2} p =
     let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
     inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
   T .Functor.F₁ σ .commutes = trivial!

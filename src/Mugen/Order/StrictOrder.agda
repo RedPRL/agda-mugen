@@ -19,8 +19,11 @@ record Strictly-monotone (X : Poset o r) (Y : Poset o' r') : Type (o ⊔ o' ⊔ 
 
     -- Preserving parametrized inequalities
     --
-    -- This is morally '∀ {x y} → x X.≤[ x ≡ y ] y → hom x Y.≤[ x ≡ y ] hom y'
-    -- and is equivalent to pres-≤[] below.
+    -- This is constructively equivalent to
+    -- 1. ∀ {x y} → x X.≤[ x ≡ y ] y → hom x Y.≤[ x ≡ y ] hom y
+    -- 2. ∀ {K} {x y} → x X.≤[ K ] y → hom x Y.≤[ K ] hom y
+    -- and classically equivalent to
+    -- 1. ∀ {x y} → x X.≤[ ⊥ ] y → hom x Y.≤[ ⊥ ] hom y
     pres-≤[]-equal : ∀ {x y} → x X.≤ y → hom x Y.≤[ x ≡ y ] hom y
 
   abstract
@@ -61,7 +64,7 @@ instance
     : ∀ {ℓ} {X : Poset o r} {Y : Poset o' r'}
     → ⦃ sa : Extensional (⌞ X ⌟ → ⌞ Y ⌟) ℓ ⦄
     → Extensional (Strictly-monotone X Y) ℓ
-  Extensional-Strictly-monotone {Y = Y} ⦃ sa ⦄ =
+  Extensional-Strictly-monotone ⦃ sa ⦄ =
     injection→extensional!
       {f = Strictly-monotone.hom}
       (Strictly-monotone-path _ _) sa

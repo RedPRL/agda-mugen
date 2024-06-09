@@ -53,7 +53,8 @@ module _ where
 instance
   Right-actionlike-displacement-action
     : ∀ {o r o' r'}
-    → Right-actionlike (λ A (B : Σ _ Displacement-on) → Right-displacement-action {o} {r} {o'} {r'} A (B .snd))
+    → Right-actionlike λ (A : Poset o r) (B : Σ (Poset o' r') Displacement-on) →
+      Right-displacement-action A (B .snd)
   Right-actionlike.⟦ Right-actionlike-displacement-action ⟧ʳ =
     Right-displacement-action._⋆_
   Right-actionlike-displacement-action .Right-actionlike.extʳ =
