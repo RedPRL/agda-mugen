@@ -14,9 +14,6 @@ open import Mugen.Cat.HierarchyTheory
 
 import Mugen.Order.Reasoning
 
-private variable
-  o o' r r' : Level
-
 --------------------------------------------------------------------------------
 -- The Traditional Hierarchy Theory
 
@@ -47,12 +44,18 @@ module _ {o : Level} where
     unit .η L .pres-≤[]-equal l1≤l2 = lift {ℓ = lzero} l1≤l2 , inr-inj
     unit .is-natural L L' f = ext λ _ → refl
 
+    mult-hom : ∀ (L : Poset o o) → Strictly-monotone (Nat-poset ⊎ᵖ (Nat-poset ⊎ᵖ L)) (Nat-poset ⊎ᵖ L)
+    mult-hom L .hom (inl n) = inl n
+    mult-hom L .hom (inr l) = l
+    mult-hom L .pres-≤[]-equal {inl n1} {inl n2} n1≤n2        = n1≤n2 , ap inl ⊙ inl-inj
+    mult-hom L .pres-≤[]-equal {inr l1} {inr l2} (lift l1≤l2) = l1≤l2 , ap inr
+
     mult : M F∘ M => M
-    mult .η L .hom (inl n) = inl n
-    mult .η L .hom (inr l) = l
-    mult .η L .pres-≤[]-equal {inl n1} {inl n2} n1≤n2        = n1≤n2 , ap inl ⊙ inl-inj
-    mult .η L .pres-≤[]-equal {inr l1} {inr l2} (lift l1≤l2) = l1≤l2 , ap inr
-    mult .is-natural L L' f = ext λ { (inl n) → {! refl !} ; (inr (inl l)) → refl ; (inr (inr _)) → {! refl !} }
+    mult .η = mult-hom
+    mult .is-natural L L' f = ext λ where
+      (inl n) → refl
+      (inr (inl l)) → refl
+      (inr (inr _)) → refl
 
     ht : Hierarchy-theory o o
     ht .Monad.M = M

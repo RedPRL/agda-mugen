@@ -23,6 +23,7 @@ import Mugen.Algebra.Displacement.Subalgebra
 import Mugen.Algebra.OrderedMonoid
 import Mugen.Cat.HierarchyTheory
 import Mugen.Cat.HierarchyTheory.McBride
+import Mugen.Cat.HierarchyTheory.Traditional
 import Mugen.Cat.HierarchyTheory.Universality
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 import Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbeddingNaturality
