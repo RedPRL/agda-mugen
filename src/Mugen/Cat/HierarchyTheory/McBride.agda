@@ -15,7 +15,7 @@ open import Mugen.Cat.HierarchyTheory
 import Mugen.Order.Reasoning as Reasoning
 
 private variable
-  o o' r r' : Level
+  o r : Level
 
 --------------------------------------------------------------------------------
 -- The McBride Hierarchy Theory
@@ -116,7 +116,7 @@ module _ where
 
   McBride-functor : Functor (Displacements o r) (Hierarchy-theories o (o ⊔ r))
   McBride-functor .F₀ (_ , 𝒟) = McBride 𝒟
-  McBride-functor .F₁ σ .nat .η L .hom (l , d) = l , σ .hom # d
+  McBride-functor .F₁ σ .nat .η L .hom (l , d) = l , σ # d
   McBride-functor .F₁ {A , 𝒟} {B , ℰ} σ .nat .η L .pres-≤[]-equal {l1 , d1} {l2 , d2} =
     let module A = Reasoning A
         module B = Reasoning B
