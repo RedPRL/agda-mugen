@@ -25,7 +25,6 @@ open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
 open import Mugen.Order.Instances.LeftInvariantRightCentered
 open import Mugen.Order.Instances.Lift
-open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
 

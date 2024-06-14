@@ -49,7 +49,6 @@ import Mugen.Order.Instances.Opposite
 import Mugen.Order.Instances.Pointwise
 import Mugen.Order.Instances.Prefix
 import Mugen.Order.Instances.Product
-import Mugen.Order.Instances.Singleton
 import Mugen.Order.Instances.Support
 import Mugen.Order.Lattice
 import Mugen.Order.Reasoning
