@@ -23,7 +23,6 @@ open import Mugen.Cat.HierarchyTheory.McBride
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
 open import Mugen.Order.Instances.LeftInvariantRightCentered
-open import Mugen.Order.Instances.Singleton
 
 import Mugen.Order.Reasoning as Reasoning
 
@@ -55,7 +54,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 
   -- made public for the naturality proof in a different file
   Δ⁺ : Poset o r
-  Δ⁺ = ◆ {o = o} {r = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
+  Δ⁺ = 𝟙ᵖ {o = o} {ℓ = r} ⊎ᵖ (Δ ⊎ᵖ Δ)
 
   private
     H⟨Δ⁺⟩ : Poset o r
@@ -109,7 +108,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 
   pattern ι₀ α = inl α
 
-  ι₀-hom : Hom ◆ Δ⁺
+  ι₀-hom : Hom 𝟙ᵖ Δ⁺
   ι₀-hom .hom = ι₀
   ι₀-hom .pres-≤[]-equal α≤β = lift α≤β , λ _ → refl
 
