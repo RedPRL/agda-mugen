@@ -5,8 +5,10 @@ open import Order.Instances.Coproduct
 open import Cat.Prelude
 open import Cat.Functor.Base
 open import Cat.Functor.Compose
+open import Cat.Functor.Morphism
 open import Cat.Functor.Properties
 open import Cat.Diagram.Monad
+open import Cat.Displayed.Total
 
 import Cat.Reasoning as Cat
 import Cat.Functor.Reasoning as FR
@@ -30,8 +32,9 @@ import Mugen.Order.Reasoning as Reasoning
 -- Section 3.4, Theorem 3.10
 
 module Mugen.Cat.HierarchyTheory.Universality {o o' r}
-  (H : Hierarchy-theory (o ⊔ o') (r ⊔ o')) {I : Type o'} ⦃ Discrete-I : Discrete I ⦄
-  (Δ₋ : ⌞ I ⌟ → Poset (o ⊔ o') (r ⊔ o')) (Ψ : Set (lsuc (o ⊔ r ⊔ o'))) where
+  {F : Functor (Strict-orders (o ⊔ o') (r ⊔ o')) (Strict-orders (o ⊔ o') (r ⊔ o'))}
+  (H : Hierarchy-theory-on F) {I : Type o'} ⦃ Discrete-I : Discrete I ⦄
+  (Δ₋ : ⌞ I ⌟ → Poset (o ⊔ o') (r ⊔ o')) (Ψ : Set (o ⊔ r ⊔ o')) where
 
   private
     import Mugen.Cat.HierarchyTheory.Universality.SubcategoryEmbedding as SubcategoryEmbedding
@@ -47,52 +50,34 @@ module Mugen.Cat.HierarchyTheory.Universality {o o' r}
   -- Notation
 
   private
-    open Algebra-hom
-    module H = Monad H
+    open ∫Hom
+    module H = Monad-on H
 
     SOrd : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
     SOrd = Strict-orders (o ⊔ o') (r ⊔ o')
     open Cat SOrd
 
-    SOrdᴴ : Precategory (lsuc (o ⊔ r ⊔ o')) (lsuc (o ⊔ r ⊔ o'))
-    SOrdᴴ = Eilenberg-Moore SOrd H
+    SOrdᴴ : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
+    SOrdᴴ = Eilenberg-Moore {C = SOrd} H
     module SOrdᴴ = Cat SOrdᴴ
 
     -- '↑' for lifting
-    SOrd↑ : Precategory (lsuc (lsuc (o ⊔ r ⊔ o'))) (lsuc (o ⊔ r ⊔ o'))
-    SOrd↑ = Strict-orders (lsuc (o ⊔ r ⊔ o')) (lsuc (o ⊔ r ⊔ o'))
+    SOrd↑ : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
+    SOrd↑ = Strict-orders (o ⊔ r ⊔ o') (o ⊔ r ⊔ o')
     module SOrd↑ = Cat SOrd↑
 
-    SOrdᴹᴰ : Precategory (lsuc (lsuc (o ⊔ r ⊔ o'))) (lsuc (lsuc (o ⊔ r ⊔ o')))
-    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride (Endomorphism H EE.Δ⁺))
+    SOrdᴹᴰ : Precategory (lsuc (o ⊔ r ⊔ o')) (o ⊔ r ⊔ o')
+    SOrdᴹᴰ = Eilenberg-Moore {C = SOrd↑} (McBride (Endomorphism H EE.Δ⁺))
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
-    Uᴴ : Functor SOrdᴴ SOrd
-    Uᴴ = Forget SOrd H
-
-    Fᴴ : Functor SOrd SOrdᴴ
-    Fᴴ = Free SOrd H
-
-    Fᴴ₀ : Poset (o ⊔ o') (r ⊔ o') → Algebra SOrd H
-    Fᴴ₀ = Fᴴ .Functor.F₀
-
-    Fᴴ₁ : {X Y : Poset (o ⊔ o') (r ⊔ o')} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
-    Fᴴ₁ = Fᴴ .Functor.F₁
-
-    Fᴹᴰ : Functor SOrd↑ SOrdᴹᴰ
-    Fᴹᴰ = Free SOrd↑ (McBride (Endomorphism H EE.Δ⁺))
-
-    Fᴹᴰ₀ : Poset (lsuc (o ⊔ r ⊔ o')) (lsuc (o ⊔ r ⊔ o')) → Algebra SOrd↑ (McBride (Endomorphism H EE.Δ⁺))
-    Fᴹᴰ₀ = Fᴹᴰ .Functor.F₀
-
-    Uᴹᴰ : Functor SOrdᴹᴰ SOrd↑
-    Uᴹᴰ = Forget SOrd↑ (McBride (Endomorphism H EE.Δ⁺))
+    Liftᶠ : Functor SOrd SOrd↑
+    Liftᶠ = liftᶠ-strict-orders {o' = r ⊔ o'} {r' = o ⊔ o'}
 
   --------------------------------------------------------------------------------
   -- Constructing the natural transformation T
   -- Section 3.4, Theorem 3.10
 
-  T : Functor (Indexed SOrdᴴ λ i → Fᴴ₀ (Δ₋ i)) (Endos SOrdᴹᴰ (Fᴹᴰ₀ (Disc Ψ)))
+  T : Functor (Indexed SOrdᴴ λ i → Free-EM .Functor.F₀ (Δ₋ i)) (Endos SOrdᴹᴰ (Free-EM .Functor.F₀ (Disc Ψ)))
   T = EE.T F∘ SE.T
 
   --------------------------------------------------------------------------------
@@ -100,22 +85,22 @@ module Mugen.Cat.HierarchyTheory.Universality {o o' r}
   -- Section 3.4, Theorem 3.10
 
   ν : ∣ Ψ ∣
-    →  liftᶠ-strict-orders F∘ Uᴴ F∘ Indexed-include
-    => Uᴹᴰ F∘ Endos-include F∘ T
+    →  Liftᶠ F∘ Forget-EM F∘ Indexed-include
+    => Forget-EM F∘ Endos-include F∘ T
   ν pt = lemma-assoc₂
     ∘nt  (EEN.ν pt ◂ SE.T)
     ∘nt  lemma-assoc₁
-    ∘nt  (liftᶠ-strict-orders ▸ (Uᴴ ▸ SE.ν))
+    ∘nt  (Liftᶠ ▸ (Forget-EM ▸ SE.ν))
     where
       lemma-assoc₁
-        :  liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include F∘ SE.T
-        => (liftᶠ-strict-orders F∘ Uᴴ F∘ Endos-include) F∘ SE.T
+        :  Liftᶠ F∘ Forget-EM F∘ Endos-include F∘ SE.T
+        => (Liftᶠ F∘ Forget-EM F∘ Endos-include) F∘ SE.T
       lemma-assoc₁ ._=>_.η _              = SOrd↑.id
       lemma-assoc₁ ._=>_.is-natural _ _ _ = SOrd↑.id-comm-sym
 
       lemma-assoc₂
-        :  (Uᴹᴰ F∘ Endos-include F∘ EE.T) F∘ SE.T
-        => Uᴹᴰ F∘ Endos-include F∘ EE.T F∘ SE.T
+        :  (Forget-EM F∘ Endos-include F∘ EE.T) F∘ SE.T
+        => Forget-EM F∘ Endos-include F∘ EE.T F∘ SE.T
       lemma-assoc₂ ._=>_.η _              = SOrd↑.id
       lemma-assoc₂ ._=>_.is-natural _ _ _ = SOrd↑.id-comm-sym
 
@@ -124,7 +109,7 @@ module Mugen.Cat.HierarchyTheory.Universality {o o' r}
   -- Section 3.4, Lemma 3.9
 
   abstract
-    T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
+    T-faithful : ∣ Ψ ∣ → preserves-monos F → is-faithful T
     T-faithful pt H-preserves-monos eq =
       SE.T-faithful H-preserves-monos $
       EE.T-faithful pt H-preserves-monos eq

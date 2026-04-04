@@ -24,11 +24,11 @@ Int-displacement = to-displacement-on mk where
   mk .make-displacement.idr = +ℤ-zeror _
   mk .make-displacement.associative {x} {y} {z} = +ℤ-assoc x y z
   mk .make-displacement.left-strict-invariant {x} {y} {z} p =
-    +ℤ-mono-l x y z p , +ℤ-injectiver x y z
+    +ℤ-preserves-≤l x y z p , +ℤ-injectiver x y z
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
 
 Int-has-ordered-monoid : has-ordered-monoid Int-displacement
 Int-has-ordered-monoid =
-  right-invariant→has-ordered-monoid Int-displacement $ +ℤ-mono-r _ _ _
+  right-invariant→has-ordered-monoid Int-displacement $ +ℤ-preserves-≤r _ _ _

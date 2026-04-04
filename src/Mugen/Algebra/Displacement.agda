@@ -111,9 +111,9 @@ id-is-displacement-hom X .is-displacement-hom.pres-⊗ = refl
   → is-displacement-hom X Y g
   → is-displacement-hom X Z (strictly-monotone-∘ f g)
 ∘-is-displacement-hom {f = f} f-disp g-disp .is-displacement-hom.pres-ε =
-  ap# f (g-disp .is-displacement-hom.pres-ε) ∙ f-disp .is-displacement-hom.pres-ε
+  ap· f (g-disp .is-displacement-hom.pres-ε) ∙ f-disp .is-displacement-hom.pres-ε
 ∘-is-displacement-hom {f = f} {g = g} f-disp g-disp .is-displacement-hom.pres-⊗ {x} {y} =
-  ap# f (g-disp .is-displacement-hom.pres-⊗ {x} {y}) ∙ f-disp .is-displacement-hom.pres-⊗ {g # x} {g # y}
+  ap· f (g-disp .is-displacement-hom.pres-⊗ {x} {y}) ∙ f-disp .is-displacement-hom.pres-⊗ {g · x} {g · y}
 
 --------------------------------------------------------------------------------
 -- Some Properties of Displacement Algebras
@@ -170,8 +170,8 @@ module _ {A : Poset o r} where
   to-displacement-on : make-displacement A → Displacement-on A
   to-displacement-on mk .ε = mk .ε
   to-displacement-on mk ._⊗_ = mk ._⊗_
-  to-displacement-on mk .has-is-displacement .has-is-monoid .has-is-semigroup .has-is-magma .is-magma.has-is-set = Poset.Ob-is-set A
-  to-displacement-on mk .has-is-displacement .has-is-monoid .has-is-semigroup .associative = mk .associative
-  to-displacement-on mk .has-is-displacement .has-is-monoid .idl = mk .idl
-  to-displacement-on mk .has-is-displacement .has-is-monoid .idr = mk .idr
-  to-displacement-on mk .has-is-displacement .left-strict-invariant = mk .left-strict-invariant
+  to-displacement-on mk .has-is-displacement .is-displacement.has-is-monoid .is-monoid.has-is-semigroup .is-semigroup.has-is-magma .is-magma.has-is-set = Poset.Ob-is-set A
+  to-displacement-on mk .has-is-displacement .is-displacement.has-is-monoid .is-monoid.has-is-semigroup .is-semigroup.associative = mk .associative
+  to-displacement-on mk .has-is-displacement .is-displacement.has-is-monoid .is-monoid.idl = mk .idl
+  to-displacement-on mk .has-is-displacement .is-displacement.has-is-monoid .is-monoid.idr = mk .idr
+  to-displacement-on mk .has-is-displacement .is-displacement.left-strict-invariant = mk .left-strict-invariant

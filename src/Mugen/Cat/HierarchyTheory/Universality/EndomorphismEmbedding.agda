@@ -4,8 +4,10 @@ open import Order.Instances.Coproduct
 
 open import Cat.Prelude
 open import Cat.Functor.Base
+open import Cat.Functor.Morphism
 open import Cat.Functor.Properties
 open import Cat.Diagram.Monad
+open import Cat.Displayed.Total
 
 import Cat.Reasoning as Cat
 
@@ -38,7 +40,8 @@ import Mugen.Order.Reasoning as Reasoning
 -- Naturality is in a different file
 
 module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
-  {o r} (H : Hierarchy-theory o r) (Δ : Poset o r) (Ψ : Set (lsuc (o ⊔ r))) where
+  {o r} {F : Functor (Strict-orders o r) (Strict-orders o r)}
+  (H : Hierarchy-theory-on F) (Δ : Poset o r) (Ψ : Set (o ⊔ r)) where
 
   --------------------------------------------------------------------------------
   -- Notation
@@ -47,10 +50,10 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
 
   private
     open Strictly-monotone
-    open Algebra-hom
+    open ∫Hom
     open Cat (Strict-orders o r)
     module Δ = Poset Δ
-    module H = Monad H
+    module H = Monad-on H
 
   -- made public for the naturality proof in a different file
   Δ⁺ : Poset o r
@@ -61,7 +64,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     H⟨Δ⁺⟩ = H.M₀ Δ⁺
     module H⟨Δ⁺⟩ = Reasoning H⟨Δ⁺⟩
 
-    H⟨Δ⁺⟩→ : Poset (lsuc (o ⊔ r)) (o ⊔ r)
+    H⟨Δ⁺⟩→ : Poset (o ⊔ r) (o ⊔ r)
     H⟨Δ⁺⟩→ = Endomorphism-poset H Δ⁺
     module H⟨Δ⁺⟩→ = Reasoning H⟨Δ⁺⟩→
 
@@ -74,32 +77,23 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
     SOrd = Strict-orders o r
     module SOrd = Cat SOrd
 
-    SOrdᴴ : Precategory (lsuc (o ⊔ r)) (lsuc (o ⊔ r))
-    SOrdᴴ = Eilenberg-Moore SOrd H
+    SOrdᴴ : Precategory (lsuc (o ⊔ r)) (o ⊔ r)
+    SOrdᴴ = Eilenberg-Moore {C = SOrd} H
     module SOrdᴴ = Cat SOrdᴴ
 
     -- '↑' for lifting
-    SOrd↑ : Precategory (lsuc (lsuc (o ⊔ r))) (lsuc (o ⊔ r))
-    SOrd↑ = Strict-orders (lsuc (o ⊔ r)) (lsuc (o ⊔ r))
+    SOrd↑ : Precategory (lsuc (o ⊔ r)) (o ⊔ r)
+    SOrd↑ = Strict-orders (o ⊔ r) (o ⊔ r)
 
-    SOrdᴹᴰ : Precategory (lsuc (lsuc (o ⊔ r))) (lsuc (lsuc (o ⊔ r)))
-    SOrdᴹᴰ = Eilenberg-Moore SOrd↑ (McBride 𝒟)
+    SOrdᴹᴰ : Precategory (lsuc (o ⊔ r)) (o ⊔ r)
+    SOrdᴹᴰ = Eilenberg-Moore {C = SOrd↑} (McBride 𝒟)
     module SOrdᴹᴰ = Cat SOrdᴹᴰ
 
-    Fᴴ : Functor SOrd SOrdᴴ
-    Fᴴ = Free SOrd H
+    Fᴴ₀ : Poset o r → Algebra H
+    Fᴴ₀ = Free-EM .Functor.F₀
 
-    Fᴴ₀ : Poset o r → Algebra SOrd H
-    Fᴴ₀ = Fᴴ .Functor.F₀
-
-    Fᴴ₁ : {X Y : Poset o r} → Hom X Y → SOrdᴴ.Hom (Fᴴ₀ X) (Fᴴ₀ Y)
-    Fᴴ₁ = Fᴴ .Functor.F₁
-
-    Endoᴴ⟨Δ⟩ : Type (o ⊔ r)
-    Endoᴴ⟨Δ⟩ = Hom (H.M₀ Δ) (H.M₀ Δ)
-
-    Fᴹᴰ₀ : Poset (lsuc o ⊔ lsuc r) (lsuc o ⊔ lsuc r) → Algebra SOrd↑ (McBride 𝒟)
-    Fᴹᴰ₀ = Functor.F₀ (Free SOrd↑ (McBride 𝒟))
+    Fᴹᴰ₀ : Poset (o ⊔ r) (o ⊔ r) → Algebra (McBride 𝒟)
+    Fᴹᴰ₀ = Free-EM .Functor.F₀
 
   -- These patterns and definitions are exported for the naturality proof
   -- in another file.
@@ -122,7 +116,7 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   ι₁-hom .pres-≤[]-equal α≤β = lift (lift α≤β) , ι₁-inj
 
   ι₁-monic : SOrd.is-monic ι₁-hom
-  ι₁-monic g h p = ext λ α → ι₁-inj (p #ₚ α)
+  ι₁-monic g h p = ext λ α → ι₁-inj (p ·ₚ α)
 
   pattern ι₂ α = inr (inr α)
 
@@ -135,83 +129,84 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   -- Section 3.4, Lemma 3.8
 
   σ̅ : SOrdᴴ.Hom (Fᴴ₀ Δ) (Fᴴ₀ Δ) → Hom Δ⁺ H⟨Δ⁺⟩
-  σ̅ σ .hom (ι₀ ⋆) = H.η Δ⁺ # ι₀ ⋆
-  σ̅ σ .hom (ι₁ α) = H.M₁ ι₁-hom # (σ # (H.η Δ # α))
-  σ̅ σ .hom (ι₂ α) = H.η Δ⁺ # ι₂ α
+  σ̅ σ .hom (ι₀ ⋆) = H.η Δ⁺ · ι₀ ⋆
+  σ̅ σ .hom (ι₁ α) = H.M₁ ι₁-hom · (σ · (H.η Δ · α))
+  σ̅ σ .hom (ι₂ α) = H.η Δ⁺ · ι₂ α
   σ̅ σ .pres-≤[]-equal {ι₀ ⋆} {ι₀ ⋆} _ = H⟨Δ⁺⟩.≤-refl , λ _ → refl
   σ̅ σ .pres-≤[]-equal {ι₁ α} {ι₁ β} (lift (lift α≤β)) =
-    H⟨Δ⁺⟩.≤[]-map (ap ι₁) $ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.η Δ) .pres-≤[]-equal α≤β
+    H⟨Δ⁺⟩.≤[]-map (ap ι₁) $ (H.M₁ ι₁-hom ∘ σ .fst ∘ H.η Δ) .pres-≤[]-equal α≤β
   σ̅ σ .pres-≤[]-equal {ι₂ α} {ι₂ β} α≤β = H.η Δ⁺ .pres-≤[]-equal α≤β
 
   abstract
     σ̅-id : σ̅ SOrdᴴ.id ≡ H.η Δ⁺
     σ̅-id = ext λ where
       (ι₀ α) → refl
-      (ι₁ α) → sym (H.unit.is-natural Δ Δ⁺ ι₁-hom) #ₚ α
+      (ι₁ α) → sym (H.unit.is-natural Δ Δ⁺ ι₁-hom) ·ₚ α
       (ι₂ α) → refl
 
   abstract
     σ̅-ι
       : ∀ (σ : SOrdᴴ.Hom (Fᴴ₀ Δ) (Fᴴ₀ Δ))
       → (α : ⌞ H.M₀ Δ ⌟)
-      → H.M₁ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.η Δ) # α
-      ≡ H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # α)
+      → H.M₁ (H.M₁ ι₁-hom ∘ σ .fst ∘ H.η Δ) · α
+      ≡ H.M₁ (σ̅ σ) · (H.M₁ ι₁-hom · α)
     σ̅-ι σ α =
-      H.M₁ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.η Δ) # α ≡⟨ ap (λ m → H.M₁ m # α) $ ext (λ _ → refl) ⟩
-      H.M₁ (σ̅ σ ∘ ι₁-hom) # α                      ≡⟨ H.M-∘ _ _ #ₚ α ⟩
-      H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # α)               ∎
+      H.M₁ (H.M₁ ι₁-hom ∘ σ .fst ∘ H.η Δ) · α ≡⟨ ap (λ m → H.M₁ m · α) $ ext (λ _ → refl) ⟩
+      H.M₁ (σ̅ σ ∘ ι₁-hom) · α                 ≡⟨ H.M-∘ _ _ ·ₚ α ⟩
+      H.M₁ (σ̅ σ) · (H.M₁ ι₁-hom · α)          ∎
 
   abstract
     σ̅-∘ : ∀ (σ δ : SOrdᴴ.Hom (Fᴴ₀ Δ) (Fᴴ₀ Δ)) → σ̅ (σ SOrdᴴ.∘ δ) ≡ H.μ Δ⁺ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ
     σ̅-∘ σ δ = ext λ where
       (ι₀ α) →
-        H.η Δ⁺ # ι₀ α                           ≡˘⟨ μ-η H (σ̅ σ) #ₚ ι₀ α ⟩
-        H.μ Δ⁺ # (H.M₁ (σ̅ σ) # (H.η Δ⁺ # ι₀ α)) ∎
+        H.η Δ⁺ · ι₀ α                           ≡˘⟨ μ-η H (σ̅ σ) ·ₚ ι₀ α ⟩
+        H.μ Δ⁺ · (H.M₁ (σ̅ σ) · (H.η Δ⁺ · ι₀ α)) ∎
       (ι₁ α) →
-        H.M₁ ι₁-hom # (σ # (δ # (H.η Δ # α)))                                    ≡˘⟨ ap# (H.M₁ ι₁-hom ∘ σ .morphism) $ H.left-ident #ₚ _ ⟩
-        H.M₁ ι₁-hom # (σ # (H.μ Δ # (H.M₁ (H.η Δ) # (δ # (H.η Δ # α)))))         ≡˘⟨ ap# (H.M₁ ι₁-hom) $ μ-M-∘-Algebraic H σ (H.η Δ) #ₚ _ ⟩
-        H.M₁ ι₁-hom # (H.μ _ # (H.M₁ (σ .morphism ∘ H.η Δ) # (δ # (H.η Δ # α)))) ≡˘⟨ μ-M-∘-M H ι₁-hom (σ .morphism ∘ H.η Δ) #ₚ _ ⟩
-        H.μ _ # (H.M₁ (H.M₁ ι₁-hom ∘ σ .morphism ∘ H.η Δ) # (δ # (H.η Δ # α)))   ≡⟨ ap# (H.μ _) (σ̅-ι σ (δ # (H.η _ # α))) ⟩
-        H.μ _ # (H.M₁ (σ̅ σ) # (H.M₁ ι₁-hom # (δ # (H.η Δ # α)))) ∎
+        H.M₁ ι₁-hom · (σ · (δ · (H.η Δ · α)))                               ≡˘⟨ ap· (H.M₁ ι₁-hom ∘ σ .fst) $ H.μ-unitr ·ₚ _ ⟩
+        H.M₁ ι₁-hom · (σ · (H.μ Δ · (H.M₁ (H.η Δ) · (δ · (H.η Δ · α)))))    ≡˘⟨ ap· (H.M₁ ι₁-hom) $ μ-M-∘-Algebraic H σ (H.η Δ) ·ₚ _ ⟩
+        H.M₁ ι₁-hom · (H.μ _ · (H.M₁ (σ .fst ∘ H.η Δ) · (δ · (H.η Δ · α)))) ≡˘⟨ μ-M-∘-M H ι₁-hom (σ .fst ∘ H.η Δ) ·ₚ _ ⟩
+        H.μ _ · (H.M₁ (H.M₁ ι₁-hom ∘ σ .fst ∘ H.η Δ) · (δ · (H.η Δ · α)))   ≡⟨ ap· (H.μ _) $ σ̅-ι σ (δ · (H.η _ · α)) ⟩
+        H.μ _ · (H.M₁ (σ̅ σ) · (H.M₁ ι₁-hom · (δ · (H.η Δ · α))))            ∎
       (ι₂ α) →
-        H.η Δ⁺ # ι₂ α                           ≡˘⟨ μ-η H (σ̅ σ) #ₚ ι₂ α ⟩
-        H.μ Δ⁺ # (H.M₁ (σ̅ σ) # (H.η Δ⁺ # ι₂ α)) ∎
+        H.η Δ⁺ · ι₂ α                           ≡˘⟨ μ-η H (σ̅ σ) ·ₚ ι₂ α ⟩
+        H.μ Δ⁺ · (H.M₁ (σ̅ σ) · (H.η Δ⁺ · ι₂ α)) ∎
 
   T′ : (σ : SOrdᴴ.Hom (Fᴴ₀ Δ) (Fᴴ₀ Δ)) → SOrdᴴ.Hom (Fᴴ₀ Δ⁺) (Fᴴ₀ Δ⁺)
-  T′ σ .morphism = H.μ Δ⁺ ∘ H.M₁ (σ̅ σ)
-  T′ σ .commutes = ext λ α →
-    H.μ Δ⁺ # (H.M₁ (σ̅ σ) # (H.μ Δ⁺ # α))               ≡˘⟨ ap# (H.μ _) $ H.mult.is-natural _ _ (σ̅ σ) #ₚ α ⟩
-    H.μ Δ⁺ # (H.μ (H.M₀ Δ⁺) # (H.M₁ (H.M₁ (σ̅ σ)) # α)) ≡˘⟨ μ-M-∘-μ H (H.M₁ (σ̅ σ)) #ₚ α ⟩
-    H.μ Δ⁺ # (H.M₁ (H.μ Δ⁺ ∘ H.M₁ (σ̅ σ)) # α)          ∎
+  T′ σ .fst = H.μ Δ⁺ ∘ H.M₁ (σ̅ σ)
+  T′ σ .snd = ext λ α →
+    H.μ Δ⁺ · (H.M₁ (σ̅ σ) · (H.μ Δ⁺ · α))               ≡˘⟨ ap· (H.μ _) $ H.mult.is-natural _ _ (σ̅ σ) ·ₚ α ⟩
+    H.μ Δ⁺ · (H.μ (H.M₀ Δ⁺) · (H.M₁ (H.M₁ (σ̅ σ)) · α)) ≡˘⟨ μ-M-∘-μ H (H.M₁ (σ̅ σ)) ·ₚ α ⟩
+    H.μ Δ⁺ · (H.M₁ (H.μ Δ⁺ ∘ H.M₁ (σ̅ σ)) · α)          ∎
 
   T : Functor (Endos SOrdᴴ (Fᴴ₀ Δ)) (Endos SOrdᴹᴰ (Fᴹᴰ₀ (Disc Ψ)))
   T .Functor.F₀ _ = tt
-  T .Functor.F₁ σ .morphism .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
-  T .Functor.F₁ σ .morphism .pres-≤[]-equal {α1 , d1} {α2 , d2} p =
+  T .Functor.F₁ σ .fst .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
+  T .Functor.F₁ σ .fst .pres-≤[]-equal {α1 , d1} {α2 , d2} p =
     let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
     inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
-  T .Functor.F₁ σ .commutes = trivial!
+  T .Functor.F₁ σ .snd = ext λ α d₁ d₂ →
+    Σ-path refl (transport-refl _ ∙ SOrdᴴ.assoc (T′ σ) d₁ d₂)
   T .Functor.F-id = ext λ α d →
-    refl , λ β →
-      H.μ _ # (H.M₁ (σ̅ SOrdᴴ.id) # (d # β)) ≡⟨ ap (λ m → H.μ _ # (H.M₁ m # (d # β))) σ̅-id ⟩
-      H.μ _ # (H.M₁ (H.η _) # (d # β))      ≡⟨ H.left-ident #ₚ _ ⟩
-      d # β ∎
+    Σ-path refl (transport-refl _ ∙ ext λ β →
+      H.μ _ · (H.M₁ (σ̅ SOrdᴴ.id) · (d · β)) ≡⟨ ap (λ m → H.μ _ · (H.M₁ m · (d · β))) σ̅-id ⟩
+      H.μ _ · (H.M₁ (H.η _) · (d · β))      ≡⟨ H.μ-unitr ·ₚ _ ⟩
+      d · β                                 ∎)
   T .Functor.F-∘ σ δ = ext λ α d →
-    refl , λ β →
-      H.μ _ # (H.M₁ (σ̅ (σ SOrdᴴ.∘ δ)) # (d # β))              ≡⟨ ap (λ m → H.μ _ # (H.M₁ m # (d # β))) (σ̅-∘ σ δ) ⟩
-      H.μ _ # (H.M₁ (H.μ _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) # (d # β))     ≡⟨ μ-M-∘-μ H (H.M₁ (σ̅ σ) ∘ σ̅ δ) #ₚ (d # β) ⟩
-      H.μ _ # (H.μ _ # (H.M₁ (H.M₁ (σ̅ σ) ∘ σ̅ δ) # (d # β)))   ≡⟨ ap# (H.μ _) $ μ-M-∘-M H (σ̅ σ) (σ̅ δ) #ₚ (d # β) ⟩
-      H.μ _ # (H.M₁ (σ̅ σ) # (H.μ _ # (H.M₁ (σ̅ δ) # (d # β)))) ∎
+    Σ-path refl (transport-refl _ ∙ ext λ β →
+      H.μ _ · (H.M₁ (σ̅ (σ SOrdᴴ.∘ δ)) · (d · β))              ≡⟨ ap (λ m → H.μ _ · (H.M₁ m · (d · β))) (σ̅-∘ σ δ) ⟩
+      H.μ _ · (H.M₁ (H.μ _ ∘ H.M₁ (σ̅ σ) ∘ σ̅ δ) · (d · β))     ≡⟨ μ-M-∘-μ H (H.M₁ (σ̅ σ) ∘ σ̅ δ) ·ₚ (d · β) ⟩
+      H.μ _ · (H.μ _ · (H.M₁ (H.M₁ (σ̅ σ) ∘ σ̅ δ) · (d · β)))   ≡⟨ ap· (H.μ _) $ μ-M-∘-M H (σ̅ σ) (σ̅ δ) ·ₚ (d · β) ⟩
+      H.μ _ · (H.M₁ (σ̅ σ) · (H.μ _ · (H.M₁ (σ̅ δ) · (d · β)))) ∎)
 
   --------------------------------------------------------------------------------
   -- Faithfulness of T
   -- Section 3.4, Lemma 3.8
 
   abstract
-    T-faithful : ∣ Ψ ∣ → preserves-monos H → is-faithful T
+    T-faithful : ∣ Ψ ∣ → preserves-monos F → is-faithful T
     T-faithful pt H-preserves-monos {x} {y} {σ} {δ} eq =
-      free-algebra-hom-path H $ H-preserves-monos ι₁-hom ι₁-monic _ _ $ ext λ α →
-      σ̅ σ # ι₁ α                            ≡˘⟨ μ-η H (σ̅ σ) #ₚ ι₁ α ⟩
-      H.μ _ # (H.M₁ (σ̅ σ) # (H.η _ # ι₁ α)) ≡⟨ ap snd (eq #ₚ (pt , SOrdᴴ.id)) #ₚ (H.η _ # ι₁ α) ⟩
-      H.μ _ # (H.M₁ (σ̅ δ) # (H.η _ # ι₁ α)) ≡⟨ μ-η H (σ̅ δ) #ₚ ι₁ α ⟩
-      σ̅ δ # ι₁ α                            ∎
+      free-algebra-hom-path H $ H-preserves-monos ι₁-monic _ _ $ ext λ α →
+      σ̅ σ · ι₁ α                            ≡˘⟨ μ-η H (σ̅ σ) ·ₚ ι₁ α ⟩
+      H.μ _ · (H.M₁ (σ̅ σ) · (H.η _ · ι₁ α)) ≡⟨ ap snd (eq ·ₚ (pt , SOrdᴴ.id)) ·ₚ (H.η _ · ι₁ α) ⟩
+      H.μ _ · (H.M₁ (σ̅ δ) · (H.η _ · ι₁ α)) ≡⟨ μ-η H (σ̅ δ) ·ₚ ι₁ α ⟩
+      σ̅ δ · ι₁ α                            ∎

@@ -8,5 +8,6 @@ flags:
   --no-load-primitives
   --postfix-projections
   --rewriting
+  --two-level
   --guardedness
   -WnoUnsupportedIndexedMatch

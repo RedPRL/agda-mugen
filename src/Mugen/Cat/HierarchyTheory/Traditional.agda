@@ -22,7 +22,7 @@ module _ {o : Level} where
   open Functor
   open _=>_
 
-  Traditional : Hierarchy-theory o o
+  Traditional : Hierarchy-theory-on _
   Traditional = ht where
     M : Functor (Strict-orders o o) (Strict-orders o o)
     M .F₀ L = Nat-poset ⊎ᵖ L
@@ -57,10 +57,9 @@ module _ {o : Level} where
       (inr (inl l)) → refl
       (inr (inr _)) → refl
 
-    ht : Hierarchy-theory o o
-    ht .Monad.M = M
-    ht .Monad.unit = unit
-    ht .Monad.mult = mult
-    ht .Monad.left-ident = ext λ { (inl n) → refl ; (inr l) → refl }
-    ht .Monad.right-ident = ext λ { (inl n) → refl ; (inr l) → refl }
-    ht .Monad.mult-assoc = ext λ { (inl n) → refl ; (inr l) → refl }
+    ht : Hierarchy-theory-on M
+    ht .Monad-on.unit = unit
+    ht .Monad-on.mult = mult
+    ht .Monad-on.μ-unitl = ext λ { (inl n) → refl ; (inr l) → refl }
+    ht .Monad-on.μ-unitr = ext λ { (inl n) → refl ; (inr l) → refl }
+    ht .Monad-on.μ-assoc = ext λ { (inl n) → refl ; (inr l) → refl }

@@ -21,13 +21,13 @@ private variable
 module _ (aset : is-set A) where
 
   ++-is-magma : is-magma {A = List A} _++_
-  ++-is-magma .has-is-set = ListPath.List-is-hlevel 0 aset
+  ++-is-magma .is-magma.has-is-set = ListPath.List-is-hlevel 0 aset
 
   ++-is-semigroup : is-semigroup {A = List A} _++_
-  ++-is-semigroup .has-is-magma = ++-is-magma
-  ++-is-semigroup .associative {x} {y} {z} = sym (++-assoc x y z)
+  ++-is-semigroup .is-semigroup.has-is-magma = ++-is-magma
+  ++-is-semigroup .is-semigroup.associative {x} {y} {z} = sym (++-assoc x y z)
 
   ++-is-monoid : is-monoid {A = List A} [] _++_
-  ++-is-monoid .has-is-semigroup = ++-is-semigroup
-  ++-is-monoid .idl {x} = ++-idl x
-  ++-is-monoid .idr {x} = ++-idr x
+  ++-is-monoid .is-monoid.has-is-semigroup = ++-is-semigroup
+  ++-is-monoid .is-monoid.idl {x} = ++-idl x
+  ++-is-monoid .is-monoid.idr {x} = ++-idr x

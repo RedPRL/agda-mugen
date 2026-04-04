@@ -28,7 +28,7 @@ Nat-displacement = to-displacement-on mk where
   mk .make-displacement.idr = +-zeror _
   mk .make-displacement.associative {x} {y} {z} = +-associative x y z
   mk .make-displacement.left-strict-invariant p =
-    +-preserves-≤l _ _ _ p , +-inj _ _ _
+    +-preserves-≤l _ _ _ p , +-injl _ _ _
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid

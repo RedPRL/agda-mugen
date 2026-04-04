@@ -43,7 +43,7 @@ record is-full-subsemilattice
     module B = has-joins B-joins
   field
     has-is-full-subposet : is-full-subposet f
-    pres-join : ∀ {x y : ⌞ A ⌟} → f # A.join x y ≡ B.join (f # x) (f # y)
+    pres-join : ∀ {x y : ⌞ A ⌟} → f · A.join x y ≡ B.join (f · x) (f · y)
   open is-full-subposet has-is-full-subposet public
 
 record represents-full-subsemilattice
@@ -56,7 +56,7 @@ record represents-full-subsemilattice
     module B-joins = has-joins B-joins
   field
     join : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟
-    pres-join : ∀ {x y : ⌞ A ⌟} → f # (join x y) ≡ B-joins.join (f # x) (f # y)
+    pres-join : ∀ {x y : ⌞ A ⌟} → f · (join x y) ≡ B-joins.join (f · x) (f · y)
 
   private
     open is-full-subposet full-subposet
@@ -66,9 +66,9 @@ record represents-full-subsemilattice
   joins : has-joins A
   joins .has-joins.join = join
   joins .has-joins.joinl {x} {y} =
-    full $ B.≤+=→≤ (B-joins.joinl {f # x} {f # y}) (sym pres-join)
+    full $ B.≤+=→≤ (B-joins.joinl {f · x} {f · y}) (sym pres-join)
   joins .has-joins.joinr {x} {y} =
-    full $ B.≤+=→≤ (B-joins.joinr {f # x} {f # y}) (sym pres-join)
+    full $ B.≤+=→≤ (B-joins.joinr {f · x} {f · y}) (sym pres-join)
   joins .has-joins.universal {x} {y} x≤r y≤r =
     full $ B.=+≤→≤ pres-join (B-joins.universal (f.pres-≤ x≤r) (f.pres-≤ y≤r))
 
@@ -93,7 +93,7 @@ record is-full-bounded-subposet
     module B-bottom = has-bottom B-bottom
   field
     has-is-full-subposet : is-full-subposet f
-    pres-bot : f # A-bottom.bot ≡ B-bottom.bot
+    pres-bot : f · A-bottom.bot ≡ B-bottom.bot
   open is-full-subposet has-is-full-subposet public
 
 record represents-full-bounded-subposet
@@ -110,7 +110,7 @@ record represents-full-bounded-subposet
 
   field
     bot : ⌞ A ⌟
-    pres-bot : f # bot ≡ B-bottom.bot
+    pres-bot : f · bot ≡ B-bottom.bot
 
   bottom : has-bottom A
   bottom .has-bottom.bot = bot

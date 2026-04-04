@@ -1,6 +1,5 @@
 module Mugen.Cat.HierarchyTheory where
 
-import Cat.Reasoning as Cat
 open import Cat.Diagram.Monad
 open import Cat.Instances.Monads
 
@@ -14,19 +13,16 @@ open import Mugen.Order.StrictOrder
 -- A hierarchy theory is defined to be a monad on the category of strict orders.
 -- We also define the McBride Hierarchy Theory.
 
+Hierarchy-theory-on
+  : ∀ {o r}
+  → Functor (Strict-orders o r) (Strict-orders o r)
+  → Type (lsuc o ⊔ lsuc r)
+Hierarchy-theory-on = Monad-on
+
 Hierarchy-theory : ∀ o r → Type (lsuc o ⊔ lsuc r)
-Hierarchy-theory o r = Monad (Strict-orders o r)
+Hierarchy-theory o r = Σ[ F ∈ Functor (Strict-orders o r) (Strict-orders o r) ] Hierarchy-theory-on F
 
 -- And they form a category
 
 Hierarchy-theories : ∀ o r → Precategory (lsuc (o ⊔ r)) (lsuc (o ⊔ r))
 Hierarchy-theories o r = Monads (Strict-orders o r)
-
---------------------------------------------------------------------------------
--- Misc. Definitions
-
-preserves-monos : ∀ {o r} (H : Hierarchy-theory o r) → Type (lsuc o ⊔ lsuc r)
-preserves-monos {o} {r} H = ∀ {X Y} → (f : Hom X Y) → is-monic f → is-monic (H.M₁ f)
-  where
-    module H = Monad H
-    open Cat (Strict-orders o r)

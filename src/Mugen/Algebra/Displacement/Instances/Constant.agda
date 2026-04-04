@@ -1,7 +1,7 @@
 module Mugen.Algebra.Displacement.Instances.Constant where
 
 open import Order.Instances.Coproduct
-open import Mugen.Prelude hiding (Const)
+open import Mugen.Prelude
 
 open import Mugen.Algebra.Displacement
 open import Mugen.Algebra.Displacement.Action

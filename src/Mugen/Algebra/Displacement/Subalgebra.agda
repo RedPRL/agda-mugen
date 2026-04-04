@@ -59,11 +59,11 @@ record make-full-subdisplacement
     module X = Displacement-on X
     module Y = Displacement-on Y
   field
-    injective : ∀ {x y : ⌞ A ⌟} → f # x ≡ f # y → x ≡ y
-    full : ∀ {x y : ⌞ A ⌟} → f # x B.≤ f # y → x A.≤ y
-    pres-ε : f # X.ε ≡ Y.ε
-    pres-⊗ : ∀ {x y} → f # (x X.⊗ y) ≡ f # x Y.⊗ f # y
-    pres-≤ : ∀ {x y} → x A.≤ y → f # x B.≤ f # y
+    injective : ∀ {x y : ⌞ A ⌟} → f · x ≡ f · y → x ≡ y
+    full : ∀ {x y : ⌞ A ⌟} → f · x B.≤ f · y → x A.≤ y
+    pres-ε : f · X.ε ≡ Y.ε
+    pres-⊗ : ∀ {x y} → f · (x X.⊗ y) ≡ f · x Y.⊗ f · y
+    pres-≤ : ∀ {x y} → x A.≤ y → f · x B.≤ f · y
 
 module _
   {A : Poset o r} {B : Poset o' r'}
@@ -102,30 +102,30 @@ record represents-full-subdisplacement
   field
     ε : ⌞ A ⌟
     _⊗_ : ⌞ A ⌟ → ⌞ A ⌟ → ⌞ A ⌟
-    pres-ε : f # ε ≡ Y.ε
-    pres-⊗ : ∀ {x y} → f # (x ⊗ y) ≡ f # x Y.⊗ f # y
+    pres-ε : f · ε ≡ Y.ε
+    pres-⊗ : ∀ {x y} → f · (x ⊗ y) ≡ f · x Y.⊗ f · y
 
   abstract
     idl : ∀ {x} → ε ⊗ x ≡ x
-    idl {x} = injective $ pres-⊗ ∙ ap (Y._⊗ f # x) pres-ε ∙ Y.idl
+    idl {x} = injective $ pres-⊗ ∙ ap (Y._⊗ f · x) pres-ε ∙ Y.idl
 
     idr : ∀ {x} → x ⊗ ε ≡ x
-    idr {x} = injective $ pres-⊗ ∙ ap (f # x Y.⊗_) pres-ε ∙ Y.idr
+    idr {x} = injective $ pres-⊗ ∙ ap (f · x Y.⊗_) pres-ε ∙ Y.idr
 
     associative : ∀ {x y z} → x ⊗ (y ⊗ z) ≡ (x ⊗ y) ⊗ z
     associative {x} {y} {z} = injective $
-      f # (x ⊗ (y ⊗ z))            ≡⟨ pres-⊗ ⟩
-      f # x Y.⊗ f # (y ⊗ z)        ≡⟨ ap (f # x Y.⊗_) pres-⊗ ⟩
-      f # x Y.⊗ (f # y Y.⊗ f # z)  ≡⟨ Y.associative ⟩
-      (f # x Y.⊗ f # y) Y.⊗ f # z  ≡˘⟨ ap (Y._⊗ f # z) pres-⊗ ⟩
-      f # (x ⊗ y) Y.⊗ f # z        ≡˘⟨ pres-⊗ ⟩
-      f # ((x ⊗ y) ⊗ z)            ∎
+      f · (x ⊗ (y ⊗ z))            ≡⟨ pres-⊗ ⟩
+      f · x Y.⊗ f · (y ⊗ z)        ≡⟨ ap (f · x Y.⊗_) pres-⊗ ⟩
+      f · x Y.⊗ (f · y Y.⊗ f · z)  ≡⟨ Y.associative ⟩
+      (f · x Y.⊗ f · y) Y.⊗ f · z  ≡˘⟨ ap (Y._⊗ f · z) pres-⊗ ⟩
+      f · (x ⊗ y) Y.⊗ f · z        ≡˘⟨ pres-⊗ ⟩
+      f · ((x ⊗ y) ⊗ z)            ∎
 
     left-strict-invariant : ∀ {x y z} → y A.≤ z → (x ⊗ y) A.≤[ y ≡ z ] (x ⊗ z)
     left-strict-invariant {x} {y} {z} fy≤fz =
-      Σ-map full (λ p → injective ⊙ p ⊙ ap# f) lemma
+      Σ-map full (λ p → injective ⊙ p ⊙ ap· f) lemma
       where
-        lemma : f # (x ⊗ y) B.≤[ f # y ≡ f # z ] f # (x ⊗ z)
+        lemma : f · (x ⊗ y) B.≤[ f · y ≡ f · z ] f · (x ⊗ z)
         lemma = B.<+=→< (B.=+<→< pres-⊗ $ Y.left-strict-invariant $ f.pres-≤ fy≤fz) (sym pres-⊗)
 
   displacement-on : Displacement-on A

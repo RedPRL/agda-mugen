@@ -31,7 +31,7 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
   open Reasoning A
   open Displacement-on 𝒟
 
-  McBride : Hierarchy-theory o (o ⊔ r)
+  McBride : Hierarchy-theory-on _
   McBride = ht where
     M : Functor (Strict-orders o (o ⊔ r)) (Strict-orders o (o ⊔ r))
     M .F₀ L = L ⋉[ ε ] A
@@ -92,13 +92,12 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
             e1=e2 = injectiver-on-related (≤-trans e1≤ε ε≤e2) $ ap snd p ∙ ap (_⊗ e2) (sym d1=d2)
     mult .is-natural L L' f = trivial!
 
-    ht : Hierarchy-theory o (o ⊔ r)
-    ht .Monad.M = M
-    ht .Monad.unit = unit
-    ht .Monad.mult = mult
-    ht .Monad.left-ident = ext λ α d → (refl , idl {d})
-    ht .Monad.right-ident = ext λ α d → (refl , idr {d})
-    ht .Monad.mult-assoc = ext λ α d1 d2 d3 → (refl , sym (associative {d1} {d2} {d3}))
+    ht : Hierarchy-theory-on M
+    ht .Monad-on.unit = unit
+    ht .Monad-on.mult = mult
+    ht .Monad-on.μ-unitl = ext λ α d → Σ-path refl (transport-refl _ ∙ idr {d})
+    ht .Monad-on.μ-unitr = ext λ α d → Σ-path refl (transport-refl _ ∙ idl {d})
+    ht .Monad-on.μ-assoc = ext λ α d1 d2 d3 → Σ-path refl (transport-refl _ ∙ sym (associative {d1} {d2} {d3}))
 
 --------------------------------------------------------------------------------
 -- The Additional Functoriality of McBride Hierarchy Theory
@@ -108,33 +107,42 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
 module _ where
   open Functor
   open _=>_
-  open Monad-hom
-  open Total-hom
+  open is-monad-hom
+  open ∫Hom
   open Strictly-monotone
   open Displacement-on
   open is-displacement-hom
 
   McBride-functor : Functor (Displacements o r) (Hierarchy-theories o (o ⊔ r))
-  McBride-functor .F₀ (_ , 𝒟) = McBride 𝒟
-  McBride-functor .F₁ σ .nat .η L .hom (l , d) = l , σ # d
-  McBride-functor .F₁ {A , 𝒟} {B , ℰ} σ .nat .η L .pres-≤[]-equal {l1 , d1} {l2 , d2} =
+  McBride-functor .F₀ (_ , 𝒟) = _ , McBride 𝒟
+  McBride-functor .F₁ σ .fst .η L .hom (l , d) = l , σ · d
+  McBride-functor .F₁ {A , 𝒟} {B , ℰ} σ .fst .η L .pres-≤[]-equal {l1 , d1} {l2 , d2} =
     let module A = Reasoning A
         module B = Reasoning B
-        module σ = Strictly-monotone (σ .hom)
+        module σ₀ = Strictly-monotone (σ .fst)
+        module σ₁ = is-displacement-hom (σ .snd)
         module L⋉A = Reasoning (L ⋉[ 𝒟 .ε ] A)
         module L⋉B = Reasoning (L ⋉[ ℰ .ε ] B)
     in
     ∥-∥-rec (L⋉B.≤[]-is-hlevel 0 $ L⋉A.Ob-is-set _ _) λ where
       (biased l1=l2 d1≤d2) →
-        inc (biased l1=l2 (σ.pres-≤ d1≤d2)) ,
-        λ p → ap₂ _,_ (ap fst p) (σ.injective-on-related d1≤d2 $ ap snd p)
+        inc (biased l1=l2 (σ₀.pres-≤ d1≤d2)) ,
+        λ p → ap₂ _,_ (ap fst p) (σ₀.injective-on-related d1≤d2 $ ap snd p)
       (centred l1≤l2 d1≤ε ε≤d2) →
         inc (centred l1≤l2
-          (B.≤+=→≤ (σ.pres-≤ d1≤ε) (σ .preserves .pres-ε))
-          (B.=+≤→≤ (sym $ σ .preserves .pres-ε) (σ.pres-≤ ε≤d2))) ,
-        λ p → ap₂ _,_ (ap fst p) (σ.injective-on-related (A.≤-trans d1≤ε ε≤d2) $ ap snd p)
-  McBride-functor .F₁ σ .nat .is-natural L N f = trivial!
-  McBride-functor .F₁ σ .pres-unit = ext λ L l → refl , σ .preserves .pres-ε
-  McBride-functor .F₁ σ .pres-mult = ext λ L l d1 d2 → refl , σ .preserves .pres-⊗
-  McBride-functor .F-id = trivial!
-  McBride-functor .F-∘ f g = trivial!
+          (B.≤+=→≤ (σ₀.pres-≤ d1≤ε) (σ₁.pres-ε))
+          (B.=+≤→≤ (sym $ σ₁.pres-ε) (σ₀.pres-≤ ε≤d2))) ,
+        λ p → ap₂ _,_ (ap fst p) (σ₀.injective-on-related (A.≤-trans d1≤ε ε≤d2) $ ap snd p)
+  McBride-functor .F₁ σ .fst .is-natural L N f = trivial!
+  McBride-functor .F₁ σ .snd .pres-unit = ext λ L l → Σ-path refl (transport-refl _ ∙ σ .snd .pres-ε)
+  McBride-functor .F₁ σ .snd .pres-mult = ext λ L l d1 d2 → Σ-path refl (transport-refl _ ∙ σ .snd .pres-⊗)
+  McBride-functor .F-id =
+    ∫Hom-path _
+      (Nat-path λ L → Strictly-monotone-path _ _ $ funext λ where
+        (l , d) → refl)
+      prop!
+  McBride-functor .F-∘ f g =
+    ∫Hom-path _
+      (Nat-path λ L → Strictly-monotone-path _ _ $ funext λ where
+        (l , d) → refl)
+      prop!

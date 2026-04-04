@@ -70,7 +70,7 @@ instance
       (Strictly-monotone-path _ _) sa
 
   Funlike-Strictly-monotone : {X : Poset o r} {Y : Poset o' r'} → Funlike (Strictly-monotone X Y) ⌞ X ⌟ λ _ → ⌞ Y ⌟
-  Funlike-Strictly-monotone .Funlike._#_ = Strictly-monotone.hom
+  Funlike-Strictly-monotone .Funlike._·_ = Strictly-monotone.hom
 
 strictly-monotone-id : ∀ {o r} {X : Poset o r} → Strictly-monotone X X
 strictly-monotone-id .Strictly-monotone.hom x = x
@@ -81,7 +81,7 @@ strictly-monotone-∘
   → Strictly-monotone Y Z
   → Strictly-monotone X Y
   → Strictly-monotone X Z
-strictly-monotone-∘ f g .Strictly-monotone.hom x = f # (g # x)
+strictly-monotone-∘ f g .Strictly-monotone.hom x = f · (g · x)
 strictly-monotone-∘ {X = X} f g .Strictly-monotone.pres-≤[]-equal {x} {y} p =
   Strictly-monotone.pres-≤[] f $ Strictly-monotone.pres-≤[] g (p , λ p → p)
   where open Reasoning X
@@ -99,8 +99,8 @@ record is-full-subposet
     module A = Reasoning A
     module B = Reasoning B
   field
-    injective : ∀ {x y : ⌞ A ⌟} → f # x ≡ f # y → x ≡ y
-    full : ∀ {x y : ⌞ A ⌟} → f # x B.≤ f # y → x A.≤ y
+    injective : ∀ {x y : ⌞ A ⌟} → f · x ≡ f · y → x ≡ y
+    full : ∀ {x y : ⌞ A ⌟} → f · x B.≤ f · y → x A.≤ y
 
 module _
   {A : Poset o r} {B : Poset o' r'} {C : Poset o'' r''}
