@@ -19,7 +19,7 @@ record Right-displacement-action
   field
     _⋆_ : ⌞ A ⌟ → ⌞ B.Ob ⌟ → ⌞ A ⌟
     identity : ∀ {a} → a ⋆ Y.ε ≡ a
-    compatible : ∀ {a x y} → a ⋆ (x Y.⊗ y) ≡ (a ⋆ x) ⋆ y
+    compatible : ∀ {a x y} → a ⋆ (x Y.⊗ y) ≡ (a ⋆ x) ⋆ y
     strict-invariant : ∀ {a x y} → x B.≤ y → (a ⋆ x) A.≤[ x ≡ y ] (a ⋆ y)
 
   abstract

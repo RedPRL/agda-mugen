@@ -122,7 +122,7 @@ module _
 
 record represents-full-subposet
   {A : Type o} (B : Poset o' r')
-  (f : A →  ⌞ B ⌟)
+  (f : A → ⌞ B ⌟)
   : Type (o ⊔ o')
   where
   no-eta-equality
