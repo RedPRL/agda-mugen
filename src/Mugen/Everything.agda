@@ -9,7 +9,7 @@ import Mugen.Algebra.Displacement.Instances.Constant
 import Mugen.Algebra.Displacement.Instances.Endomorphism
 import Mugen.Algebra.Displacement.Instances.IndexedProduct
 import Mugen.Algebra.Displacement.Instances.Int
-import Mugen.Algebra.Displacement.Instances.Lexicographic
+import Mugen.Algebra.Displacement.Instances.LexicalProduct
 import Mugen.Algebra.Displacement.Instances.Nat
 import Mugen.Algebra.Displacement.Instances.NearlyConstant
 import Mugen.Algebra.Displacement.Instances.NonPositive
@@ -36,10 +36,10 @@ import Mugen.Data.NonEmpty
 import Mugen.Order.Instances.BasedSupport
 import Mugen.Order.Instances.Copower
 import Mugen.Order.Instances.Endomorphism
-import Mugen.Order.Instances.Fractal
 import Mugen.Order.Instances.Int
 import Mugen.Order.Instances.LeftInvariantRightCentered
-import Mugen.Order.Instances.Lexicographic
+import Mugen.Order.Instances.LexicalList
+import Mugen.Order.Instances.LexicalSum
 import Mugen.Order.Instances.Lift
 import Mugen.Order.Instances.Nat
 import Mugen.Order.Instances.NonPositive

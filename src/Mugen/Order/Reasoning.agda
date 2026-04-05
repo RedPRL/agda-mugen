@@ -24,11 +24,14 @@ abstract
   ≤-antisym'-r {y = y} x≤y y≤z x=z = ≤-antisym y≤z $ subst (_≤ y) x=z x≤y
 
 _≤[_]_ : ∀ (x : Ob) (K : Type r') (y : Ob) → Type (o ⊔ r ⊔ r')
-x ≤[ K ] y = (x ≤ y) × (x ≡ y → K)
+x ≤[ K ] y = (x ≤ y) × (x ≡ y → K)
+
+_≤[_]ᵢ_ : ∀ (x : Ob) (K : Type r') (y : Ob) → Type (o ⊔ r ⊔ r')
+x ≤[ K ]ᵢ y = (x ≤ y) × (x ≡ᵢ y → K)
 
 abstract
   ≤[]-is-hlevel : ∀ {x y : Ob} {K : Type r'}
-    → (n : Nat) → is-hlevel K (1 + n) → is-hlevel (x ≤[ K ] y) (1 + n)
+    → (n : Nat) → is-hlevel K (1 + n) → is-hlevel (x ≤[ K ] y) (1 + n)
   ≤[]-is-hlevel n hb =
     ×-is-hlevel (1 + n) (hlevel (1 + n)) $ Π-is-hlevel (1 + n) λ _ → hb
 
