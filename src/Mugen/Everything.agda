@@ -7,7 +7,6 @@ import Mugen.Algebra.Displacement
 import Mugen.Algebra.Displacement.Action
 import Mugen.Algebra.Displacement.Instances.Constant
 import Mugen.Algebra.Displacement.Instances.Endomorphism
-import Mugen.Algebra.Displacement.Instances.Fractal
 import Mugen.Algebra.Displacement.Instances.IndexedProduct
 import Mugen.Algebra.Displacement.Instances.Int
 import Mugen.Algebra.Displacement.Instances.Lexicographic
@@ -18,7 +17,6 @@ import Mugen.Algebra.Displacement.Instances.Opposite
 import Mugen.Algebra.Displacement.Instances.Prefix
 import Mugen.Algebra.Displacement.Instances.Product
 import Mugen.Algebra.Displacement.Instances.Support
-import Mugen.Algebra.Displacement.Instances.WeirdFractal
 import Mugen.Algebra.Displacement.Subalgebra
 import Mugen.Algebra.OrderedMonoid
 import Mugen.Cat.HierarchyTheory
