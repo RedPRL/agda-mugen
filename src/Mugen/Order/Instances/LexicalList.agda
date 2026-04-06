@@ -1,17 +1,12 @@
-module Mugen.Order.Instances.LexicalList where
-
 open import Mugen.Prelude
 open import Mugen.Data.List
 
 import Mugen.Order.Reasoning as Reasoning
 
-private variable
-  o r : Level
-
 --------------------------------------------------------------------------------
 -- Lexicographical order on lists
 
-module _ (A : Poset o r) where
+module Mugen.Order.Instances.LexicalList {o r} (A : Poset o r) where
   private
     module A = Reasoning A
 
@@ -47,12 +42,10 @@ module _ (A : Poset o r) where
   --------------------------------------------------------------------------------
   -- Poset Bundle
 
-  Lexical-list : Poset o (o ⊔ r)
-  Lexical-list = poset where
-    poset : Poset o (o ⊔ r)
-    poset .Poset.Ob = List ⌞ A ⌟
-    poset .Poset._≤_ = _≤_
-    poset .Poset.≤-thin = ≤-thin _ _
-    poset .Poset.≤-refl = ≤-refl _
-    poset .Poset.≤-trans = ≤-trans _ _ _
-    poset .Poset.≤-antisym = ≤-antisym _ _
+  poset : Poset o (o ⊔ r)
+  poset .Poset.Ob = List ⌞ A ⌟
+  poset .Poset._≤_ = _≤_
+  poset .Poset.≤-thin = ≤-thin _ _
+  poset .Poset.≤-refl = ≤-refl _
+  poset .Poset.≤-trans = ≤-trans _ _ _
+  poset .Poset.≤-antisym = ≤-antisym _ _

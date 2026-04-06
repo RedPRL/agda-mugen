@@ -45,7 +45,6 @@ import Mugen.Order.Instances.Nat
 import Mugen.Order.Instances.NonPositive
 import Mugen.Order.Instances.Opposite
 import Mugen.Order.Instances.Pointwise
-import Mugen.Order.Instances.Prefix
 import Mugen.Order.Instances.Product
 import Mugen.Order.Instances.Support
 import Mugen.Order.Lattice
