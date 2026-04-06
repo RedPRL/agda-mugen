@@ -17,26 +17,20 @@ module Mugen.Order.Instances.LeftInvariantRightCentred
   x ≤ y = ∥ x ≤' y ∥
 
   private
-    ≤-thin : ∀ (x y : ⌞ A ⌟ × ⌞ B ⌟) → is-prop (x ≤ y)
+    ≤-thin : ∀ x y → is-prop (x ≤ y)
     ≤-thin x y = squash
 
-    ≤-refl : ∀ (x : ⌞ A ⌟ × ⌞ B ⌟) → x ≤ x
+    ≤-refl : ∀ x → x ≤ x
     ≤-refl (a , b1) = pure $ biased refl B.≤-refl
 
-    ≤-trans : ∀ (x y z : ⌞ A ⌟ × ⌞ B ⌟)
-      → x ≤ y
-      → y ≤ z
-      → x ≤ z
+    ≤-trans : ∀ x y z → x ≤ y → y ≤ z → x ≤ z
     ≤-trans x y z = ∥-∥-map₂ λ where
       (biased a1=a2 b1≤b2) (biased a2=a3 b2≤b3) → biased (a1=a2 ∙ a2=a3) (B.≤-trans b1≤b2 b2≤b3)
       (biased a1=a2 b1≤b2) (centred a2≤a3 b2≤b b≤b3) → centred (A.=+≤→≤ a1=a2 a2≤a3) (B.≤-trans b1≤b2 b2≤b) b≤b3
       (centred a1≤a2 b1≤b b≤b2) (biased a2=a3 b2≤b3) → centred (A.≤+=→≤ a1≤a2 a2=a3) b1≤b (B.≤-trans b≤b2 b2≤b3)
       (centred a1≤a2 b1≤b b≤b2) (centred a2≤a3 b2≤b b≤b3) → centred (A.≤-trans a1≤a2 a2≤a3) b1≤b b≤b3
 
-    ≤-antisym : ∀ (x y : ⌞ A ⌟ × ⌞ B ⌟)
-      → x ≤ y
-      → y ≤ x
-      → x ≡ y
+    ≤-antisym : ∀ x y → x ≤ y → y ≤ x → x ≡ y
     ≤-antisym x y = ∥-∥-rec₂ (×-is-hlevel 2 A.Ob-is-set B.Ob-is-set _ _) λ where
       (biased a1=a2 b1≤b2) (biased a2=a1 b2≤b1) →
         ap₂ _,_ a1=a2 (B.≤-antisym b1≤b2 b2≤b1)
