@@ -2,7 +2,6 @@ name: agda-mugen
 depend: 1lab
 include:
   src
-  wip
 flags:
   --cubical
   --no-load-primitives
