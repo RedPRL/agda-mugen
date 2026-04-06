@@ -24,7 +24,7 @@ open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
-open import Mugen.Order.Instances.LeftInvariantRightCentered
+open import Mugen.Order.Instances.LeftInvariantRightCentred
 open import Mugen.Order.Instances.Lift
 
 import Mugen.Order.Reasoning as Reasoning

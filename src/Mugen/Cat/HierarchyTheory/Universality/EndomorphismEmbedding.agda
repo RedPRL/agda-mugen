@@ -24,7 +24,7 @@ open import Mugen.Cat.HierarchyTheory.McBride
 
 open import Mugen.Order.StrictOrder
 open import Mugen.Order.Instances.Endomorphism renaming (Endomorphism to Endomorphism-poset)
-open import Mugen.Order.Instances.LeftInvariantRightCentered
+import Mugen.Order.Instances.LeftInvariantRightCentred as LeftInvariantRightCentred
 
 import Mugen.Order.Reasoning as Reasoning
 
@@ -182,8 +182,9 @@ module Mugen.Cat.HierarchyTheory.Universality.EndomorphismEmbedding
   T .Functor.F₀ _ = tt
   T .Functor.F₁ σ .fst .hom (α , d) = α , (T′ σ SOrdᴴ.∘ d)
   T .Functor.F₁ σ .fst .pres-≤[]-equal {α1 , d1} {α2 , d2} p =
-    let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉-snd-invariant p) in
-    inc (biased (⋉-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
+    let module ⋉ = LeftInvariantRightCentred (Disc Ψ) H⟨Δ⁺⟩→ 𝒟.ε in
+    let d1≤d2 , injr = 𝒟.left-strict-invariant {T′ σ} {d1} {d2} (⋉.≤-snd-invariant p) in
+    inc (⋉.biased (⋉.≤-fst-invariant p) d1≤d2) , λ q i → q i .fst , injr (ap snd q) i
   T .Functor.F₁ σ .snd = ext λ α d₁ d₂ →
     Σ-path refl (transport-refl _ ∙ SOrdᴴ.assoc (T′ σ) d₁ d₂)
   T .Functor.F-id = ext λ α d →

@@ -6,7 +6,7 @@ open import Cat.Displayed.Total
 
 open import Mugen.Prelude
 open import Mugen.Algebra.Displacement
-open import Mugen.Order.Instances.LeftInvariantRightCentered
+import Mugen.Order.Instances.LeftInvariantRightCentred as LeftInvariantRightCentred
 open import Mugen.Order.StrictOrder
 open import Mugen.Cat.Instances.StrictOrders
 open import Mugen.Cat.Instances.Displacements
@@ -31,47 +31,50 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
   open Reasoning A
   open Displacement-on 𝒟
 
+  private
+    module ⋉A (L : Poset o (o ⊔ r)) = LeftInvariantRightCentred L A ε
+
   McBride : Hierarchy-theory-on _
   McBride = ht where
     M : Functor (Strict-orders o (o ⊔ r)) (Strict-orders o (o ⊔ r))
-    M .F₀ L = L ⋉[ ε ] A
+    M .F₀ L = ⋉A.poset L
     M .F₁ f .hom (l , d) = (f .hom l) , d
     M .F₁ {L} {N} f .pres-≤[]-equal {l1 , d1} {l2 , d2} =
-      let module N⋉A = Reasoning (N ⋉[ ε ] A) in
-      ∥-∥-rec (N⋉A.≤[]-is-hlevel 0 $ Poset.Ob-is-set (L ⋉[ ε ] A) _ _) λ where
-        (biased l1=l2 d1≤d2) → inc (biased (ap (f .hom) l1=l2) d1≤d2) , λ p → ap₂ _,_ l1=l2 (ap snd p)
-        (centred l1≤l2 d1≤ε ε≤d2) → inc (centred (pres-≤ f l1≤l2) d1≤ε ε≤d2) , λ p →
+      let module N⋉A = Reasoning (⋉A.poset N) in
+      ∥-∥-rec (N⋉A.≤[]-is-hlevel 0 $ Poset.Ob-is-set (⋉A.poset L) _ _) λ where
+        (⋉A.biased l1=l2 d1≤d2) → inc (⋉A.biased (ap (f .hom) l1=l2) d1≤d2) , λ p → ap₂ _,_ l1=l2 (ap snd p)
+        (⋉A.centred l1≤l2 d1≤ε ε≤d2) → inc (⋉A.centred (pres-≤ f l1≤l2) d1≤ε ε≤d2) , λ p →
           ap₂ _,_ (injective-on-related f l1≤l2 (ap fst p)) (ap snd p)
     M .F-id = trivial!
     M .F-∘ f g = trivial!
 
     unit : Id => M
     unit .η L .hom l = l , ε
-    unit .η L .pres-≤[]-equal l1≤l2 = inc (centred l1≤l2 ≤-refl ≤-refl) , ap fst
+    unit .η L .pres-≤[]-equal l1≤l2 = inc (⋉A.centred l1≤l2 ≤-refl ≤-refl) , ap fst
     unit .is-natural L L' f = trivial!
 
     mult : M F∘ M => M
     mult .η L .hom ((l , x) , y) = l , (x ⊗ y)
     mult .η L .pres-≤[]-equal {(a1 , d1) , e1} {(a2 , d2) , e2} =
-      let module L⋉A = Reasoning (L ⋉[ ε ] A) in
+      let module L⋉A = Reasoning (⋉A.poset L) in
       ∥-∥-rec (L⋉A.≤[]-is-hlevel 0 $ Poset.Ob-is-set (M .F₀ (M .F₀ L)) _ _) lemma where
-        lemma : (M .F₀ L) ⋉[ ε ] A [ ((a1 , d1) , e1) raw≤ ((a2 , d2) , e2) ]
-          → (L ⋉[ ε ] A [ (a1 , (d1 ⊗ e1)) ≤ (a2 , (d2 ⊗ e2)) ])
+        lemma : ⋉A._≤'_ (M .F₀ L) ((a1 , d1) , e1) ((a2 , d2) , e2)
+          → ⋉A._≤_ L (a1 , (d1 ⊗ e1)) (a2 , (d2 ⊗ e2))
           × ((a1 , (d1 ⊗ e1)) ≡ (a2 , (d2 ⊗ e2)) → ((a1 , d1) , e1) ≡ ((a2 , d2) , e2))
-        lemma (biased ad1=ad2 e1≤e2) =
-          inc (biased (ap fst ad1=ad2) (=+≤→≤ (ap (_⊗ e1) (ap snd ad1=ad2)) (left-invariant e1≤e2))) ,
+        lemma (⋉A.biased ad1=ad2 e1≤e2) =
+          inc (⋉A.biased (ap fst ad1=ad2) (=+≤→≤ (ap (_⊗ e1) (ap snd ad1=ad2)) (left-invariant e1≤e2))) ,
           λ p i → ad1=ad2 i , injectiver-on-related e1≤e2 (ap snd p ∙ ap (_⊗ e2) (sym $ ap snd ad1=ad2)) i
-        lemma (centred ad1≤ad2 e1≤ε ε≤e2) = ∥-∥-map lemma₂ ad1≤ad2 , lemma₃ where
+        lemma (⋉A.centred ad1≤ad2 e1≤ε ε≤e2) = ∥-∥-map lemma₂ ad1≤ad2 , lemma₃ where
           d1⊗e1≤d1 : (d1 ⊗ e1) ≤ d1
           d1⊗e1≤d1 = ≤+=→≤ (left-invariant e1≤ε) idr
 
           d2≤d2⊗e2 : d2 ≤ (d2 ⊗ e2)
           d2≤d2⊗e2 = =+≤→≤ (sym idr) (left-invariant ε≤e2)
 
-          lemma₂ : L ⋉[ ε ] A [ (a1 , d1) raw≤ (a2 , d2) ]
-            → L ⋉[ ε ] A [ (a1 , (d1 ⊗ e1)) raw≤ (a2 , (d2 ⊗ e2)) ]
-          lemma₂ (biased a1=a2 d1≤d2) = biased a1=a2 (≤-trans d1⊗e1≤d1 (≤-trans d1≤d2 d2≤d2⊗e2))
-          lemma₂ (centred a1≤a2 d1≤ε ε≤d2) = centred a1≤a2 (≤-trans d1⊗e1≤d1 d1≤ε) (≤-trans ε≤d2 d2≤d2⊗e2)
+          lemma₂ : ⋉A._≤'_ L (a1 , d1) (a2 , d2)
+            → ⋉A._≤'_ L (a1 , (d1 ⊗ e1)) (a2 , (d2 ⊗ e2))
+          lemma₂ (⋉A.biased a1=a2 d1≤d2) = ⋉A.biased a1=a2 (≤-trans d1⊗e1≤d1 (≤-trans d1≤d2 d2≤d2⊗e2))
+          lemma₂ (⋉A.centred a1≤a2 d1≤ε ε≤d2) = ⋉A.centred a1≤a2 (≤-trans d1⊗e1≤d1 d1≤ε) (≤-trans ε≤d2 d2≤d2⊗e2)
 
           lemma₃ : (a1 , (d1 ⊗ e1)) ≡ (a2 , (d2 ⊗ e2)) → ((a1 , d1) , e1) ≡ ((a2 , d2) , e2)
           lemma₃ p i = (a1=a2 i , d1=d2 i) , e1=e2 i where
@@ -86,7 +89,7 @@ module _ {A : Poset o r} (𝒟 : Displacement-on A) where
               d1      ≤∎
 
             d1=d2 : d1 ≡ d2
-            d1=d2 = ≤-antisym (⋉-snd-invariant ad1≤ad2) d2≤d1
+            d1=d2 = ≤-antisym (⋉A.≤-snd-invariant _ ad1≤ad2) d2≤d1
 
             e1=e2 : e1 ≡ e2
             e1=e2 = injectiver-on-related (≤-trans e1≤ε ε≤e2) $ ap snd p ∙ ap (_⊗ e2) (sym d1=d2)
@@ -121,15 +124,17 @@ module _ where
         module B = Reasoning B
         module σ₀ = Strictly-monotone (σ .fst)
         module σ₁ = is-displacement-hom (σ .snd)
-        module L⋉A = Reasoning (L ⋉[ 𝒟 .ε ] A)
-        module L⋉B = Reasoning (L ⋉[ ℰ .ε ] B)
+        module ⋉A (L : Poset _ _) = LeftInvariantRightCentred L A (𝒟 .ε)
+        module ⋉B (L : Poset _ _) = LeftInvariantRightCentred L B (ℰ .ε)
+        module ⋉A-poset (L : Poset _ _) = Reasoning (⋉A.poset L)
+        module ⋉B-poset (L : Poset _ _) = Reasoning (⋉B.poset L)
     in
-    ∥-∥-rec (L⋉B.≤[]-is-hlevel 0 $ L⋉A.Ob-is-set _ _) λ where
-      (biased l1=l2 d1≤d2) →
-        inc (biased l1=l2 (σ₀.pres-≤ d1≤d2)) ,
+    ∥-∥-rec (⋉B-poset.≤[]-is-hlevel L 0 $ ⋉A-poset.Ob-is-set L _ _) λ where
+      (⋉A.biased l1=l2 d1≤d2) →
+        inc (⋉B.biased l1=l2 (σ₀.pres-≤ d1≤d2)) ,
         λ p → ap₂ _,_ (ap fst p) (σ₀.injective-on-related d1≤d2 $ ap snd p)
-      (centred l1≤l2 d1≤ε ε≤d2) →
-        inc (centred l1≤l2
+      (⋉A.centred l1≤l2 d1≤ε ε≤d2) →
+        inc (⋉B.centred l1≤l2
           (B.≤+=→≤ (σ₀.pres-≤ d1≤ε) (σ₁.pres-ε))
           (B.=+≤→≤ (sym $ σ₁.pres-ε) (σ₀.pres-≤ ε≤d2))) ,
         λ p → ap₂ _,_ (ap fst p) (σ₀.injective-on-related (A.≤-trans d1≤ε ε≤d2) $ ap snd p)

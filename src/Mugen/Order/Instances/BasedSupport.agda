@@ -41,14 +41,14 @@ private variable
 -- Raw Support Lists
 --
 
-record RawList (A : Type o) : Type o where
+record Raw-list (A : Type o) : Type o where
   constructor raw
   field
     elts : List A
     base : A
-open RawList
+open Raw-list
 
-raw-path : ∀ {A : Type o} {xs ys : RawList A}
+raw-path : ∀ {A : Type o} {xs ys : Raw-list A}
   → xs .elts ≡ ys .elts
   → xs .base ≡ ys .base
   → xs ≡ ys
@@ -58,20 +58,20 @@ raw-path p q i .base = q i
 -- Lemmas about hlevel
 module _ {A : Type o} where
   abstract instance
-    H-Level-RawList : {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (RawList A) (2 + n)
-    H-Level-RawList {n} = hlevel-instance $
+    H-Level-Raw-list : {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (Raw-list A) (2 + n)
+    H-Level-Raw-list {n} = hlevel-instance $
       Equiv→is-hlevel (2 + n) (Iso→Equiv raw-eqv) $ hlevel (2 + n)
       where
-        unquoteDecl raw-eqv = declare-record-iso raw-eqv (quote RawList)
+        unquoteDecl raw-eqv = declare-record-iso raw-eqv (quote Raw-list)
 
 -- Operations and properties for raw support lists
 module Raw {A : Type o} where
   private
-    _raw∷_ : A → RawList A → RawList A
+    _raw∷_ : A → Raw-list A → Raw-list A
     x raw∷ (raw xs b) = raw (x ∷ xs) b
 
   -- Indexing function that turns a list into a map 'Nat → A'
-  index : RawList A → (Nat → A)
+  index : Raw-list A → (Nat → A)
   index (raw [] b) n = b
   index (raw (x ∷ xs) b) zero = x
   index (raw (x ∷ xs) b) (suc n) = index (raw xs b) n
@@ -79,7 +79,7 @@ module Raw {A : Type o} where
   --------------------------------------------------------------------------------
   -- Compactness of Raw Lists
 
-  is-compact : RawList A → Type o
+  is-compact : Raw-list A → Type o
   is-compact (raw [] b) = Lift o ⊤
   is-compact (raw (x ∷ []) b) = ¬ (x ≡ b)
   is-compact (raw (_ ∷ y ∷ ys) b) = is-compact (raw (y ∷ ys) b)
@@ -116,10 +116,10 @@ module Raw {A : Type o} where
       compact-list [] = []
       compact-list (x ∷ xs) = compact-list-step x (compact-list xs)
 
-    compact-step : A → RawList A → RawList A
+    compact-step : A → Raw-list A → Raw-list A
     compact-step x (raw xs b) = raw (compact-list-step b x xs) b
 
-    compact : RawList A → RawList A
+    compact : Raw-list A → Raw-list A
     compact (raw xs b) = raw (compact-list b xs) b
 
     abstract
@@ -184,13 +184,13 @@ module Raw {A : Type o} where
   --------------------------------------------------------------------------------
   -- Merging Lists
 
-  merge-list-with : (A → A → A) → RawList A → RawList A → List A
+  merge-list-with : (A → A → A) → Raw-list A → Raw-list A → List A
   merge-list-with _⊚_ (raw [] b1) (raw [] b2) = []
   merge-list-with _⊚_ (raw [] b1) (raw (y ∷ ys) b2) = (b1 ⊚ y) ∷ merge-list-with _⊚_ (raw [] b1) (raw ys b2)
   merge-list-with _⊚_ (raw (x ∷ xs) b1) (raw [] b2) = (x ⊚ b2) ∷ merge-list-with _⊚_ (raw xs b1) (raw [] b2)
   merge-list-with _⊚_ (raw (x ∷ xs) b1) (raw (y ∷ ys) b2) = (x ⊚ y) ∷ merge-list-with _⊚_ (raw xs b1) (raw ys b2)
 
-  merge-with : (A → A → A) → RawList A → RawList A → RawList A
+  merge-with : (A → A → A) → Raw-list A → Raw-list A → Raw-list A
   merge-with _⊚_ xs ys = raw (merge-list-with _⊚_ xs ys) (xs .base ⊚ ys .base)
 
   abstract
@@ -232,38 +232,38 @@ module Raw {A : Type o} where
 -- These will be the actual elements of our displacement algebra.
 -- A support list is a compact raw list.
 
-record BasedSupportList (A : Type o) : Type o where
+record Based-support-list (A : Type o) : Type o where
   constructor based-support-list
   no-eta-equality
   field
-    list : RawList A
+    list : Raw-list A
     has-is-compact : Raw.is-compact list
-  open RawList list public
+  open Raw-list list public
 
 module _ {A : Type o} where
-  open BasedSupportList
+  open Based-support-list
 
   -- Paths in support lists are determined by paths between the bases + paths between the elements.
   abstract
-    based-support-list-path : ∀ {xs ys : BasedSupportList A} → xs .list ≡ ys .list → xs ≡ ys
+    based-support-list-path : ∀ {xs ys : Based-support-list A} → xs .list ≡ ys .list → xs ≡ ys
     based-support-list-path p i .list = p i
     based-support-list-path {xs = xs} {ys = ys} p i .has-is-compact =
       is-prop→pathp (λ i → Raw.is-compact-is-prop (p i)) (xs .has-is-compact) (ys .has-is-compact) i
 
   abstract instance
-    H-Level-BasedSupportList : ∀ {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (BasedSupportList A) (2 + n)
-    H-Level-BasedSupportList {n} = hlevel-instance $
+    H-Level-Based-support-list : ∀ {n : Nat} ⦃ _ : H-Level A (2 + n) ⦄ → H-Level (Based-support-list A) (2 + n)
+    H-Level-Based-support-list {n} = hlevel-instance $
       Equiv→is-hlevel (2 + n) (Iso→Equiv eqv) $
       Σ-is-hlevel (2 + n) (hlevel (2 + n)) λ xs →
       is-prop→is-hlevel-suc {n = 1 + n} (Raw.is-compact-is-prop xs)
       where
-        unquoteDecl eqv = declare-record-iso eqv (quote BasedSupportList)
+        unquoteDecl eqv = declare-record-iso eqv (quote Based-support-list)
 
-  index : BasedSupportList A → (Nat → A)
+  index : Based-support-list A → (Nat → A)
   index xs = Raw.index (xs .list)
 
   module _ ⦃ _ : Discrete A ⦄ where
-    merge-with : (A → A → A) → BasedSupportList A → BasedSupportList A → BasedSupportList A
+    merge-with : (A → A → A) → Based-support-list A → Based-support-list A → Based-support-list A
     merge-with f xs ys .list = Raw.compact $ Raw.merge-with f (xs .list) (ys .list)
     merge-with f xs ys .has-is-compact = Raw.compact-is-compact $ Raw.merge-with f (xs .list) (ys .list)
 
@@ -287,14 +287,14 @@ module _ (A : Poset o r) where
     rep .represents-full-subposet.injective = index-injective
     module rep = represents-full-subposet rep
 
-  BasedSupport : Poset o r
-  BasedSupport = rep.poset
+  Based-support : Poset o r
+  Based-support = rep.poset
 
-  BasedSupport→Pointwise : Strictly-monotone BasedSupport (Pointwise Nat (λ _ → A))
-  BasedSupport→Pointwise = rep.strictly-monotone
+  Based-support→Pointwise : Strictly-monotone Based-support (Pointwise Nat (λ _ → A))
+  Based-support→Pointwise = rep.strictly-monotone
 
-  BasedSupport→Pointwise-is-full-subposet : is-full-subposet BasedSupport→Pointwise
-  BasedSupport→Pointwise-is-full-subposet = rep.has-is-full-subposet
+  Based-support→Pointwise-is-full-subposet : is-full-subposet Based-support→Pointwise
+  Based-support→Pointwise-is-full-subposet = rep.has-is-full-subposet
 
 --------------------------------------------------------------------------------
 -- Joins
@@ -311,17 +311,17 @@ module _
     P-has-joins = Pointwise-has-joins Nat λ _ → A-has-joins
     module P-has-joins = has-joins P-has-joins
 
-    rep : represents-full-subsemilattice P-has-joins (BasedSupport→Pointwise-is-full-subposet A)
+    rep : represents-full-subsemilattice P-has-joins (Based-support→Pointwise-is-full-subposet A)
     rep .represents-full-subsemilattice.join = merge-with A-has-joins.join
     rep .represents-full-subsemilattice.pres-join {x} {y} = index-merge-with A-has-joins.join x y
     module rep = represents-full-subsemilattice rep
 
-  BasedSupport-has-joins : has-joins (BasedSupport A)
-  BasedSupport-has-joins = rep.joins
+  Based-support-has-joins : has-joins (Based-support A)
+  Based-support-has-joins = rep.joins
 
-  BasedSupport→Pointwise-is-full-subsemilattice
-    : is-full-subsemilattice BasedSupport-has-joins P-has-joins (BasedSupport→Pointwise A)
-  BasedSupport→Pointwise-is-full-subsemilattice = rep.has-is-full-subsemilattice
+  Based-support→Pointwise-is-full-subsemilattice
+    : is-full-subsemilattice Based-support-has-joins P-has-joins (Based-support→Pointwise A)
+  Based-support→Pointwise-is-full-subsemilattice = rep.has-is-full-subsemilattice
 
 --------------------------------------------------------------------------------
 -- Bottoms
@@ -338,17 +338,17 @@ module _
     P-has-bottom = Pointwise-has-bottom Nat λ _ → A-has-bottom
     module P-has-bottom = has-bottom P-has-bottom
 
-    rep : represents-full-bounded-subposet P-has-bottom (BasedSupport→Pointwise-is-full-subposet A)
+    rep : represents-full-bounded-subposet P-has-bottom (Based-support→Pointwise-is-full-subposet A)
     rep .represents-full-bounded-subposet.bot = based-support-list (raw [] A-has-bottom.bot) (lift tt)
     rep .represents-full-bounded-subposet.pres-bot = refl
     module rep = represents-full-bounded-subposet rep
 
-  BasedSupport-has-bottom : has-bottom (BasedSupport A)
-  BasedSupport-has-bottom = rep.bottom
+  Based-support-has-bottom : has-bottom (Based-support A)
+  Based-support-has-bottom = rep.bottom
 
-  BasedSupport→Pointwise-is-full-bounded-subposet
-    : is-full-bounded-subposet BasedSupport-has-bottom P-has-bottom (BasedSupport→Pointwise A)
-  BasedSupport→Pointwise-is-full-bounded-subposet = rep.has-is-full-bounded-subposet
+  Based-support→Pointwise-is-full-bounded-subposet
+    : is-full-bounded-subposet Based-support-has-bottom P-has-bottom (Based-support→Pointwise A)
+  Based-support→Pointwise-is-full-bounded-subposet = rep.has-is-full-bounded-subposet
 
 --------------------------------------------------------------------------------
 -- Extensionality
@@ -356,13 +356,13 @@ module _
 module _ {A : Type o} {ℓr} ⦃ s : Extensional (Nat → A) ℓr ⦄ where
 
   instance
-    Extensional-BasedSupportList
+    Extensional-Based-support-list
       : ⦃ A-is-set : H-Level A 2 ⦄
-      → Extensional (BasedSupportList A) ℓr
-    Extensional-BasedSupportList ⦃ A-is-set ⦄ =
+      → Extensional (Based-support-list A) ℓr
+    Extensional-Based-support-list ⦃ A-is-set ⦄ =
       injection→extensional! index-injective s
 
 private
   open import Data.Nat
-  _ : (f : BasedSupportList Nat) → f ≡ f
+  _ : (f : Based-support-list Nat) → f ≡ f
   _ = λ f → ext λ _ → refl

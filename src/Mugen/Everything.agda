@@ -37,7 +37,7 @@ import Mugen.Order.Instances.BasedSupport
 import Mugen.Order.Instances.Copower
 import Mugen.Order.Instances.Endomorphism
 import Mugen.Order.Instances.Int
-import Mugen.Order.Instances.LeftInvariantRightCentered
+import Mugen.Order.Instances.LeftInvariantRightCentred
 import Mugen.Order.Instances.LexicalList
 import Mugen.Order.Instances.LexicalSum
 import Mugen.Order.Instances.Lift
