@@ -10,7 +10,7 @@ open import Mugen.Algebra.Displacement.Instances.Nat
 open import Mugen.Algebra.Displacement.Instances.Opposite
 
 open import Mugen.Order.Instances.NonPositive
-  renaming (NonPositive to NonPositive-poset)
+  renaming (Non-positive to Non-positive-poset)
 
 --------------------------------------------------------------------------------
 -- The Non-Positive Integers
@@ -19,16 +19,16 @@ open import Mugen.Order.Instances.NonPositive
 -- These have a terse definition as the opposite order of Nat+,
 -- so we just use that.
 
-NonPositive : Displacement-on NonPositive-poset
-NonPositive = Opposite Nat-displacement
+Non-positive : Displacement-on Non-positive-poset
+Non-positive = Opposite Nat-displacement
 
 --------------------------------------------------------------------------------
 -- Inclusion into Int
 
-NonPositive→Int-is-full-subdisplacement
-  : is-full-subdisplacement NonPositive Int-displacement NonPositive→Int
-NonPositive→Int-is-full-subdisplacement = to-full-subdisplacement subalg where
-  subalg : make-full-subdisplacement NonPositive Int-displacement NonPositive→Int
+Non-positive→Int-is-full-subdisplacement
+  : is-full-subdisplacement Non-positive Int-displacement Non-positive→Int
+Non-positive→Int-is-full-subdisplacement = to-full-subdisplacement subalg where
+  subalg : make-full-subdisplacement Non-positive Int-displacement Non-positive→Int
   subalg .make-full-subdisplacement.pres-ε = refl
   subalg .make-full-subdisplacement.pres-⊗ {x} {y} = negℤ-distrib (pos x) (pos y)
   subalg .make-full-subdisplacement.pres-≤ {x} {y} p = negℤ-anti (pos y) (pos x) (pos≤pos p)

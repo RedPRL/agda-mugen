@@ -32,11 +32,11 @@ module _
   (𝒟 : Displacement-on A)
   where
   private
-    module NearlyConstant = Displacement-on (NearlyConstant 𝒟)
+    module NearlyConstant = Displacement-on (Nearly-constant 𝒟)
     module 𝒟 = Displacement-on 𝒟
-    open SupportList
+    open Support-list
 
-    rep : represents-full-subdisplacement (NearlyConstant 𝒟) (Support→BasedSupport-is-full-subposet A 𝒟.ε)
+    rep : represents-full-subdisplacement (Nearly-constant 𝒟) (Support→Based-support-is-full-subposet A 𝒟.ε)
     rep .represents-full-subdisplacement.ε = support-list NearlyConstant.ε refl
     rep .represents-full-subdisplacement._⊗_ x y .based-support =
       NearlyConstant._⊗_ (x .based-support) (y .based-support)
@@ -49,9 +49,9 @@ module _
   Support : Displacement-on (Support-poset A 𝒟.ε)
   Support = rep.displacement-on
 
-  Support→NearlyConstant-is-full-subdisplacement :
-    is-full-subdisplacement Support (NearlyConstant 𝒟) (Support→BasedSupport A 𝒟.ε)
-  Support→NearlyConstant-is-full-subdisplacement = rep.has-is-full-subdisplacement
+  Support→Nearly-constant-is-full-subdisplacement :
+    is-full-subdisplacement Support (Nearly-constant 𝒟) (Support→Based-support A 𝒟.ε)
+  Support→Nearly-constant-is-full-subdisplacement = rep.has-is-full-subdisplacement
 
 --------------------------------------------------------------------------------
 -- Ordered Monoid
@@ -65,8 +65,8 @@ module _
 
   private
     module 𝒟 = Displacement-on 𝒟
-    module N-is-ordered-monoid = is-ordered-monoid (NearlyConstant-has-ordered-monoid 𝒟 𝒟-ordered-monoid)
-    open SupportList
+    module N-is-ordered-monoid = is-ordered-monoid (Nearly-constant-has-ordered-monoid 𝒟 𝒟-ordered-monoid)
+    open Support-list
 
   Support-has-ordered-monoid : has-ordered-monoid (Support 𝒟)
   Support-has-ordered-monoid = right-invariant→has-ordered-monoid (Support 𝒟) λ {xs} {ys} {zs} xs≤ys →
