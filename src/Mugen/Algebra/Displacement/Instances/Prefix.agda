@@ -1,38 +1,43 @@
-module Mugen.Algebra.Displacement.Instances.Prefix where
+open import Mugen.Prelude
+open import Mugen.Data.List
+open import Mugen.Order.StrictOrder
+open import Mugen.Order.Lattice
+import Mugen.Order.Instances.LexicalList as LexicalList
+open import Mugen.Algebra.Displacement
 
 open import Algebra.Magma
 open import Algebra.Monoid
 open import Algebra.Semigroup
 
-open import Mugen.Prelude
-open import Mugen.Data.List
-open import Mugen.Order.StrictOrder
-open import Mugen.Order.Lattice
-open import Mugen.Order.Instances.Prefix renaming (Prefix to Prefix-poset)
-open import Mugen.Algebra.Displacement
+import Mugen.Order.Reasoning as Reasoning
 
-private variable
-  o r : Level
+import Mugen.Order.Instances.LexicalList as LexicalList
 
 --------------------------------------------------------------------------------
 -- Prefix Displacements
 -- Section 3.3.6
 --
--- Given a set 'A', we can define a displacement algebra on 'List A',
--- where 'xs ≤ ys' if 'xs' is a prefix of 'ys'.
+-- Given a poset 'A', we can define a displacement algebra on lexicographical lists over 'A'.
+
+module Mugen.Algebra.Displacement.Instances.Prefix {o r} (A : Poset o r) where
 
 private
+  module A = Reasoning A
+  module L where
+    open LexicalList A public
+    open Reasoning poset hiding (_≤_) public
+
   --------------------------------------------------------------------------------
   -- Left Invariance
 
-  ++-left-invariant : ∀ {ℓ} {A : Type ℓ} (xs ys zs : List A) → Prefix[ ys ≤ zs ] → Prefix[ (xs ++ ys) ≤ (xs ++ zs) ]
+  ++-left-invariant : (xs ys zs : List _) → ys L.≤ zs → (xs ++ ys) L.≤ (xs ++ zs)
   ++-left-invariant [] ys zs ys≤zs = ys≤zs
-  ++-left-invariant (x ∷ xs) ys zs ys<zs = refl pre∷ (++-left-invariant xs ys zs ys<zs)
+  ++-left-invariant (x ∷ xs) ys zs ys≤zs = A.≤-refl L.∷≤ (λ _ → ++-left-invariant xs ys zs ys≤zs)
 
 -- Most of the order theoretic properties come from 'Mugen.Order.Instances.Prefix'.
-Prefix : ∀ (A : Set o) → Displacement-on (Prefix-poset A)
-Prefix A = to-displacement-on displacement where
-  displacement : make-displacement (Prefix-poset A)
+Prefix : Displacement-on L.poset
+Prefix = to-displacement-on displacement where
+  displacement : make-displacement L.poset
   displacement .make-displacement.ε = []
   displacement .make-displacement._⊗_ = _++_
   displacement .make-displacement.idl = ++-idl _
