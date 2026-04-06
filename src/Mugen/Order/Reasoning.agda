@@ -97,9 +97,9 @@ private
     strict : ∀ {x y} → x ≤[ K ] y → Related K x y
     non-strict : ∀ {x y} → x ≤ y → Related K x y
 
-  NonStrict : ∀ {x y} → Related ⊤ x y → Type
-  NonStrict (strict _) = ⊥
-  NonStrict (non-strict _) = ⊤
+  Non-strict : ∀ {x y} → Related ⊤ x y → Type
+  Non-strict (strict _) = ⊥
+  Non-strict (non-strict _) = ⊤
 
   Strict : ∀ {K : Type r'} {x y} → Related K x y → Type
   Strict (strict _) = ⊤
@@ -108,7 +108,7 @@ private
 begin-≤[_]_ : ∀ {x y} (K : Type r') (x<y : Related K x y) → {Strict x<y} → x ≤[ K ] y
 begin-≤[ K ] (strict x<y) = x<y
 
-begin-≤_ : ∀ {x y} (x≤y : Related ⊤ x y) → {NonStrict x≤y} → x ≤ y
+begin-≤_ : ∀ {x y} (x≤y : Related ⊤ x y) → {Non-strict x≤y} → x ≤ y
 begin-≤ (non-strict x≤y) = x≤y
 
 step-< : ∀ {K : Type r'} x {y z} → x ≤[ K ] y → Related K y z → Related K x z
