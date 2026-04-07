@@ -50,6 +50,13 @@ record is-displacement
 
   open is-monoid has-is-monoid hiding (has-is-set) public
 
+  abstract
+    right-contract : ∀ {x e} → e ≤ ε → (x ⊗ e) ≤ x
+    right-contract e≤ε = ≤+=→≤ (left-invariant e≤ε) idr
+
+    right-expand : ∀ {x e} → ε ≤ e → x ≤ (x ⊗ e)
+    right-expand ε≤e = =+≤→≤ (sym idr) (left-invariant ε≤e)
+
 record Displacement-on (A : Poset o r) : Type (o ⊔ lsuc r) where
   field
     ε : ⌞ A ⌟
