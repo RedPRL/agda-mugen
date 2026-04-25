@@ -14,12 +14,12 @@ import Mugen.Order.Reasoning as Reasoning
 import Mugen.Order.Instances.LexicalList as LexicalList
 
 --------------------------------------------------------------------------------
--- Prefix Displacements
+-- Lexical List Displacements
 -- Section 3.3.6
 --
 -- Given a poset 'A', we can define a displacement algebra on lexicographical lists over 'A'.
 
-module Mugen.Algebra.Displacement.Instances.Prefix {o r} (A : Poset o r) where
+module Mugen.Algebra.Displacement.Instances.LexicalList {o r} (A : Poset o r) where
 
 private
   module A = Reasoning A
@@ -34,9 +34,9 @@ private
   ++-left-invariant [] ys zs ys≤zs = ys≤zs
   ++-left-invariant (x ∷ xs) ys zs ys≤zs = A.≤-refl L.∷≤ (λ _ → ++-left-invariant xs ys zs ys≤zs)
 
--- Most of the order theoretic properties come from 'Mugen.Order.Instances.Prefix'.
-Prefix : Displacement-on L.poset
-Prefix = to-displacement-on displacement where
+-- Most of the order theoretic properties come from 'Mugen.Order.Instances.LexicalList'.
+LexicalList : Displacement-on L.poset
+LexicalList = to-displacement-on displacement where
   displacement : make-displacement L.poset
   displacement .make-displacement.ε = []
   displacement .make-displacement._⊗_ = _++_

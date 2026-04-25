@@ -9,12 +9,12 @@ import Mugen.Algebra.Displacement.Instances.Constant
 import Mugen.Algebra.Displacement.Instances.Endomorphism
 import Mugen.Algebra.Displacement.Instances.IndexedProduct
 import Mugen.Algebra.Displacement.Instances.Int
+import Mugen.Algebra.Displacement.Instances.LexicalList
 import Mugen.Algebra.Displacement.Instances.LexicalProduct
 import Mugen.Algebra.Displacement.Instances.Nat
 import Mugen.Algebra.Displacement.Instances.NearlyConstant
 import Mugen.Algebra.Displacement.Instances.NonPositive
 import Mugen.Algebra.Displacement.Instances.Opposite
-import Mugen.Algebra.Displacement.Instances.Prefix
 import Mugen.Algebra.Displacement.Instances.Product
 import Mugen.Algebra.Displacement.Instances.Support
 import Mugen.Algebra.Displacement.Subalgebra
